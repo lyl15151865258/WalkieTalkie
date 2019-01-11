@@ -1,0 +1,67 @@
+<resources>
+
+    <string name="app_name">トランシーバー</string>
+    <string name="loading">読み込み中…</string>
+    <string name="ssid">Wi-Fi名：</string>
+    <string name="room">グループ名：</string>
+    <string name="contact">連絡先</string>
+    <string name="malfunction">アラーム情報</string>
+    <string name="pressToJoinChat">チャットに参加</string>
+    <string name="releaseToExitChat">チャットを終了</string>
+    <string name="pressToSpeak">プレスアンドトーク</string>
+    <string name="releaseFinish">プレス終了</string>
+    <string name="pressToUseSpeaker">スピーカー</string>
+    <string name="releaseToUseEarpiece">イヤホン</string>
+    <string name="InChatRoom">あなたはチャットルームに参加しました</string>
+    <string name="ExitChatRoom">チャットルームを離れました</string>
+    <string name="OutChatRoom">あなたはまだチャットルームに入っていません</string>
+    <string name="microphonePermission">マイクの許可を与えてください</string>
+    <string name="NoMoreData">データはこれ以上ありません</string>
+    <string name="settings">設定</string>
+    <string name="click_again_exit">もう一度押すとプログラムが終了します</string>
+    <string name="reminder_metter">プロンプト</string>
+    <string name="dialog_cancel">キャンセル</string>
+    <string name="dialog_input_continue">続ける</string>
+    <string name="notification_connect_wifi">あなたは現在WiFiに接続されていません。接続しようとしていますか</string>
+    <string name="MediaTest">音声テスト</string>
+    <string name="SetName">私の名前</string>
+    <string name="ModifyName">名前を変更する</string>
+    <string name="TypeInName">名前を入力してください</string>
+    <string name="ConfirmModification">修正を確認する</string>
+    <string name="SetSpeakTime">シングルトーク時間</string>
+    <string name="TypeInTime">入力時間</string>
+    <string name="ModifySpeakTime">変更時刻</string>
+    <string name="WifiSettings">Wi-Fi設定</string>
+    <string name="LanguageSettings">言語設定</string>
+    <string name="SendMode">音声伝送方式</string>
+    <string name="PlayWithSpeakers">スピーカーで遊ぶ</string>
+    <string name="Version">バージョン</string>
+    <string name="working">ウォーキートーキーサービス業務</string>
+
+    <string name="Logout">ログアウト</string>
+
+    <string name="listview_header_hint_normal">プルダウンリフレッシュ</string>
+    <string name="listview_header_hint_release">即時リフレッシュを解放する</string>
+    <string name="listview_loading">読み込み中&#8230;</string>
+    <string name="nomore_loading">もはや</string>
+    <string name="refreshing">リフレッシュ&#8230;</string>
+    <string name="refresh_done">リフレッシュが完了しました</string>
+    <string name="loading_done">読み込み完了</string>
+    <string name="listview_header_last_time">最終更新時間：</string>
+
+    <string name="ChooseLanguage">言語の選択</string>
+    <string name="Save">保存する</string>
+    <string name="lan_default">システムに従う</string>
+    <string name="lan_chinese">中国語</string>
+    <string name="lan_en">英語</string>
+    <string name="lan_ja">日本語</string>
+
+    <string name="accessibility_description">キーキャプチャ</string>
+    <string name="accessibility_name">トランシーバー(オープンにおすすめ)</string>
+
+    <string name="send_wlan_unicast">LANユニキャスト</string>
+    <string name="send_wlan_broadcast">LANブロードキャスト</string>
+    <string name="send_wan">広域ネットワーク</string>
+    <string name="copyright">Copyright © 2019 J システムサポートー株式会社</string>
+
+</resources>

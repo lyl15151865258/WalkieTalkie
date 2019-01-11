@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/ll_setMainAccount"
+    android:layout_width="match_parent"
+    android:layout_height="@dimen/dp_50"
+    android:background="@drawable/background_item_list_selector"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingLeft="@dimen/dp_16"
+    android:paddingRight="@dimen/dp_16">
+
+    <TextView
+        android:id="@+id/tv_language"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:gravity="center_vertical"
+        android:text="跟随系统"
+        android:textSize="@dimen/sp_18" />
+
+    <ImageView
+        android:id="@+id/iv_select"
+        android:layout_width="@dimen/dp_32"
+        android:layout_height="@dimen/dp_32"
+        android:contentDescription="@null"
+        android:gravity="center_vertical|end"
+        android:padding="@dimen/dp_5"
+        android:src="@drawable/checkbox_choose_language_normal" />
+</LinearLayout>

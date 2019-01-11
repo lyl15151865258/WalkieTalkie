@@ -1,0 +1,391 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <declare-styleable name="MyRadioButton">
+        <attr name="drawableSize" format="dimension" />
+        <attr name="drawableTop" format="reference" />
+        <attr name="drawableLeft" format="reference" />
+        <attr name="drawableRight" format="reference" />
+        <attr name="drawableBottom" format="reference" />
+    </declare-styleable>
+    <declare-styleable name="SlidingMenu">
+        <attr name="mode">
+            <enum name="left" value="0" />
+            <enum name="right" value="1" />
+        </attr>
+        <attr name="viewAbove" format="reference" />
+        <attr name="viewBehind" format="reference" />
+        <attr name="behindOffset" format="dimension" />
+        <attr name="behindWidth" format="dimension" />
+        <attr name="behindScrollScale" format="float" />
+        <attr name="touchModeAbove">
+            <enum name="margin" value="0" />
+            <enum name="fullscreen" value="1" />
+            <enum name="none" value="2" />
+        </attr>
+        <attr name="touchModeBehind">
+            <enum name="margin" value="0" />
+            <enum name="fullscreen" value="1" />
+            <enum name="none" value="2" />
+        </attr>
+        <attr name="shadowDrawable" format="reference" />
+        <attr name="shadowWidth" format="dimension" />
+        <attr name="fadeEnabled" format="boolean" />
+        <attr name="fadeDegree" format="float" />
+        <attr name="selectorEnabled" format="boolean" />
+        <attr name="selectorDrawable" format="reference" />
+    </declare-styleable>
+
+    <declare-styleable name="CircleImageView">
+        <attr name="border_width" format="dimension" />
+        <attr name="border_color" format="color" />
+    </declare-styleable>
+
+    <declare-styleable name="PagerSlidingTabStrip">
+        <attr name="slidingBlock" format="reference|color" />
+        <attr name="allowWidthFull" format="boolean" />
+        <attr name="disableViewPager" format="boolean" />
+    </declare-styleable>
+
+    <declare-styleable name="RefreshLayout">
+        <attr name="footer_view_background" format="color" />
+        <attr name="footer_view_text_color" format="color" />
+        <attr name="is_need_footer" format="boolean" />
+    </declare-styleable>
+
+    <declare-styleable name="CirclePagerIndicator">
+        <attr name="circle_indicator_centerHorizontal" format="boolean" />
+        <attr name="circle_indicator_follow" format="boolean" />
+        <attr name="circle_indicator_orientation" format="reference" />
+        <attr name="circle_indicator_color" format="color" />
+        <attr name="circle_indicator_stroke_color" format="color" />
+        <attr name="circle_indicator_stroke_width" format="dimension" />
+        <attr name="circle_indicator_fill_color" format="color" />
+        <attr name="circle_indicator_radius" format="dimension" />
+        <attr name="circle_indicator_space" format="dimension" />
+        <attr name="circle_indicator_indicator_radius" format="dimension" />
+    </declare-styleable>
+    <declare-styleable name="LinePagerIndicator">
+        <attr name="line_indicator_centerHorizontal" format="boolean" />
+        <attr name="line_indicator_width" format="dimension" />
+        <attr name="line_indicator_height" format="dimension" />
+        <attr name="line_indicator_indicator_height" format="dimension" />
+        <attr name="line_indicator_space" format="dimension" />
+        <attr name="line_indicator_fill_color" format="color" />
+        <attr name="line_indicator_indicator_color" format="color" />
+        <attr name="line_indicator_follow" format="boolean" />
+    </declare-styleable>
+
+    <attr name="verticalSpace" format="dimension" />
+    <attr name="horizontalSpace" format="dimension" />
+
+    <declare-styleable name="FlowLayout">
+        <attr name="verticalSpace" />
+        <attr name="horizontalSpace" />
+    </declare-styleable>
+
+    <declare-styleable name="TweetPicturesLayout">
+        <attr name="verticalSpace" />
+        <attr name="horizontalSpace" />
+        <attr name="column" format="integer" />
+        <attr name="maxPictureSize" format="dimension" />
+    </declare-styleable>
+
+    <attr name="PermissionBackround" format="reference" />
+    <attr name="PermissionTitleColor" format="color" />
+    <attr name="PermissionMsgColor" format="color" />
+    <attr name="PermissionItemTextColor" format="color" />
+    <attr name="PermissionButtonTextColor" format="color" />
+    <attr name="PermissionButtonBackground" format="reference" />
+    <attr name="PermissionBgFilterColor" format="color" />
+    <attr name="PermissionIconFilterColor" format="color" />
+
+    <attr name="colorPrimaryCenter" format="color|reference" />
+    <attr name="colorTextIcon" format="color|reference" />
+    <attr name="colorPrimaryText" format="color|reference" />
+    <attr name="colorSecondText" format="color|reference" />
+    <attr name="colorBackground" format="color|reference" />
+    <attr name="colorDivider" format="color|reference" />
+    <attr name="colorBackgroundAccent" format="color|reference" />
+    <attr name="colorHint" format="color|reference" />
+    <attr name="menuBackground" format="reference" />
+
+    <declare-styleable name="GoogleCircleProgressView">
+        <attr name="gcp_inner_radius" format="dimension" />
+        <attr name="gcp_background_color" format="color" />
+        <attr name="gcp_progress_color" format="color" />
+        <attr name="gcp_progress_stoke_width" format="dimension" />
+        <attr name="gcp_show_arrow" format="boolean" />
+        <attr name="gcp_enable_circle_background" format="boolean" />
+        <attr name="gcp_arrow_width" format="dimension" />
+        <attr name="gcp_arrow_height" format="dimension" />
+        <attr name="gcp_progress" format="integer" />
+        <attr name="gcp_max" format="integer" />
+        <attr name="gcp_progress_text_size" format="dimension" />
+        <attr name="gcp_progress_text_color" format="color" />
+        <!--<attr name="gcp_progress_text_offset" format="dimension"/>-->
+        <attr name="gcp_progress_text_visibility" format="enum">
+            <enum name="visible" value="0" />
+            <enum name="invisible" value="1" />
+        </attr>
+    </declare-styleable>
+
+    <declare-styleable name="MultipleStatusView">
+        <attr name="loadingView" format="reference" />
+        <attr name="errorView" format="reference" />
+        <attr name="emptyView" format="reference" />
+        <attr name="noNetworkView" format="reference" />
+        <attr name="contentView" format="reference" />
+    </declare-styleable>
+
+    <declare-styleable name="ToolbarControl">
+        <attr name="titleText" format="string" />
+    </declare-styleable>
+
+    <declare-styleable name="NiceSpinner">
+        <attr name="arrowTint" format="color" />
+        <attr name="hideArrow" format="boolean" />
+        <attr name="arrowDrawable" format="reference|color" />
+        <attr name="dropDownListPaddingBottom" format="dimension" />
+        <attr name="backgroundSelector" format="integer" />
+        <attr name="textTint" format="color" />
+    </declare-styleable>
+
+    <declare-styleable name="MoreTextView">
+        <attr name="drawable_src" format="reference" />
+        <attr name="imageHight" format="dimension" />
+        <attr name="imageWidth" format="dimension" />
+        <attr name="imageLocation">
+            <enum name="left" value="0" />
+            <enum name="top" value="1" />
+            <enum name="right" value="2" />
+            <enum name="bottom" value="3" />
+        </attr>
+    </declare-styleable>
+
+    <declare-styleable name="ColorTrackView">
+        <attr name="ctvText" format="string" />
+        <attr name="ctvText_size" format="dimension" />
+        <attr name="ctvText_origin_color" format="color" />
+        <attr name="ctvText_change_color" format="color" />
+        <attr name="ctvProgress" format="float" />
+        <attr name="ctvDirection" format="integer" />
+    </declare-styleable>
+    <declare-styleable name="PullZoomLayout">
+        <attr name="pzHeader" format="reference" />
+        <attr name="pzMain" format="reference" />
+    </declare-styleable>
+    <declare-styleable name="HtmlTextView">
+        <attr name="loadingImg" format="reference" />
+        <attr name="errorImg" format="reference" />
+        <attr name="defaultWidth" format="reference" />
+        <attr name="defaultHeight" format="reference" />
+    </declare-styleable>
+
+    <attr name="clickableBackground" format="reference" />
+    <attr name="main_bg" format="reference|color" />
+    <attr name="white_bg" format="reference|color" />
+    <attr name="font_color" format="reference|color" />
+    <attr name="font_color2" format="reference|color" />
+    <attr name="font_red" format="reference|color" />
+    <attr name="isColorUi" format="boolean" />
+    <attr name="divider_black" format="reference|color" />
+    <attr name="divider_light_grey" format="reference|color" />
+
+    <declare-styleable name="SegmentControlView">
+        <attr name="scv_BackgroundSelectedColor" format="reference|color" />
+        <attr name="scv_BackgroundNormalColor" format="reference|color" />
+        <attr name="scv_TextSelectedColor" format="reference|color" />
+        <attr name="scv_TextNormalColor" format="reference|color" />
+        <attr name="scv_FrameColor" format="reference|color" />
+        <attr name="scv_FrameWidth" format="reference|dimension" />
+        <attr name="scv_FrameCornerRadius" format="reference|dimension" />
+        <attr name="scv_TextSize" format="reference|dimension" />
+        <attr name="scv_TextArray" format="reference" />
+        <attr name="scv_SelectedIndex" format="reference|integer" />
+        <attr name="scv_SegmentPaddingHorizontal" format="reference|dimension" />
+        <attr name="scv_SegmentPaddingVertical" format="reference|dimension" />
+        <attr name="scv_Gradient" format="reference|boolean" />
+    </declare-styleable>
+
+    <declare-styleable name="RoundAngleImageView">
+        <attr name="roundWidth" format="dimension" />
+        <attr name="roundHeight" format="dimension" />
+    </declare-styleable>
+
+    <declare-styleable name="TitleBar">
+        <attr name="textColor" />
+        <attr name="background" format="reference" />
+        <attr name="backButton" format="reference" />
+    </declare-styleable>
+
+    <declare-styleable name="LoadingTextView">
+        <attr name="textStyle">
+            <enum name="noText" value="-1" />
+            <enum name="horizontal" value="0" />
+            <enum name="vertical" value="1" />
+        </attr>
+        <attr name="ltv_gravity" format="integer" />
+        <attr name="ltv_textSize" format="dimension" />
+        <attr name="ltv_textColor" format="color" />
+        <attr name="ltv_textPadding" format="dimension" />
+        <attr name="android:text" />
+    </declare-styleable>
+
+    <declare-styleable name="PullToRefresh">
+        <attr name="ptrRefreshableViewBackground" format="reference|color" />
+        <attr name="ptrOverScroll" format="reference|boolean" />
+        <attr name="ptrScrollingWhileRefreshingEnabled" format="reference|boolean" />
+        <attr name="ptrListViewExtrasEnabled" format="reference|boolean" />
+    </declare-styleable>
+    <declare-styleable name="GroupLayout">
+        <attr name="dividerPadding" format="dimension" />
+        <attr name="dividerHeight" format="dimension" />
+        <attr name="dividerColor" format="color" />
+        <attr name="itemSelector" format="reference" />
+    </declare-styleable>
+    <!--TabIndicator的参数设置-->
+    <declare-styleable name="PagerSlidingTab">
+        <attr name="tabIndicatorColor" format="color" />
+        <attr name="underlineColor" format="color" />
+        <attr name="tabDividerColor" format="color" />
+        <attr name="indicatorHeight" format="dimension" />
+        <attr name="underlineHeight" format="dimension" />
+        <attr name="pst_dividerPadding" format="dimension" />
+        <attr name="tabPaddingLeftRight" format="dimension" />
+        <attr name="scrollOffset" format="dimension" />
+        <attr name="tabBackgrounds" format="reference" />
+        <attr name="sameLine" format="boolean" />
+        <attr name="pst_textAllCaps" format="boolean" />
+    </declare-styleable>
+    <declare-styleable name="CalendarView">
+        <!--是否显示农历-->
+        <attr name="show_lunar" format="boolean" />
+        <!--是否显示上月和下月-->
+        <attr name="show_last_next" format="boolean" />
+        <!--是否显示节假日-->
+        <attr name="show_holiday" format="boolean" />
+        <!--是否显示节气-->
+        <attr name="show_term" format="boolean" />
+        <!--开始日期(xxxx.x)-->
+        <attr name="date_start" format="string" />
+        <!--结束日期(xxxx.x)-->
+        <attr name="date_end" format="string" />
+        <!--默认展示、选中的日期(xxxx.x.x)-->
+        <attr name="date_init" format="string" />
+        <!--是否禁用默认选中日期前的所有日期-->
+        <attr name="disable_before" format="boolean" />
+        <!--是否禁用默认选中日期后的所有日期-->
+        <attr name="disable_after" format="boolean" />
+        <!--阳历的日期颜色-->
+        <attr name="color_solar" format="color" />
+        <!--阳历的日期尺寸-->
+        <attr name="size_solar" format="integer" />
+        <!--农历的日期颜色-->
+        <attr name="color_lunar" format="color" />
+        <!--农历的日期尺寸-->
+        <attr name="size_lunar" format="integer" />
+        <!--节日文字颜色-->
+        <attr name="color_holiday" format="color" />
+        <!--选中的日期文字颜色-->
+        <attr name="color_choose" format="color" />
+        <!--选中的日期背景-->
+        <attr name="day_bg" format="reference" />
+        <!--单选时切换月份，是否选中上次的日期-->
+        <attr name="switch_choose" format="boolean" />
+    </declare-styleable>
+
+    <declare-styleable name="WeekView">
+        <!--周的表示形式（x.x.x.x.x.x.x）-->
+        <attr name="week_str" format="string" />
+        <!--周的文字颜色-->
+        <attr name="week_color" format="color" />
+        <!--周的文字大小-->
+        <attr name="week_size" format="integer" />
+    </declare-styleable>
+
+
+    <declare-styleable name="MaterialRatingBar">
+        <attr name="mrb_progressTint" format="color|reference" />
+        <attr name="mrb_progressTintMode" format="enum">
+            <enum name="src_over" value="3" />
+            <enum name="src_in" value="5" />
+            <enum name="src_atop" value="9" />
+            <enum name="multiply" value="14" />
+            <enum name="screen" value="15" />
+            <enum name="add" value="16" />
+        </attr>
+        <attr name="mrb_secondaryProgressTint" format="color|reference" />
+        <attr name="mrb_secondaryProgressTintMode" format="enum">
+            <enum name="src_over" value="3" />
+            <enum name="src_in" value="5" />
+            <enum name="src_atop" value="9" />
+            <enum name="multiply" value="14" />
+            <enum name="screen" value="15" />
+            <enum name="add" value="16" />
+        </attr>
+        <attr name="mrb_progressBackgroundTint" format="color|reference" />
+        <attr name="mrb_progressBackgroundTintMode" format="enum">
+            <enum name="src_over" value="3" />
+            <enum name="src_in" value="5" />
+            <enum name="src_atop" value="9" />
+            <enum name="multiply" value="14" />
+            <enum name="screen" value="15" />
+            <enum name="add" value="16" />
+        </attr>
+        <attr name="mrb_indeterminateTint" format="color|reference" />
+        <attr name="mrb_indeterminateTintMode" format="enum">
+            <enum name="src_over" value="3" />
+            <enum name="src_in" value="5" />
+            <enum name="src_atop" value="9" />
+            <enum name="multiply" value="14" />
+            <enum name="screen" value="15" />
+            <enum name="add" value="16" />
+        </attr>
+        <attr name="mrb_fillBackgroundStars" format="boolean" />
+    </declare-styleable>
+    
+    <declare-styleable name="SmoothCheckBox">
+        <attr name="duration" format="integer"/>
+        <attr name="stroke_width" format="dimension"/>
+        <attr name="color_tick" format="color"/>
+        <attr name="color_checked" format="color"/>
+        <attr name="color_unchecked" format="color"/>
+        <attr name="color_unchecked_stroke" format="color"/>
+    </declare-styleable>
+
+    <declare-styleable name="AVLoadingIndicatorView">
+        <attr name="indicator">
+            <flag name="BallPulse" value="0"/>
+            <flag name="BallGridPulse" value="1"/>
+            <flag name="BallClipRotate" value="2"/>
+            <flag name="BallClipRotatePulse" value="3"/>
+            <flag name="SquareSpin" value="4"/>
+            <flag name="BallClipRotateMultiple" value="5"/>
+            <flag name="BallPulseRise" value="6"/>
+            <flag name="BallRotate" value="7"/>
+            <flag name="CubeTransition" value="8"/>
+            <flag name="BallZigZag" value="9"/>
+            <flag name="BallZigZagDeflect" value="10"/>
+            <flag name="BallTrianglePath" value="11"/>
+            <flag name="BallScale" value="12"/>
+            <flag name="LineScale" value="13"/>
+            <flag name="LineScaleParty" value="14"/>
+            <flag name="BallScaleMultiple" value="15"/>
+            <flag name="BallPulseSync" value="16"/>
+            <flag name="BallBeat" value="17"/>
+            <flag name="LineScalePulseOut" value="18"/>
+            <flag name="LineScalePulseOutRapid" value="19"/>
+            <flag name="BallScaleRipple" value="20"/>
+            <flag name="BallScaleRippleMultiple" value="21"/>
+            <flag name="BallSpinFadeLoader" value="22"/>
+            <flag name="LineSpinFadeLoader" value="23"/>
+            <flag name="TriangleSkewSpin" value="24"/>
+            <flag name="Pacman" value="25"/>
+            <flag name="BallGridBeat" value="26"/>
+            <flag name="SemiCircleSpin" value="27"/>
+        </attr>
+        <attr name="indicator_color" format="color"/>
+    </declare-styleable>
+
+</resources>

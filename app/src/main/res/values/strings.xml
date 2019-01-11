@@ -1,0 +1,96 @@
+<resources>
+
+    <string name="app_name">局域网对讲机</string>
+    <string name="loading">加载中…</string>
+    <string name="ssid">WIFi名称：</string>
+    <string name="room">群组名称：</string>
+    <string name="contact">联系人</string>
+    <string name="malfunction">报警信息</string>
+    <string name="pressToJoinChat">加入聊天</string>
+    <string name="releaseToExitChat">退出聊天</string>
+    <string name="pressToSpeak">按下说话</string>
+    <string name="releaseFinish">按下结束</string>
+    <string name="pressToUseSpeaker">扬声器</string>
+    <string name="releaseToUseEarpiece">听筒</string>
+    <string name="InChatRoom">您已加入了聊天室</string>
+    <string name="ExitChatRoom">您已离开了聊天室</string>
+    <string name="OutChatRoom">您还没有进入聊天室</string>
+    <string name="microphonePermission">请授予麦克风权限</string>
+    <string name="NoMoreData">没有更多的数据</string>
+    <string name="settings">设置</string>
+    <string name="click_again_exit">再按一次退出程序</string>
+    <string name="reminder_metter">中本硕提示您</string>
+    <string name="dialog_cancel">取消</string>
+    <string name="dialog_input_continue">继续</string>
+    <string name="notification_connect_wifi">您当前没有连接WiFi，是否前往连接？</string>
+    <string name="MediaTest">音频测试</string>
+    <string name="SetName">我的姓名</string>
+    <string name="TypeInName">请输入姓名</string>
+    <string name="ModifyName">修改姓名</string>
+    <string name="ConfirmModification">确认修改</string>
+    <string name="SetSpeakTime">单次说话时长</string>
+    <string name="TypeInTime">输入时间</string>
+    <string name="ModifySpeakTime">修改时长</string>
+    <string name="WifiSettings">Wifi设置</string>
+    <string name="LanguageSettings">语言设置</string>
+    <string name="SendMode">声音传输方式</string>
+    <string name="PlayWithSpeakers">使用扬声器播放</string>
+    <string name="Version">软件版本</string>
+    <string name="working">对讲机服务工作中</string>
+
+    <string name="listview_header_hint_normal">下拉刷新</string>
+    <string name="listview_header_hint_release">释放立即刷新</string>
+    <string name="listview_loading">正在加载&#8230;</string>
+    <string name="nomore_loading">没有了</string>
+    <string name="refreshing">正在刷新&#8230;</string>
+    <string name="refresh_done">刷新完成</string>
+    <string name="loading_done">加载完成</string>
+    <string name="listview_header_last_time">上次更新时间：</string>
+
+    <string name="ChooseLanguage">语言选择</string>
+    <string name="Save">保存</string>
+    <string name="lan_default">跟随系统</string>
+    <string name="lan_chinese">中文</string>
+    <string name="lan_en">英语</string>
+    <string name="lan_ja">日本语</string>
+
+    <string name="accessibility_name">局域网对讲机(推荐开启)</string>
+    <string name="accessibility_description">按键捕获</string>
+
+    <string name="send_wlan_unicast">局域网单播</string>
+    <string name="send_wlan_broadcast">局域网广播</string>
+    <string name="send_wan">广域网</string>
+
+    <!--layout控件描述，无需翻译-->
+    <string name="toggle_speak" translatable="false">Toggle speaker on/off</string>
+    <string name="toggle_mic" translatable="false">Toggle microphone on/off</string>
+    <string name="disconnect_call" translatable="false">Disconnect Call</string>
+
+    <!--SharedPreferences引用，无需翻译-->
+    <string name="pref_room_key" translatable="false">room_preference</string>
+    <string name="language" translatable="false">language</string>
+    <string name="copyright">Copyright © 2019 JSS Co., LTD. All rights reserved.</string>
+
+
+    <string name="webrtc_chat_mute">静音</string>
+    <string name="webrtc_chat_hands_free">免提</string>
+    <string name="webrtc_chat_refuse">拒接</string>
+    <string name="webrtc_chat_answer">接听</string>
+    <string name="webrtc_chat_hang_up">挂断</string>
+    <string name="webrtc_switch_voice">切到语音</string>
+    <string name="webrtc_switch_camera">切换</string>
+
+    <string name="action_settings">Settings</string>
+
+    <string name="AccountSettings">账号设置</string>
+    <string name="MainAccount">主账号设置</string>
+    <string name="ConstantFlowValveAccount">衡流阀账号</string>
+    <string name="BindSocialAccount">绑定社交账号</string>
+    <string name="VersionAndShare">版本与分享</string>
+    <string name="VersionView">版本查看</string>
+    <string name="VersionUpdate">版本更新</string>
+    <string name="Share">分享给好友</string>
+    <string name="ContactUs">联系我们</string>
+    <string name="Logout">退出登录</string>
+
+</resources>

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <jp.co.shiratsuki.walkietalkie.widget.MyToolbar
+        android:id="@+id/myToolbar"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/dp_50"
+        app:titleText="@string/app_name" />
+
+    <ProgressBar
+        android:id="@+id/progress_bar_webView"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/dp_2"
+        android:indeterminateOnly="true"
+        android:max="100"
+        android:progressDrawable="@drawable/progress_bar_states" />
+
+    <WebView
+        android:id="@+id/webView_protocol"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:overScrollMode="never" />
+
+</LinearLayout>

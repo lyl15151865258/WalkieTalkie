@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<animated-rotate
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:fromDegrees="0"
+    android:pivotX="50%"
+    android:pivotY="50%"
+    android:toDegrees="360">
+
+    <shape
+        android:innerRadiusRatio="3"
+        android:shape="ring"
+        android:thicknessRatio="20"
+        android:useLevel="false">
+        <gradient
+            android:centerColor="@android:color/white"
+            android:centerX="50%"
+            android:centerY="50%"
+            android:endColor="@color/gray_3"
+            android:startColor="@color/gray_3"
+            android:type="sweep"
+            android:useLevel="false"/>
+    </shape>
+    <!--android:innerRadius="dimension" 内环半径-->
+    <!--android:innerRadiusRatio="float"内环半径相对于环的宽度的比例，比如环的宽度为50,比例为2.5,那么内环半径为20-->
+    <!--android:thicknessRatio="float" 环的厚度相对于环的宽度的比例-->
+    <!--android:thickness="dimension" 环的厚度-->
+    <!--android:useLevel="boolean"> 如果当做是LevelListDrawable使用时值为true，否则为false-->
+
+</animated-rotate>
