@@ -12,7 +12,7 @@ import android.os.Build;
 import android.os.Environment;
 
 import jp.co.shiratsuki.walkietalkie.bean.NormalResult;
-import jp.co.shiratsuki.walkietalkie.constant.Constants;
+import jp.co.shiratsuki.walkietalkie.constant.NetWork;
 import jp.co.shiratsuki.walkietalkie.network.ExceptionHandle;
 import jp.co.shiratsuki.walkietalkie.network.NetClient;
 import jp.co.shiratsuki.walkietalkie.network.NetworkSubscriber;
@@ -264,10 +264,10 @@ public class CrashHandler implements UncaughtExceptionHandler {
                 } else {
                     String result = normalResult.getResult();
                     switch (result) {
-                        case Constants.SUCCESS:
+                        case NetWork.SUCCESS:
                             LogUtils.d("retrofit", "错误日志上传成功");
                             break;
-                        case Constants.FAIL:
+                        case NetWork.FAIL:
                             LogUtils.d("retrofit", "服务器保存异常，上传失败");
                             break;
                         default:

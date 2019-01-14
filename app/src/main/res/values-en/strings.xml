@@ -23,6 +23,7 @@
     <string name="dialog_cancel">Cancel</string>
     <string name="dialog_input_continue">Continue</string>
     <string name="notification_connect_wifi">You are not currently connected to WiFi, are you going to connect?</string>
+    <string name="please_connect_wifi">Please connect Wifi!</string>
     <string name="MediaTest">Media Test</string>
     <string name="SetName">My Name</string>
     <string name="ModifyName">Modify Name</string>
@@ -31,14 +32,8 @@
     <string name="SetSpeakTime">Single talk time</string>
     <string name="TypeInTime">Input time</string>
     <string name="ModifySpeakTime">Modified time</string>
-    <string name="WifiSettings">Wifi Settings</string>
     <string name="LanguageSettings">Language Settings</string>
-    <string name="SendMode">Sound transmission method</string>
-    <string name="PlayWithSpeakers">Play with speakers</string>
-    <string name="Version">App version</string>
     <string name="working">Walkie-talkie service work</string>
-
-    <string name="Logout">Sign out</string>
 
     <string name="listview_header_hint_normal">pull to refresh</string>
     <string name="listview_header_hint_release">release to start refresh</string>
@@ -62,6 +57,36 @@
     <string name="send_wlan_unicast">WLAN unicast</string>
     <string name="send_wlan_broadcast">WLAN broadcast</string>
     <string name="send_wan">Wan</string>
+
+    <string name="BasicSettings">Basic Settings</string>
+    <string name="PersonalInformation">Personal Information</string>
+    <string name="Name">Name</string>
+    <string name="Company">Company</string>
+    <string name="Department">Department</string>
+    <string name="NetworkSettings">Network Settings</string>
+    <string name="VoiceServerSetting">Voice Server Setting</string>
+
+    <string name="IP">IP Address</string>
+    <string name="Port">Port</string>
+    <string name="VoiceRoom">Room ID</string>
+
+    <string name="MessageServerSettings">Message Server Settings</string>
+    <string name="WirelessNetworkSettings">Wireless Network Settings</string>
+    <string name="VersionAndShare">Version And Share</string>
+    <string name="Version">Version Log</string>
+    <string name="VersionUpdate">Version Upgrade</string>
+    <string name="Share">Share</string>
+    <string name="Logout">Exit</string>
+
+    <string name="camera_pop_camera">Camera</string>
+    <string name="camera_pop_album">Gallery</string>
+    <string name="camera_pop_cancel">Cancel</string>
+    <string name="label_ok">OK</string>
+    <string name="permission_title_rationale">Need permission</string>
+    <string name="permission_read_storage_rationale">need read permission when selecting images</string>
+    <string name="permission_write_storage_rationale">Need storage permission when taking photos</string>
+
     <string name="copyright">Copyright © 2019 JSS Co., LTD. All rights reserved.</string>
+
 
 </resources>

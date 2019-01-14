@@ -3,10 +3,13 @@ package jp.co.shiratsuki.walkietalkie.webrtc;
 import org.webrtc.VideoRenderer;
 
 /**
- * Created by dds on 2018/11/7.
- * android_shuai@163.com
  *
+ * Created at 2019/1/15 2:40
+ *
+ * @author Li Yuliang
+ * @version 1.0
  */
+
 public class ProxyRenderer implements VideoRenderer.Callbacks {
     private VideoRenderer.Callbacks target;
 

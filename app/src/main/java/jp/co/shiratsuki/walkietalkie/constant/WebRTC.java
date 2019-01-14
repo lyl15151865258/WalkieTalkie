@@ -1,4 +1,6 @@
-package jp.co.shiratsuki.walkietalkie.webrtc;
+package jp.co.shiratsuki.walkietalkie.constant;
+
+import jp.co.shiratsuki.walkietalkie.webrtc.MyIceServer;
 
 /**
  * WebRTC网络配置
@@ -8,7 +10,7 @@ package jp.co.shiratsuki.walkietalkie.webrtc;
  * @version 1.0
  */
 
-public class WebRTCUtil {
+public class WebRTC {
 
     public static MyIceServer[] iceServers = {
             new MyIceServer("stun:47.254.34.146"),
@@ -16,6 +18,9 @@ public class WebRTCUtil {
             new MyIceServer("turn:47.254.34.146?transport=tcp", "dds", "123456")
     };
     //    private static String signal = "wss://47.254.34.146/wss";
-    public static String signal = "ws://192.168.2.102:3000";
+
+    public static final String WEBRTC_SERVER_IP = "192.168.10.164";
+    public static final String WEBRTC_SERVER_PORT = "3000";
+    public static final String WEBRTC_SERVER_ROOM = "jss";
 
 }

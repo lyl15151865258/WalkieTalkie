@@ -10,6 +10,9 @@ package jp.co.shiratsuki.walkietalkie.constant;
 
 public class NetWork {
 
+    public static final String FAIL = "fail";
+    public static final String SUCCESS = "success";
+
     /**
      * 主账号IP地址
      */
@@ -22,37 +25,26 @@ public class NetWork {
      * 主账号项目名
      */
     public static final String PROJECT_MAIN = "AndroidManager";
-//    public static final String SERVER_HOST_MAIN = "58.240.47.50";
-//    public static final String SERVER_PORT_MAIN = "5068";
-//    public static final String PROJECT_MAIN = "android";
 
-    //网络超时、socket心跳包发送间隔等
+    /**
+     * WebSocket地址
+     */
+    public static final String WEBSOCKET_IP = "192.168.10.164";
+    /**
+     * WebSocket端口号
+     */
+    public static final String WEBSOCKET_PORT = "50100";
+    /**
+     * WebSocket名称
+     */
+    public static final String WEBSOCKET_NAME = "Interphone";
+
     /**
      * http请求超时时间
      */
     public static final int TIME_OUT_HTTP = 10 * 1000;
     /**
-     * socket请求超时时间
+     * 心跳包发送间隔（30秒）
      */
-    public static final int TIME_OUT_SOCKET = 5 * 1000;
-    /**
-     * 安卓注册Socket通信
-     */
-    public static String ANDROID_LOGIN = "*#ANDROIDLOGIN:";
-    /**
-     * 安卓指令开始标记
-     */
-    public static String ANDROID_CMD = "*#ADNROIDCMD:";
-    /**
-     * 安卓数据结束
-     */
-    public static String ANDROID_END = "END#*";
-    /**
-     * 心跳包发送内容
-     */
-    public static final String HEART_BEAT_PACKAGE = "\r\n";
-    /**
-     * 心跳包发送间隔（10秒）
-     */
-    public static final int HEART_BEAT_RATE = 10 * 1000;
+    public static final int HEART_BEAT_RATE = 30 * 1000;
 }

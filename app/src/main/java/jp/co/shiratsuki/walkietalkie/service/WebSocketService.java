@@ -44,6 +44,9 @@ public class WebSocketService extends Service {
     private Runnable runnable;
     private ExecutorService threadPool;
 
+    // 断开是否需要重连
+    private boolean shouldReconnect = true;
+
     @Override
     public IBinder onBind(Intent intent) {
         return webSocketServiceBinder;
@@ -142,7 +145,15 @@ public class WebSocketService extends Service {
                     public void onClose(int code, String reason, boolean remote) {
                         //通道关闭
                         LogUtils.d(TAG, "连接关闭");
-                        reConnect();
+                        if (shouldReconnect) {
+                            reConnect();
+                        }
+                        // 通知主页面列表清空
+                        Intent intent = new Intent();
+                        intent.setAction("MESSAGE_WEBSOCKET_CLOSED");
+                        sendBroadcast(intent);
+                        // 清空异常信息音乐列表
+                        MusicPlay.with(WebSocketService.this).getMusicListList().clear();
                     }
 
                     @Override
@@ -182,6 +193,9 @@ public class WebSocketService extends Service {
      * 关闭WebSocket
      */
     public void closeWebSocket() {
+        shouldReconnect = false;
+        MusicPlay.with(WebSocketService.this).release();
+        threadPool.shutdown();
         if (mSocketClient != null) {
             if (mSocketClient.isOpen()) {
                 mSocketClient.close();
@@ -204,9 +218,7 @@ public class WebSocketService extends Service {
     @Override
     public void onDestroy() {
         super.onDestroy();
-        MusicPlay.with(WebSocketService.this).release();
         closeWebSocket();
-        threadPool.shutdown();
     }
 
 }

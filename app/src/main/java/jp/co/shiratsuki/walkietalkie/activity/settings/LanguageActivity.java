@@ -1,4 +1,4 @@
-package jp.co.shiratsuki.walkietalkie.activity;
+package jp.co.shiratsuki.walkietalkie.activity.settings;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -10,6 +10,8 @@ import android.view.View;
 import android.widget.ImageView;
 
 import jp.co.shiratsuki.walkietalkie.R;
+import jp.co.shiratsuki.walkietalkie.activity.BaseActivity;
+import jp.co.shiratsuki.walkietalkie.activity.MainActivity;
 import jp.co.shiratsuki.walkietalkie.adapter.ChooseLanguageAdapter;
 import jp.co.shiratsuki.walkietalkie.bean.Language;
 import jp.co.shiratsuki.walkietalkie.contentprovider.SPHelper;

@@ -7,10 +7,15 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import jp.co.shiratsuki.walkietalkie.R;
+import jp.co.shiratsuki.walkietalkie.bean.MusicList;
 import jp.co.shiratsuki.walkietalkie.bean.WebSocketData;
+import jp.co.shiratsuki.walkietalkie.utils.LogUtils;
+import jp.co.shiratsuki.walkietalkie.voice.MusicPlay;
+import jp.co.shiratsuki.walkietalkie.widget.SwipeItemLayout;
 
 import java.util.List;
 
@@ -22,7 +27,7 @@ import java.util.List;
  * @version 1.0
  */
 
-public class MalfunctionAdapter extends RecyclerView.Adapter {
+public class MalfunctionAdapter extends RecyclerView.Adapter<MalfunctionAdapter.NewsViewHolder> {
 
     private Context mContext;
     private List<WebSocketData> malfunctionList;
@@ -40,23 +45,65 @@ public class MalfunctionAdapter extends RecyclerView.Adapter {
     }
 
     @Override
-    public void onBindViewHolder(@NonNull RecyclerView.ViewHolder viewHolder, int position) {
-        NewsViewHolder holder = (NewsViewHolder) viewHolder;
-        WebSocketData malfunction = malfunctionList.get(position);
-        holder.tvMalfunctionType.setText(malfunction.getText());
-        holder.tvMalfunctionTime.setText(malfunction.getTime());
+    public void onBindViewHolder(@NonNull NewsViewHolder viewHolder, int position, @NonNull List<Object> payloads) {
+        if (payloads.isEmpty()) {
+            onBindViewHolder(viewHolder, position);
+        } else if (payloads.get(0) instanceof Boolean) {
+            if ((boolean) payloads.get(0)) {
+                viewHolder.ivSpeaker.setVisibility(View.VISIBLE);
+            } else {
+                viewHolder.ivSpeaker.setVisibility(View.GONE);
+            }
+        } else if (payloads.get(0) instanceof Integer) {
+            LogUtils.d("MainActivity", "Adapter中List的长度：" + malfunctionList.size() + "，不再播放位置：" + payloads.get(0));
+            viewHolder.llMain.setBackgroundColor(mContext.getResources().getColor(R.color.gray_6));
+        }
+    }
 
-        holder.ivBack.setColorFilter(malfunction.getBackColor());
+    @Override
+    public void onBindViewHolder(@NonNull NewsViewHolder viewHolder, int position) {
+        WebSocketData malfunction = malfunctionList.get(position);
+        viewHolder.tvMalfunctionType.setText(malfunction.getText());
+        viewHolder.tvMalfunctionTime.setText(malfunction.getTime());
+
+        viewHolder.ivBack.setColorFilter(malfunction.getBackColor());
         if (malfunction.isPalying()) {
-            holder.ivSpeaker.setVisibility(View.VISIBLE);
+            viewHolder.ivSpeaker.setVisibility(View.VISIBLE);
         } else {
-            holder.ivSpeaker.setVisibility(View.GONE);
+            viewHolder.ivSpeaker.setVisibility(View.GONE);
         }
 
-        holder.itemView.setOnClickListener((v) -> {
+        viewHolder.llMain.setBackgroundColor(mContext.getResources().getColor(R.color.gray_7));
+
+        viewHolder.itemView.setOnClickListener((v) -> {
             if (mListener != null) {
                 mListener.onItemClick(position);
             }
+        });
+
+        //标记已读，不再播放音乐
+        viewHolder.tvConfirm.setOnClickListener((view) -> {
+            List<MusicList> musicLists = MusicPlay.with(mContext).getMusicListList();
+            for (int i = 0; i < musicLists.size(); i++) {
+                if (musicLists.get(i).getListNo() == malfunctionList.get(viewHolder.getAdapterPosition()).getListNo()) {
+                    musicLists.get(i).setAlreadyPlayCount(musicLists.get(i).getPlayCount());
+                    break;
+                }
+            }
+            viewHolder.llMain.setBackgroundColor(mContext.getResources().getColor(R.color.gray_6));
+            viewHolder.slRootView.close();
+        });
+
+        //删除Item
+        viewHolder.tvDelete.setOnClickListener((view) -> {
+            List<MusicList> musicLists = MusicPlay.with(mContext).getMusicListList();
+            for (int i = 0; i < musicLists.size(); i++) {
+                if (musicLists.get(i).getListNo() == malfunctionList.get(viewHolder.getAdapterPosition()).getListNo()) {
+                    musicLists.get(i).setAlreadyPlayCount(musicLists.get(i).getPlayCount());
+                    break;
+                }
+            }
+            removeData(viewHolder.getAdapterPosition());
         });
     }
 
@@ -65,16 +112,22 @@ public class MalfunctionAdapter extends RecyclerView.Adapter {
         return malfunctionList.size();
     }
 
-    private class NewsViewHolder extends RecyclerView.ViewHolder {
-        private TextView tvMalfunctionType, tvMalfunctionTime;
+    public class NewsViewHolder extends RecyclerView.ViewHolder {
+        private SwipeItemLayout slRootView;
+        private LinearLayout llMain;
+        private TextView tvMalfunctionType, tvMalfunctionTime, tvConfirm, tvDelete;
         private ImageView ivBack, ivSpeaker;
 
         private NewsViewHolder(View itemView) {
             super(itemView);
+            slRootView = itemView.findViewById(R.id.slRootView);
+            llMain = itemView.findViewById(R.id.llMain);
             ivBack = itemView.findViewById(R.id.ivBack);
             ivSpeaker = itemView.findViewById(R.id.ivSpeaker);
             tvMalfunctionType = itemView.findViewById(R.id.tvMalfunctionType);
             tvMalfunctionTime = itemView.findViewById(R.id.tvMalfunctionTime);
+            tvConfirm = itemView.findViewById(R.id.tvConfirm);
+            tvDelete = itemView.findViewById(R.id.tvDelete);
         }
     }
 
@@ -84,6 +137,16 @@ public class MalfunctionAdapter extends RecyclerView.Adapter {
 
     public void setOnItemClickListener(OnItemClickListener listener) {
         mListener = listener;
+    }
+
+    /**
+     * 删除单条数据
+     *
+     * @param position
+     */
+    public void removeData(int position) {
+        malfunctionList.remove(position);
+        notifyItemRemoved(position);
     }
 
 }

@@ -1,11 +1,16 @@
 package jp.co.shiratsuki.walkietalkie.utils;
 
 import android.app.Activity;
+import android.content.Intent;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+
+import jp.co.shiratsuki.walkietalkie.WalkieTalkieApplication;
+import jp.co.shiratsuki.walkietalkie.service.VoiceService;
+import jp.co.shiratsuki.walkietalkie.service.WebSocketService;
 
 /**
  * Activity栈队列管理类
@@ -100,6 +105,11 @@ public class ActivityController {
             }
         }
         activities.removeAll(delList);
+
+        Intent intent = new Intent(WalkieTalkieApplication.getInstance(), WebSocketService.class);
+        WalkieTalkieApplication.getInstance().stopService(intent);
+        Intent intent1 = new Intent(WalkieTalkieApplication.getInstance(), VoiceService.class);
+        WalkieTalkieApplication.getInstance().stopService(intent1);
 
         android.os.Process.killProcess(android.os.Process.myPid());
         System.exit(0);

@@ -1,4 +1,4 @@
-package jp.co.shiratsuki.walkietalkie.ws;
+package jp.co.shiratsuki.walkietalkie.webrtc.websocket;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
@@ -22,12 +22,16 @@ import javax.net.ssl.X509TrustManager;
 import jp.co.shiratsuki.walkietalkie.utils.LogUtils;
 
 /**
- * Created by dds on 2019/1/3.
- * android_shuai@163.com
+ * WebSocket类
+ * Created at 2019/1/15 2:40
+ *
+ * @author Li Yuliang
+ * @version 1.0
  */
+
 public class JavaWebSocket implements IWebSocket {
 
-    private final static String TAG = "dds_JavaWebSocket";
+    private final static String TAG = "JavaWebSocket";
 
     private WebSocketClient mWebSocketClient;
 
@@ -37,7 +41,7 @@ public class JavaWebSocket implements IWebSocket {
         this.events = events;
     }
 
-    public void connect(String wss, final String room) {
+    public void connect(String wss, final String room, final String userName) {
         URI uri;
         try {
             uri = new URI(wss);
@@ -49,11 +53,12 @@ public class JavaWebSocket implements IWebSocket {
             mWebSocketClient = new WebSocketClient(uri) {
                 @Override
                 public void onOpen(ServerHandshake handshake) {
-                    joinRoom(room);
+                    joinRoom(room, userName);
                 }
 
                 @Override
                 public void onMessage(String message) {
+                    LogUtils.d("JavaWebSocket", message);
                     handleMessage(message);
                 }
 
@@ -96,22 +101,21 @@ public class JavaWebSocket implements IWebSocket {
         if (mWebSocketClient != null) {
             mWebSocketClient.close();
         }
-
     }
 
     //============================需要发送的=====================================
     @Override
-    public void joinRoom(String room) {
+    public void joinRoom(String room, String userName) {
         Map<String, Object> map = new HashMap<>();
         map.put("eventName", "__join");
         Map<String, String> childMap = new HashMap<>();
         childMap.put("room", room);
+        childMap.put("userName", userName);
         map.put("data", childMap);
         JSONObject object = new JSONObject(map);
         final String jsonString = object.toString();
-        mWebSocketClient.send(jsonString);
+        sendMessage(jsonString);
     }
-
 
     public void sendAnswer(String socketId, String sdp) {
         Map<String, Object> childMap1 = new HashMap();
@@ -125,7 +129,7 @@ public class JavaWebSocket implements IWebSocket {
         map.put("data", childMap2);
         JSONObject object = new JSONObject(map);
         String jsonString = object.toString();
-        mWebSocketClient.send(jsonString);
+        sendMessage(jsonString);
     }
 
 
@@ -144,7 +148,7 @@ public class JavaWebSocket implements IWebSocket {
 
         JSONObject object = new JSONObject(map);
         String jsonString = object.toString();
-        mWebSocketClient.send(jsonString);
+        sendMessage(jsonString);
 
     }
 
@@ -159,8 +163,9 @@ public class JavaWebSocket implements IWebSocket {
         map.put("data", childMap);
         JSONObject object = new JSONObject(map);
         String jsonString = object.toString();
-        mWebSocketClient.send(jsonString);
+        sendMessage(jsonString);
     }
+
     //============================需要发送的=====================================
 
     //============================需要接收的=====================================
@@ -185,9 +190,14 @@ public class JavaWebSocket implements IWebSocket {
         if (eventName.equals("_offer")) {
             handleOffer(map);
         }
-
         if (eventName.equals("_answer")) {
             handleAnswer(map);
+        }
+        if (eventName.equals("_pong")) {
+            handlePong(map);
+        }
+        if (eventName.equals("_speak_status")) {
+            handleVoice(map);
         }
     }
 
@@ -246,6 +256,25 @@ public class JavaWebSocket implements IWebSocket {
         String sdp = (String) sdpDic.get("sdp");
         events.onReceiverAnswer(socketId, sdp);
     }
+
+    // 处理服务器传回的心跳
+    private void handlePong(Map map) {
+        LogUtils.d(TAG, "服务器传来的心跳回复");
+    }
+
+    // 处理声音状态位
+    private void handleVoice(Map map) {
+        Map data = (Map) map.get("data");
+        boolean someoneSpeaking = (boolean) data.get("speakStatus");
+        events.onReceiveSpeakStatus(someoneSpeaking);
+        LogUtils.d(TAG, "收到服务端传回来的声音状态位：" + someoneSpeaking);
+    }
+
+    // 发送消息的方法
+    public void sendMessage(String message) {
+        mWebSocketClient.send(message);
+    }
+
     //============================需要接收的=====================================
 
 
@@ -267,6 +296,5 @@ public class JavaWebSocket implements IWebSocket {
             return new X509Certificate[0];
         }
     }
-
 
 }

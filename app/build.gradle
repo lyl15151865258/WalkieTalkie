@@ -68,4 +68,9 @@ dependencies {
     //Glide
     implementation 'com.github.bumptech.glide:glide:4.8.0'
     annotationProcessor 'com.github.bumptech.glide:compiler:4.8.0'
+    // 图像剪切
+    implementation('com.kevin:crop:1.0.2') {
+        // 如果已经引入 support:appcompat-v7 可以加上这句话
+        exclude group: 'com.android.support', module: 'appcompat-v7'
+    }
 }

@@ -4,9 +4,13 @@ import android.os.Parcel;
 import android.os.Parcelable;
 
 /**
- * Created by dds on 2019/1/9.
- * android_shuai@163.com
+ * ICE服务器实体类
+ * Created at 2019/1/15 2:40
+ *
+ * @author Li Yuliang
+ * @version 1.0
  */
+
 public class MyIceServer implements Parcelable {
     public final String uri;
     public final String username;

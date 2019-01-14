@@ -15,15 +15,35 @@
         app:titleText="@string/app_name" />
 
     <EditText
-        android:id="@+id/et_nickName"
+        android:id="@+id/etMessageServerIP"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_gravity="center"
         android:layout_marginLeft="@dimen/dp_10"
         android:layout_marginTop="@dimen/dp_10"
         android:layout_marginRight="@dimen/dp_10"
         android:background="@drawable/textfield_normal"
-        android:hint="@string/TypeInName"
-        android:inputType="text"
+        android:digits="0123456789."
+        android:hint="@string/IP"
+        android:imeOptions="actionNext"
+        android:maxLength="15"
+        android:maxLines="1"
+        android:padding="@dimen/dp_10"
+        android:textSize="@dimen/sp_18" />
+
+    <EditText
+        android:id="@+id/etMessageServerPort"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginLeft="@dimen/dp_10"
+        android:layout_marginTop="@dimen/dp_10"
+        android:layout_marginRight="@dimen/dp_10"
+        android:background="@drawable/textfield_normal"
+        android:hint="@string/Port"
+        android:imeOptions="actionNext"
+        android:inputType="number"
+        android:maxLength="5"
         android:maxLines="1"
         android:padding="@dimen/dp_10"
         android:textSize="@dimen/sp_18" />
@@ -34,9 +54,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="@dimen/dp_10"
-        android:enabled="false"
         android:text="@string/ConfirmModification"
         android:textAllCaps="false"
         android:textColor="@color/white_alpha"
-        android:textSize="@dimen/sp_18" />
+        android:textSize="@dimen/sp_20" />
 </LinearLayout>

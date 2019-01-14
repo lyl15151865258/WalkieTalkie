@@ -19,10 +19,11 @@
     <string name="NoMoreData">没有更多的数据</string>
     <string name="settings">设置</string>
     <string name="click_again_exit">再按一次退出程序</string>
-    <string name="reminder_metter">中本硕提示您</string>
+    <string name="reminder_metter">白月工业提示您</string>
     <string name="dialog_cancel">取消</string>
     <string name="dialog_input_continue">继续</string>
     <string name="notification_connect_wifi">您当前没有连接WiFi，是否前往连接？</string>
+    <string name="please_connect_wifi">您当前没有连接WiFi，是否前往连接？</string>
     <string name="MediaTest">音频测试</string>
     <string name="SetName">我的姓名</string>
     <string name="TypeInName">请输入姓名</string>
@@ -31,11 +32,7 @@
     <string name="SetSpeakTime">单次说话时长</string>
     <string name="TypeInTime">输入时间</string>
     <string name="ModifySpeakTime">修改时长</string>
-    <string name="WifiSettings">Wifi设置</string>
     <string name="LanguageSettings">语言设置</string>
-    <string name="SendMode">声音传输方式</string>
-    <string name="PlayWithSpeakers">使用扬声器播放</string>
-    <string name="Version">软件版本</string>
     <string name="working">对讲机服务工作中</string>
 
     <string name="listview_header_hint_normal">下拉刷新</string>
@@ -61,6 +58,34 @@
     <string name="send_wlan_broadcast">局域网广播</string>
     <string name="send_wan">广域网</string>
 
+    <string name="BasicSettings">基础设置</string>
+    <string name="PersonalInformation">个人信息</string>
+    <string name="Name">姓名</string>
+    <string name="Company">单位</string>
+    <string name="Department">部门</string>
+    <string name="NetworkSettings">网络设置</string>
+    <string name="VoiceServerSetting">语音服务器设置</string>
+
+    <string name="IP">IP地址</string>
+    <string name="Port">端口号</string>
+    <string name="VoiceRoom">房间号</string>
+
+    <string name="MessageServerSettings">消息服务器设置</string>
+    <string name="WirelessNetworkSettings">无线网络设置</string>
+    <string name="VersionAndShare">版本与分享</string>
+    <string name="Version">版本查看</string>
+    <string name="VersionUpdate">版本更新</string>
+    <string name="Share">分享给好友</string>
+    <string name="Logout">退    出</string>
+
+    <string name="camera_pop_camera">相机拍摄</string>
+    <string name="camera_pop_album">从相册选取</string>
+    <string name="camera_pop_cancel">取消</string>
+    <string name="label_ok">确定</string>
+    <string name="permission_title_rationale">权限需求</string>
+    <string name="permission_read_storage_rationale">选择图片时需要读取权限</string>
+    <string name="permission_write_storage_rationale">拍照时需要存储权限</string>
+
     <!--layout控件描述，无需翻译-->
     <string name="toggle_speak" translatable="false">Toggle speaker on/off</string>
     <string name="toggle_mic" translatable="false">Toggle microphone on/off</string>
@@ -69,28 +94,7 @@
     <!--SharedPreferences引用，无需翻译-->
     <string name="pref_room_key" translatable="false">room_preference</string>
     <string name="language" translatable="false">language</string>
+
     <string name="copyright">Copyright © 2019 JSS Co., LTD. All rights reserved.</string>
-
-
-    <string name="webrtc_chat_mute">静音</string>
-    <string name="webrtc_chat_hands_free">免提</string>
-    <string name="webrtc_chat_refuse">拒接</string>
-    <string name="webrtc_chat_answer">接听</string>
-    <string name="webrtc_chat_hang_up">挂断</string>
-    <string name="webrtc_switch_voice">切到语音</string>
-    <string name="webrtc_switch_camera">切换</string>
-
-    <string name="action_settings">Settings</string>
-
-    <string name="AccountSettings">账号设置</string>
-    <string name="MainAccount">主账号设置</string>
-    <string name="ConstantFlowValveAccount">衡流阀账号</string>
-    <string name="BindSocialAccount">绑定社交账号</string>
-    <string name="VersionAndShare">版本与分享</string>
-    <string name="VersionView">版本查看</string>
-    <string name="VersionUpdate">版本更新</string>
-    <string name="Share">分享给好友</string>
-    <string name="ContactUs">联系我们</string>
-    <string name="Logout">退出登录</string>
 
 </resources>

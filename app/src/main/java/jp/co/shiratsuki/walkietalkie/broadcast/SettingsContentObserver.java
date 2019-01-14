@@ -18,7 +18,7 @@ import jp.co.shiratsuki.walkietalkie.utils.LogUtils;
 
 public class SettingsContentObserver extends ContentObserver {
 
-    private final String TAG = "SettingsContentObserver";
+    private static final String TAG = "SettingsContentObserver";
     private Context context;
 
     public SettingsContentObserver(Context c, Handler handler) {

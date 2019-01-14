@@ -1,13 +1,17 @@
-package jp.co.shiratsuki.walkietalkie.ws;
+package jp.co.shiratsuki.walkietalkie.webrtc.websocket;
 
 import org.webrtc.IceCandidate;
 
 import java.util.ArrayList;
 
 /**
- * Created by dds on 2019/1/3.
- * android_shuai@163.com
+ * WebSocket回调接口
+ * Created at 2019/1/15 2:39
+ *
+ * @author Li Yuliang
+ * @version 1.0
  */
+
 public interface ISignalingEvents {
 
     // 进入房间
@@ -23,5 +27,7 @@ public interface ISignalingEvents {
     void onReceiveOffer(String socketId, String sdp);
 
     void onReceiverAnswer(String socketId, String sdp);
+
+    void onReceiveSpeakStatus(boolean someoneSpeaking);
 
 }

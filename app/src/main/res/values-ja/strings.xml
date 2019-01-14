@@ -23,6 +23,7 @@
     <string name="dialog_cancel">キャンセル</string>
     <string name="dialog_input_continue">続ける</string>
     <string name="notification_connect_wifi">あなたは現在WiFiに接続されていません。接続しようとしていますか</string>
+    <string name="please_connect_wifi">Wifiを接続してください</string>
     <string name="MediaTest">音声テスト</string>
     <string name="SetName">私の名前</string>
     <string name="ModifyName">名前を変更する</string>
@@ -31,14 +32,8 @@
     <string name="SetSpeakTime">シングルトーク時間</string>
     <string name="TypeInTime">入力時間</string>
     <string name="ModifySpeakTime">変更時刻</string>
-    <string name="WifiSettings">Wi-Fi設定</string>
     <string name="LanguageSettings">言語設定</string>
-    <string name="SendMode">音声伝送方式</string>
-    <string name="PlayWithSpeakers">スピーカーで遊ぶ</string>
-    <string name="Version">バージョン</string>
     <string name="working">ウォーキートーキーサービス業務</string>
-
-    <string name="Logout">ログアウト</string>
 
     <string name="listview_header_hint_normal">プルダウンリフレッシュ</string>
     <string name="listview_header_hint_release">即時リフレッシュを解放する</string>
@@ -62,6 +57,35 @@
     <string name="send_wlan_unicast">LANユニキャスト</string>
     <string name="send_wlan_broadcast">LANブロードキャスト</string>
     <string name="send_wan">広域ネットワーク</string>
+
+    <string name="BasicSettings">基本設定</string>
+    <string name="PersonalInformation">個人情報</string>
+    <string name="Name">お名前</string>
+    <string name="Company">会社</string>
+    <string name="Department">部署</string>
+    <string name="NetworkSettings">ネットワーク設定</string>
+    <string name="VoiceServerSetting">ボイスサーバー設定</string>
+
+    <string name="IP">IPアドレス</string>
+    <string name="Port">ポート番号</string>
+    <string name="VoiceRoom">チャット番号</string>
+
+    <string name="MessageServerSettings">メッセージサーバ設定</string>
+    <string name="WirelessNetworkSettings">無線ネットワーク設定</string>
+    <string name="VersionAndShare">バージョンと共有</string>
+    <string name="Version">バージョンビュー</string>
+    <string name="VersionUpdate">バージョン更新</string>
+    <string name="Share">友達にシェアする</string>
+    <string name="Logout">ログアウト</string>
+
+    <string name="camera_pop_camera">カメラ撮影</string>
+    <string name="camera_pop_album">ギャラリー</string>
+    <string name="camera_pop_cancel">キャンセル</string>
+    <string name="label_ok">決定する</string>
+    <string name="permission_title_rationale">許可要件</string>
+    <string name="permission_read_storage_rationale">画像選択時の読み取り権限</string>
+    <string name="permission_write_storage_rationale">写真を撮るときは保管許可が必要</string>
+
     <string name="copyright">Copyright © 2019 J システムサポートー株式会社</string>
 
 </resources>

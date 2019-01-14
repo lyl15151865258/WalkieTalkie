@@ -39,7 +39,7 @@
                 app:shadow="false" />
 
             <TextView
-                android:id="@+id/tv_nickName"
+                android:id="@+id/tvUserName"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal"
@@ -60,7 +60,7 @@
             android:orientation="vertical">
 
             <TextView
-                android:id="@+id/tv_companyName"
+                android:id="@+id/tvCompanyName"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:gravity="center"
@@ -71,7 +71,7 @@
                 android:textSize="@dimen/sp_18" />
 
             <TextView
-                android:id="@+id/tv_position"
+                android:id="@+id/tvDepartment"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:maxLines="2"
@@ -109,12 +109,12 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:padding="@dimen/dp_10"
-                        android:text="@string/AccountSettings"
+                        android:text="@string/BasicSettings"
                         android:textSize="@dimen/sp_18" />
                 </LinearLayout>
 
                 <LinearLayout
-                    android:id="@+id/ll_setMainAccount"
+                    android:id="@+id/llPersonalInformation"
                     android:layout_width="match_parent"
                     android:layout_height="@dimen/dp_50"
                     android:background="@drawable/background_item_list_selector"
@@ -132,7 +132,7 @@
                         android:drawablePadding="@dimen/dp_5"
                         android:gravity="center_vertical"
                         android:padding="@dimen/dp_10"
-                        android:text="@string/MainAccount"
+                        android:text="@string/PersonalInformation"
                         android:textSize="@dimen/sp_16" />
 
                     <ImageView
@@ -149,42 +149,7 @@
                     android:background="@color/gray_slight" />
 
                 <LinearLayout
-                    android:id="@+id/ll_setSubAccount"
-                    android:layout_width="match_parent"
-                    android:layout_height="@dimen/dp_50"
-                    android:background="@drawable/background_item_list_selector"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal"
-                    android:paddingLeft="@dimen/dp_16"
-                    android:paddingRight="@dimen/dp_16">
-
-                    <TextView
-                        android:layout_width="0px"
-                        android:layout_height="match_parent"
-                        android:layout_marginStart="@dimen/dp_5"
-                        android:layout_weight="1"
-                        android:drawableStart="@mipmap/icon_account"
-                        android:drawablePadding="@dimen/dp_5"
-                        android:gravity="center_vertical"
-                        android:padding="@dimen/dp_10"
-                        android:text="衡流阀账号"
-                        android:textSize="@dimen/sp_16" />
-
-                    <ImageView
-                        android:layout_width="wrap_content"
-                        android:layout_height="match_parent"
-                        android:contentDescription="@null"
-                        android:src="@mipmap/ic_arrow_right" />
-
-                </LinearLayout>
-
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="@dimen/dp_1"
-                    android:background="@color/gray_slight" />
-
-                <LinearLayout
-                    android:id="@+id/ll_bindAccounts"
+                    android:id="@+id/llLanguageSettings"
                     android:layout_width="match_parent"
                     android:layout_height="@dimen/dp_50"
                     android:background="@drawable/background_item_list_selector"
@@ -202,7 +167,128 @@
                         android:drawablePadding="@dimen/dp_5"
                         android:gravity="center_vertical"
                         android:padding="@dimen/dp_10"
-                        android:text="@string/BindSocialAccount"
+                        android:text="@string/LanguageSettings"
+                        android:textSize="@dimen/sp_16" />
+
+                    <ImageView
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:contentDescription="@null"
+                        android:src="@mipmap/ic_arrow_right" />
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/dp_8"
+                android:background="@color/white"
+                android:orientation="vertical">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:padding="@dimen/dp_10"
+                        android:text="@string/NetworkSettings"
+                        android:textSize="@dimen/sp_18" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/llVoiceServer"
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/dp_50"
+                    android:background="@drawable/background_item_list_selector"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingLeft="@dimen/dp_16"
+                    android:paddingRight="@dimen/dp_16">
+
+                    <TextView
+                        android:layout_width="0px"
+                        android:layout_height="match_parent"
+                        android:layout_marginStart="@dimen/dp_5"
+                        android:layout_weight="1"
+                        android:drawableStart="@mipmap/icon_version"
+                        android:drawablePadding="@dimen/dp_5"
+                        android:gravity="center_vertical"
+                        android:padding="@dimen/dp_10"
+                        android:text="@string/VoiceServerSetting"
+                        android:textSize="@dimen/sp_16" />
+
+                    <ImageView
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:contentDescription="@null"
+                        android:src="@mipmap/ic_arrow_right" />
+
+                </LinearLayout>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/dp_1"
+                    android:background="@color/gray_slight" />
+
+                <LinearLayout
+                    android:id="@+id/llMessageServer"
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/dp_50"
+                    android:background="@drawable/background_item_list_selector"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingLeft="@dimen/dp_16"
+                    android:paddingRight="@dimen/dp_16">
+
+                    <TextView
+                        android:layout_width="0px"
+                        android:layout_height="match_parent"
+                        android:layout_marginStart="@dimen/dp_5"
+                        android:layout_weight="1"
+                        android:drawableStart="@mipmap/icon_update"
+                        android:drawablePadding="@dimen/dp_5"
+                        android:gravity="center_vertical"
+                        android:padding="@dimen/dp_10"
+                        android:text="@string/MessageServerSettings"
+                        android:textSize="@dimen/sp_16" />
+
+                    <ImageView
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:contentDescription="@null"
+                        android:src="@mipmap/ic_arrow_right" />
+
+                </LinearLayout>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/dp_1"
+                    android:background="@color/gray_slight" />
+
+                <LinearLayout
+                    android:id="@+id/llWifiSetting"
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/dp_50"
+                    android:background="@drawable/background_item_list_selector"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingLeft="@dimen/dp_16"
+                    android:paddingRight="@dimen/dp_16">
+
+                    <TextView
+                        android:layout_width="0px"
+                        android:layout_height="match_parent"
+                        android:layout_marginStart="@dimen/dp_5"
+                        android:layout_weight="1"
+                        android:drawableStart="@mipmap/icon_share"
+                        android:drawablePadding="@dimen/dp_5"
+                        android:gravity="center_vertical"
+                        android:padding="@dimen/dp_10"
+                        android:text="@string/WirelessNetworkSettings"
                         android:textSize="@dimen/sp_16" />
 
                     <ImageView
@@ -235,7 +321,7 @@
                 </LinearLayout>
 
                 <LinearLayout
-                    android:id="@+id/ll_version"
+                    android:id="@+id/llVersion"
                     android:layout_width="match_parent"
                     android:layout_height="@dimen/dp_50"
                     android:background="@drawable/background_item_list_selector"
@@ -253,7 +339,7 @@
                         android:drawablePadding="@dimen/dp_5"
                         android:gravity="center_vertical"
                         android:padding="@dimen/dp_10"
-                        android:text="@string/VersionView"
+                        android:text="@string/Version"
                         android:textSize="@dimen/sp_16" />
 
                     <ImageView
@@ -270,7 +356,7 @@
                     android:background="@color/gray_slight" />
 
                 <LinearLayout
-                    android:id="@+id/ll_update"
+                    android:id="@+id/llUpdate"
                     android:layout_width="match_parent"
                     android:layout_height="@dimen/dp_50"
                     android:background="@drawable/background_item_list_selector"
@@ -291,10 +377,10 @@
                         android:text="@string/VersionUpdate"
                         android:textSize="@dimen/sp_16" />
 
-                    <TextView
+                    <ImageView
                         android:layout_width="wrap_content"
                         android:layout_height="match_parent"
-                        android:gravity="center_vertical|end" />
+                        android:contentDescription="@null" />
 
                 </LinearLayout>
 
@@ -304,7 +390,7 @@
                     android:background="@color/gray_slight" />
 
                 <LinearLayout
-                    android:id="@+id/ll_share"
+                    android:id="@+id/llShare"
                     android:layout_width="match_parent"
                     android:layout_height="@dimen/dp_50"
                     android:background="@drawable/background_item_list_selector"
@@ -336,7 +422,7 @@
             </LinearLayout>
 
             <Button
-                android:id="@+id/btn_exit"
+                android:id="@+id/btnExit"
                 android:layout_width="match_parent"
                 android:layout_height="@dimen/dp_40"
                 android:layout_margin="@dimen/dp_10"

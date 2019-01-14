@@ -1,20 +1,23 @@
-package jp.co.shiratsuki.walkietalkie.ws;
+package jp.co.shiratsuki.walkietalkie.webrtc.websocket;
 
 import org.webrtc.IceCandidate;
 
 /**
- * Created by dds on 2019/1/3.
- * android_shuai@163.com
+ * WebSocket回调接口
+ * Created at 2019/1/15 2:39
+ *
+ * @author Li Yuliang
+ * @version 1.0
  */
 
 public interface IWebSocket {
 
-    void connect(String wss, final String room);
+    void connect(String wss, final String room, final String userName);
 
     void close();
 
     // 加入房间
-    void joinRoom(String room);
+    void joinRoom(String room, String userName);
 
     //处理回调消息
     void handleMessage(String message);
@@ -24,4 +27,7 @@ public interface IWebSocket {
     void sendAnswer(String socketId, String sdp);
 
     void sendOffer(String socketId, String sdp);
+
+    // 发送消息
+    void sendMessage(String msg);
 }

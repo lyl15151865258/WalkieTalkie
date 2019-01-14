@@ -98,6 +98,10 @@ public class MusicPlay {
         }
     }
 
+    public List<MusicList> getMusicListList(){
+        return musicListList;
+    }
+
     /**
      * 开始播放音乐
      */
@@ -116,8 +120,13 @@ public class MusicPlay {
                         int alreadyPlayCount = musicListList.get(i).getAlreadyPlayCount() + 1;
                         musicListList.get(i).setAlreadyPlayCount(alreadyPlayCount);
                         LogUtils.d(TAG, "播放ID：" + musicListList.get(i).getListNo() + ",已经播放次数：" + alreadyPlayCount);
-                        if (alreadyPlayCount == musicListList.get(i).getPlayCount()) {
+                        if (alreadyPlayCount >= musicListList.get(i).getPlayCount()) {
                             delList.add(musicListList.get(i));
+                            // 通知主页面刷新布局，不再播放的item背景改为灰色
+                            Intent intent = new Intent();
+                            intent.setAction("NO_LONGER_PLAYING");
+                            intent.putExtra("number", musicListList.get(i).getListNo());
+                            mContext.sendBroadcast(intent);
                         }
                         // 如果是列表末尾位置,等待interval2
                         if (i >= musicListList.size() - 1) {
@@ -139,6 +148,11 @@ public class MusicPlay {
                         }
                     } else {
                         delList.add(musicListList.get(i));
+                        // 通知主页面刷新布局，不再播放的item背景改为灰色
+                        Intent intent = new Intent();
+                        intent.setAction("NO_LONGER_PLAYING");
+                        intent.putExtra("number", musicListList.get(i).getListNo());
+                        mContext.sendBroadcast(intent);
                     }
                 }
                 musicListList.removeAll(delList);
