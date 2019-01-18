@@ -24,8 +24,8 @@
 
             <com.pkmmte.view.CircularImageView
                 android:id="@+id/iv_icon"
-                android:layout_width="@dimen/dp_50"
-                android:layout_height="@dimen/dp_50"
+                android:layout_width="@dimen/dp_60"
+                android:layout_height="@dimen/dp_60"
                 android:layout_marginStart="@dimen/dp_8"
                 android:scaleType="centerInside"
                 android:src="@drawable/photo_user"
@@ -131,13 +131,82 @@
             android:layout_height="0dp"
             android:layout_weight="1">
 
-            <android.support.v7.widget.RecyclerView
-                android:id="@+id/rvMalfunction"
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:overScrollMode="never" />
+                android:orientation="vertical">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="2"
+                        android:gravity="center"
+                        android:padding="@dimen/dp_10"
+                        android:text="联系人"
+                        android:textSize="@dimen/sp_18"
+                        android:textStyle="bold" />
+
+                    <View
+                        android:layout_width="@dimen/dp_2"
+                        android:layout_height="match_parent"
+                        android:background="@color/gray" />
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="3"
+                        android:gravity="center"
+                        android:padding="@dimen/dp_10"
+                        android:text="异常信息"
+                        android:textSize="@dimen/sp_18"
+                        android:textStyle="bold" />
+
+                </LinearLayout>
+
+                <View
+                    android:layout_height="@dimen/dp_1"
+                    android:layout_width="match_parent"
+                    android:background="@color/gray" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <android.support.v7.widget.RecyclerView
+                        android:id="@+id/rvContacts"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="2"
+                        android:overScrollMode="never" />
+
+                    <View
+                        android:layout_width="@dimen/dp_2"
+                        android:layout_height="match_parent"
+                        android:background="@color/gray" />
+
+                    <android.support.v7.widget.RecyclerView
+                        android:id="@+id/rvMalfunction"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="3"
+                        android:overScrollMode="never" />
+
+                </LinearLayout>
+
+            </LinearLayout>
 
         </android.support.v4.widget.SwipeRefreshLayout>
+
+        <View
+            android:layout_height="@dimen/dp_1"
+            android:layout_width="match_parent"
+            android:background="@color/gray" />
 
         <LinearLayout
             android:layout_width="match_parent"

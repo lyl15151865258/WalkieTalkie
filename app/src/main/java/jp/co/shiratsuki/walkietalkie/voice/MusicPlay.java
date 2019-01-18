@@ -57,6 +57,10 @@ public class MusicPlay {
         return mVoicePlay;
     }
 
+    public List<MusicList> getMusicListList() {
+        return musicListList;
+    }
+
     /**
      * 播放音乐
      */
@@ -98,64 +102,54 @@ public class MusicPlay {
         }
     }
 
-    public List<MusicList> getMusicListList(){
-        return musicListList;
-    }
-
     /**
      * 开始播放音乐
      */
     private void start() {
         while (flag) {
             if (musicListList != null && musicListList.size() > 0) {
-                // 如果播放列表不为空且长度大于0
-                for (MusicList music : musicListList) {
-                    LogUtils.d(TAG, "播放ID：" + music.getListNo() + ",已经播放次数：" + music.getAlreadyPlayCount());
-                }
-                List<MusicList> delList = new ArrayList<>();
-                for (int i = 0; i < musicListList.size(); i++) {
-                    if (musicListList.get(i).getAlreadyPlayCount() < musicListList.get(i).getPlayCount()) {
-                        playOneList(i);
-                        LogUtils.d(TAG, "播放ID：" + musicListList.get(i).getListNo() + ",已经播放次数：" + musicListList.get(i).getAlreadyPlayCount());
-                        int alreadyPlayCount = musicListList.get(i).getAlreadyPlayCount() + 1;
-                        musicListList.get(i).setAlreadyPlayCount(alreadyPlayCount);
-                        LogUtils.d(TAG, "播放ID：" + musicListList.get(i).getListNo() + ",已经播放次数：" + alreadyPlayCount);
-                        if (alreadyPlayCount >= musicListList.get(i).getPlayCount()) {
-                            delList.add(musicListList.get(i));
-                            // 通知主页面刷新布局，不再播放的item背景改为灰色
-                            Intent intent = new Intent();
-                            intent.setAction("NO_LONGER_PLAYING");
-                            intent.putExtra("number", musicListList.get(i).getListNo());
-                            mContext.sendBroadcast(intent);
-                        }
-                        // 如果是列表末尾位置,等待interval2
-                        if (i >= musicListList.size() - 1) {
-                            // 列表整体循环播放间隔
-                            LogUtils.d("Sleep", "睡眠等待interval2");
-                            try {
-                                Thread.sleep(interval2);
-                            } catch (InterruptedException e) {
-                                e.printStackTrace();
+                try {
+                    // 如果播放列表不为空且长度大于0
+                    for (MusicList music : musicListList) {
+                        LogUtils.d(TAG, "播放ID：" + music.getListNo() + ",已经播放次数：" + music.getAlreadyPlayCount());
+                    }
+                    List<MusicList> delList = new ArrayList<>();
+                    for (int i = 0; i < musicListList.size(); i++) {
+                        if (musicListList.get(i).getAlreadyPlayCount() < musicListList.get(i).getPlayCount()) {
+                            playOneList(i);
+                            LogUtils.d(TAG, "播放ID：" + musicListList.get(i).getListNo() + ",已经播放次数：" + musicListList.get(i).getAlreadyPlayCount());
+                            int alreadyPlayCount = musicListList.get(i).getAlreadyPlayCount() + 1;
+                            musicListList.get(i).setAlreadyPlayCount(alreadyPlayCount);
+                            LogUtils.d(TAG, "播放ID：" + musicListList.get(i).getListNo() + ",已经播放次数：" + alreadyPlayCount);
+                            if (alreadyPlayCount == musicListList.get(i).getPlayCount()) {
+                                delList.add(musicListList.get(i));
+                            }
+                            // 如果是列表末尾位置,等待interval2
+                            if (i >= musicListList.size() - 1) {
+                                // 列表整体循环播放间隔
+                                LogUtils.d("Sleep", "睡眠等待interval2");
+                                try {
+                                    Thread.sleep(interval2);
+                                } catch (InterruptedException e) {
+                                    e.printStackTrace();
+                                }
+                            } else {
+                                // 列表间播放间隔，等待interval1
+                                LogUtils.d("Sleep", "睡眠等待interval1");
+                                try {
+                                    Thread.sleep(interval1);
+                                } catch (InterruptedException e) {
+                                    e.printStackTrace();
+                                }
                             }
                         } else {
-                            // 列表间播放间隔，等待interval1
-                            LogUtils.d("Sleep", "睡眠等待interval1");
-                            try {
-                                Thread.sleep(interval1);
-                            } catch (InterruptedException e) {
-                                e.printStackTrace();
-                            }
+                            delList.add(musicListList.get(i));
                         }
-                    } else {
-                        delList.add(musicListList.get(i));
-                        // 通知主页面刷新布局，不再播放的item背景改为灰色
-                        Intent intent = new Intent();
-                        intent.setAction("NO_LONGER_PLAYING");
-                        intent.putExtra("number", musicListList.get(i).getListNo());
-                        mContext.sendBroadcast(intent);
                     }
+                    musicListList.removeAll(delList);
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
-                musicListList.removeAll(delList);
             }
         }
     }
@@ -171,6 +165,9 @@ public class MusicPlay {
             CountDownLatch mCountDownLatch = new CountDownLatch(1);
             try {
                 final int[] counter = {0};
+                if (musicListList.size() == 0) {
+                    return;
+                }
                 List<Music> musicList = musicListList.get(position).getMusicList();
                 // 如果播放次数没有达到上限，则开始播放
 //                if (musicList.get(0).getPlayCount() != musicList.get(0).getAlreadyPlayCount()) {
@@ -187,6 +184,9 @@ public class MusicPlay {
                 mMediaPlayer.setOnCompletionListener(mediaPlayer -> {
                     mediaPlayer.reset();
                     counter[0]++;
+                    if (musicListList.size() == 0) {
+                        return;
+                    }
                     List<Music> musicList1 = musicListList.get(position).getMusicList();
 //                    if (counter[0] < musicList1.size() && musicList.get(0).getPlayCount() != musicList.get(0).getAlreadyPlayCount()) {
                     if (counter[0] < musicList1.size()) {
@@ -223,5 +223,6 @@ public class MusicPlay {
 
     public void release() {
         flag = false;
+        mExecutorService.shutdown();
     }
 }

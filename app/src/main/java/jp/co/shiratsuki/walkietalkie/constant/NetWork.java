@@ -29,7 +29,7 @@ public class NetWork {
     /**
      * WebSocket地址
      */
-    public static final String WEBSOCKET_IP = "192.168.10.164";
+    public static final String WEBSOCKET_IP = "192.168.51.102";
     /**
      * WebSocket端口号
      */
@@ -38,6 +38,10 @@ public class NetWork {
      * WebSocket名称
      */
     public static final String WEBSOCKET_NAME = "Interphone";
+    /**
+     * WebSocket重连时间间隔
+     */
+    public static final int WEBSOCKET_RECONNECT_TIME_INTERVAL = 5000;
 
     /**
      * http请求超时时间

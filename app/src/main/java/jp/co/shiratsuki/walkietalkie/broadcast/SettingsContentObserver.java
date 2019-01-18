@@ -36,19 +36,13 @@ public class SettingsContentObserver extends ContentObserver {
         super.onChange(selfChange);
         AudioManager audioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
         int currentVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
-        if (SPHelper.getBoolean("SomeoneSpeaking", true)) {
-            // 有人正在讲话，默认音量减小了一半，此时保存默认音量的时候需要乘以2
-            if (currentVolume * 2 > audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)) {
-                SPHelper.save("defaultVolume", audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC) / 2);
-                LogUtils.d(TAG, "有人正在讲话，当前媒体音量为：" + currentVolume + "，保存的默认音量为：" + audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC) / 2);
-            } else {
-                SPHelper.save("defaultVolume", currentVolume * 2);
-                LogUtils.d(TAG, "有人正在讲话，当前媒体音量为：" + currentVolume + "，保存的默认音量为：" + currentVolume * 2);
-            }
+        if (SPHelper.getBoolean("SomeoneSpeaking", false)) {
+            // 有人正在讲话
+            SPHelper.save("defaultVolume", audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC) + 4);
+
         } else {
             // 没有人在讲话
             SPHelper.save("defaultVolume", currentVolume);
-            LogUtils.d(TAG, "没人正在讲话，当前媒体音量为：" + currentVolume + "，保存的默认音量为：" + currentVolume);
         }
     }
 }

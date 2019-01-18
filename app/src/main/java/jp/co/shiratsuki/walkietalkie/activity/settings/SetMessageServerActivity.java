@@ -38,7 +38,7 @@ public class SetMessageServerActivity extends BaseActivity {
         setContentView(R.layout.activity_set_message_server);
         mContext = this;
         MyToolbar toolbar = findViewById(R.id.myToolbar);
-        toolbar.initToolBar(this, toolbar, getString(R.string.VoiceServerSetting), R.drawable.back_white, onClickListener);
+        toolbar.initToolBar(this, toolbar, getString(R.string.MessageServerSettings), R.drawable.back_white, onClickListener);
         btnModify = findViewById(R.id.btn_modify);
         btnModify.setOnClickListener(onClickListener);
         etMessageServerIP = findViewById(R.id.etMessageServerIP);

@@ -33,6 +33,7 @@ import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
 
+import jp.co.shiratsuki.walkietalkie.service.WebSocketService;
 import okhttp3.MediaType;
 import okhttp3.MultipartBody;
 import okhttp3.RequestBody;
@@ -132,6 +133,9 @@ public class CrashHandler implements UncaughtExceptionHandler {
         // 关闭Service
         Intent intent0 = new Intent(mContext, VoiceService.class);
         mContext.stopService(intent0);
+
+        Intent intent1 = new Intent(mContext, WebSocketService.class);
+        mContext.stopService(intent1);
 
         //重启App
         Intent intent = mContext.getPackageManager().getLaunchIntentForPackage(mContext.getPackageName());

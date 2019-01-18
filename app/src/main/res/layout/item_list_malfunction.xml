@@ -13,7 +13,7 @@
         android:gravity="center_vertical"
         android:background="@color/gray_7"
         android:orientation="horizontal"
-        android:padding="@dimen/dp_6">
+        android:padding="@dimen/dp_5">
 
         <FrameLayout
             android:layout_width="wrap_content"
@@ -21,15 +21,15 @@
 
             <de.hdodenhof.circleimageview.CircleImageView
                 android:id="@+id/ivBack"
-                android:layout_width="@dimen/dp_45"
-                android:layout_height="@dimen/dp_45"
+                android:layout_width="@dimen/dp_40"
+                android:layout_height="@dimen/dp_40"
                 android:contentDescription="@null"
                 android:src="@color/black" />
 
             <ImageView
                 android:id="@+id/ivSpeaker"
-                android:layout_width="@dimen/dp_45"
-                android:layout_height="@dimen/dp_45"
+                android:layout_width="@dimen/dp_40"
+                android:layout_height="@dimen/dp_40"
                 android:contentDescription="@null"
                 android:padding="@dimen/dp_10"
                 android:src="@drawable/speaker"
@@ -52,7 +52,7 @@
                 android:padding="@dimen/dp_2"
                 android:singleLine="true"
                 android:text="电机异常"
-                android:textSize="@dimen/sp_18" />
+                android:textSize="@dimen/sp_16" />
 
             <TextView
                 android:id="@+id/tvMalfunctionTime"
@@ -63,7 +63,7 @@
                 android:includeFontPadding="false"
                 android:singleLine="true"
                 android:text="2018-11-28 12:12:12"
-                android:textSize="@dimen/sp_14" />
+                android:textSize="@dimen/sp_12" />
 
         </LinearLayout>
 
@@ -75,7 +75,7 @@
 
         <TextView
             android:id="@+id/tvConfirm"
-            android:layout_width="90dp"
+            android:layout_width="@dimen/dp_80"
             android:layout_height="match_parent"
             android:background="#D1BA74"
             android:gravity="center"
@@ -84,7 +84,7 @@
 
         <TextView
             android:id="@+id/tvDelete"
-            android:layout_width="60dp"
+            android:layout_width="@dimen/dp_60"
             android:layout_height="match_parent"
             android:background="#FF0000"
             android:gravity="center"

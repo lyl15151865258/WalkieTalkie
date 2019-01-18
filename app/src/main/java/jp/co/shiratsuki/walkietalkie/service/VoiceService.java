@@ -86,7 +86,7 @@ public class VoiceService extends Service implements IWebRTCHelper {
         filter3.addAction(AudioManager.ACTION_AUDIO_BECOMING_NOISY);
         registerReceiver(headsetPlugReceiver, filter3);
 
-        showNotification();
+//        showNotification();
         if (helper == null) {
             helper = new WebRTCHelper(this, this, WebRTC.iceServers);
         }
@@ -206,7 +206,6 @@ public class VoiceService extends Service implements IWebRTCHelper {
                     Uri setDataSourceuri = Uri.parse("android.resource://jp.co.shiratsuki.walkietalkie/" + R.raw.dingdong);
                     mediaPlayer.setDataSource(VoiceService.this, setDataSourceuri);
                     mediaPlayer.prepareAsync();
-                    mediaPlayer.setScreenOnWhilePlaying(true);
                     mediaPlayer.setOnPreparedListener(mediaPlayer -> mediaPlayer.start());
                     mediaPlayer.setOnCompletionListener(mediaPlayer -> {
                         mediaPlayer.reset();
@@ -220,7 +219,6 @@ public class VoiceService extends Service implements IWebRTCHelper {
                     Uri setDataSourceuri = Uri.parse("android.resource://jp.co.shiratsuki.walkietalkie/" + R.raw.du);
                     mediaPlayer.setDataSource(VoiceService.this, setDataSourceuri);
                     mediaPlayer.prepareAsync();
-                    mediaPlayer.setScreenOnWhilePlaying(true);
                     mediaPlayer.setOnPreparedListener(mediaPlayer -> mediaPlayer.start());
                     mediaPlayer.setOnCompletionListener(mediaPlayer -> {
                         mediaPlayer.reset();
@@ -244,7 +242,6 @@ public class VoiceService extends Service implements IWebRTCHelper {
                     Uri setDataSourceuri = Uri.parse("android.resource://jp.co.shiratsuki.walkietalkie/" + R.raw.du);
                     mediaPlayer.setDataSource(VoiceService.this, setDataSourceuri);
                     mediaPlayer.prepareAsync();
-                    mediaPlayer.setScreenOnWhilePlaying(true);
                     mediaPlayer.setOnPreparedListener(mediaPlayer -> mediaPlayer.start());
                     mediaPlayer.setOnCompletionListener(mediaPlayer -> {
                         mediaPlayer.reset();
@@ -356,12 +353,10 @@ public class VoiceService extends Service implements IWebRTCHelper {
         int defaultVolume = SPHelper.getInt("defaultVolume", mAudioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC));
         // 如果所有人都不讲话了
         if (!someoneSpeaking) {
-            LogUtils.d(TAG, "没有人讲话，设置音量值：" + defaultVolume);
             mAudioManager.setStreamVolume(AudioManager.STREAM_MUSIC, defaultVolume, AudioManager.FLAG_VIBRATE);
             SPHelper.save("SomeoneSpeaking", false);
         } else {
-            LogUtils.d(TAG, "有人讲话，设置音量值：" + defaultVolume / 2);
-            mAudioManager.setStreamVolume(AudioManager.STREAM_MUSIC, defaultVolume / 2, AudioManager.FLAG_VIBRATE);
+            mAudioManager.setStreamVolume(AudioManager.STREAM_MUSIC, defaultVolume - 4, AudioManager.FLAG_VIBRATE);
             SPHelper.save("SomeoneSpeaking", true);
         }
     }

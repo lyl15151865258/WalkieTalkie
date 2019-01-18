@@ -55,7 +55,6 @@ import jp.co.shiratsuki.walkietalkie.activity.settings.SetVoiceServerActivity;
 import jp.co.shiratsuki.walkietalkie.adapter.MalfunctionAdapter;
 import jp.co.shiratsuki.walkietalkie.bean.WebSocketData;
 import jp.co.shiratsuki.walkietalkie.broadcast.BaseBroadcastReceiver;
-import jp.co.shiratsuki.walkietalkie.constant.NetWork;
 import jp.co.shiratsuki.walkietalkie.contentprovider.SPHelper;
 import jp.co.shiratsuki.walkietalkie.interfaces.OnPictureSelectedListener;
 import jp.co.shiratsuki.walkietalkie.service.IVoiceCallback;
@@ -325,9 +324,6 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
 
     private void initWebSocket() {
         Intent intent = new Intent(mContext, WebSocketService.class);
-        intent.putExtra("ServerHost", SPHelper.getString("MessageServerIP", NetWork.WEBSOCKET_IP));
-        intent.putExtra("WebSocketPort", SPHelper.getString("MessageServerPort", NetWork.WEBSOCKET_PORT));
-        intent.putExtra("WebSocketName", String.valueOf(NetWork.WEBSOCKET_NAME));
         mContext.startService(intent);
     }
 
@@ -555,9 +551,6 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
                                 tvSpeaker.setText(getString(R.string.pressToUseSpeaker));
                                 btnSpeaker.setBackgroundResource(R.drawable.icon_speaker_pressed);
                             }
-
-                            // 以下部分必须写，WebRTCHelper无法复用Context，因此需要重新创建VoiceService对象
-                            restartVoiceService();
                         } catch (RemoteException e) {
                             e.printStackTrace();
                         }
@@ -668,42 +661,6 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
                 break;
         }
     };
-
-    /**
-     * 重启VoiceService服务
-     */
-    private void restartVoiceService() {
-        unbindService(serviceConnection2);
-        Intent intent0 = new Intent(mContext, VoiceService.class);
-        stopService(intent0);
-
-        // 重新打开VoiceService
-        Intent intent = new Intent(mContext, VoiceService.class);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            startForegroundService(intent);
-        } else {
-            startService(intent);
-        }
-        Intent intent1 = new Intent(mContext, VoiceService.class);
-        bindService(intent1, serviceConnection2, BIND_AUTO_CREATE);
-    }
-
-    /**
-     * 重启WebSocketService服务
-     */
-    private void restartWebSocketService() {
-        if (webSocketService != null) {
-            webSocketService.closeWebSocket();
-            unbindService(serviceConnection1);
-            Intent intent0 = new Intent(mContext, WebSocketService.class);
-            stopService(intent0);
-
-            // 重新打开VoiceService
-            initWebSocket();
-            Intent intent1 = new Intent(mContext, WebSocketService.class);
-            bindService(intent1, serviceConnection1, BIND_AUTO_CREATE);
-        }
-    }
 
     private class MyReceiver extends BaseBroadcastReceiver {
         @Override
@@ -920,10 +877,24 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
                     handleCropError(data);
                     break;
                 case REQUEST_CODE_SET_VOICE_SERVER:
-                    restartVoiceService();
+                    // 设置音频服务器地址后返回
+                    if (iVoiceService != null) {
+                        try {
+                            if (isInRoom) {
+                                iVoiceService.leaveGroup();
+                            }
+                        } catch (RemoteException e) {
+                            e.printStackTrace();
+                        }
+                    }
                     break;
                 case REQUEST_CODE_SET_MESSAGE_SERVER:
-                    restartWebSocketService();
+                    // 设置消息服务器地址后返回
+                    if (webSocketService != null) {
+                        webSocketService.closeWebSocket();
+                        webSocketService.initWebSocket();
+                        webSocketService.connectWebSocket();
+                    }
                     break;
                 default:
                     break;

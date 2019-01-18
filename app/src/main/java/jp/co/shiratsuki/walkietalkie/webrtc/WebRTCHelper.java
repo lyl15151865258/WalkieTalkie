@@ -77,11 +77,6 @@ public class WebRTCHelper implements ISignalingEvents {
 
     private Handler mHandler = new Handler();
 
-    /**
-     * 发送或接收到消息的时间毫秒值，用于减少心跳包的发送次数
-     */
-    private long sendTime = 0L;
-
     public WebRTCHelper(Context context, IWebRTCHelper IHelper, Parcelable[] servers) {
         this.IHelper = IHelper;
         this._connectionPeerDic = new HashMap<>();
@@ -92,7 +87,6 @@ public class WebRTCHelper implements ISignalingEvents {
             PeerConnection.IceServer iceServer = new PeerConnection.IceServer(myIceServer.uri, myIceServer.username, myIceServer.password);
             ICEServers.add(iceServer);
         }
-        webSocket = new JavaWebSocket(this);
         mAudioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
         executorService = new ThreadPoolExecutor(5, 10, 60, TimeUnit.SECONDS,
                 new SynchronousQueue<>(), (r) -> {
@@ -104,6 +98,7 @@ public class WebRTCHelper implements ISignalingEvents {
 
     public void initSocket(String ws, final String room, final String userName, boolean videoEnable) {
         this.videoEnable = videoEnable;
+        webSocket = new JavaWebSocket(this);
         webSocket.connect(ws, room, userName);
     }
 
@@ -141,23 +136,21 @@ public class WebRTCHelper implements ISignalingEvents {
     private Runnable heartBeatRunnable = new Runnable() {
         @Override
         public void run() {
-            if (System.currentTimeMillis() - sendTime >= NetWork.HEART_BEAT_RATE) {
-                // 心跳包只需发送一个SocketId过去, 以节约数据流量
-                // 如果发送失败，就重新初始化一个socket
-                Runnable runnable = () -> {
-                    LogUtils.d(TAG, "WebSocket发送心跳包");
+            // 心跳包只需发送一个SocketId过去, 以节约数据流量
+            // 如果发送失败，就重新初始化一个socket
+            Runnable runnable = () -> {
+                LogUtils.d(TAG, "WebSocket发送心跳包");
 
-                    HashMap<String, Object> childMap = new HashMap();
-                    childMap.put("socketId", _myId);
-                    HashMap<String, Object> map = new HashMap();
-                    map.put("eventName", "__ping");
-                    map.put("data", childMap);
-                    JSONObject object = new JSONObject(map);
-                    String jsonString = object.toString();
-                    sendMessage(jsonString);
-                };
-                executorService.submit(runnable);
-            }
+                HashMap<String, Object> childMap = new HashMap();
+                childMap.put("socketId", _myId);
+                HashMap<String, Object> map = new HashMap();
+                map.put("eventName", "__ping");
+                map.put("data", childMap);
+                JSONObject object = new JSONObject(map);
+                String jsonString = object.toString();
+                sendMessage(jsonString);
+            };
+            executorService.submit(runnable);
             mHandler.postDelayed(this, NetWork.HEART_BEAT_RATE);
         }
     };
@@ -241,15 +234,14 @@ public class WebRTCHelper implements ISignalingEvents {
     // 发送消息
     private void sendMessage(String message) {
         webSocket.sendMessage(message);
-        sendTime = System.currentTimeMillis();
     }
 
     // 给服务器发送当前是否在讲话的标记
     public void sendSpeakStatus(boolean isSpeaking) {
-        HashMap<String, Object> childMap = new HashMap();
+        HashMap<String, Object> childMap = new HashMap<>();
         childMap.put("socketId", _myId);
         childMap.put("isSpeaking", isSpeaking);
-        HashMap<String, Object> map = new HashMap();
+        HashMap<String, Object> map = new HashMap<>();
         map.put("eventName", "__speakStatus");
         map.put("data", childMap);
         JSONObject object = new JSONObject(map);
@@ -257,7 +249,9 @@ public class WebRTCHelper implements ISignalingEvents {
         sendMessage(jsonString);
     }
 
-    // 退出房间
+    /**
+     * 退出房间
+     */
     public void exitRoom() {
         if (videoSource != null) {
             videoSource.stop();
@@ -267,7 +261,10 @@ public class WebRTCHelper implements ISignalingEvents {
         for (Object Id : myCopy) {
             closePeerConnection((String) Id);
         }
-        webSocket.close();
+        if (webSocket != null) {
+            webSocket.close();
+            webSocket = null;
+        }
         if (_connectionIdArray != null) {
             _connectionIdArray.clear();
         }
@@ -279,7 +276,6 @@ public class WebRTCHelper implements ISignalingEvents {
 
         mHandler.removeCallbacksAndMessages(null);
         executorService.shutdown();
-
     }
 
     // 创建本地流
