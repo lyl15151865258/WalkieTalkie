@@ -38,10 +38,11 @@ public class SettingsContentObserver extends ContentObserver {
         int currentVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
         if (SPHelper.getBoolean("SomeoneSpeaking", false)) {
             // 有人正在讲话
-            SPHelper.save("defaultVolume", audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC) + 4);
-
+            LogUtils.d(TAG, "当前有人在讲话");
+            SPHelper.save("defaultVolume", currentVolume * 2 > audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC) ? audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC) : currentVolume * 2);
         } else {
             // 没有人在讲话
+            LogUtils.d(TAG, "当前没有人讲话");
             SPHelper.save("defaultVolume", currentVolume);
         }
     }

@@ -31,7 +31,7 @@ public interface ISignalingEvents {
 
     void onReceiverAnswer(String socketId, String sdp);
 
-    void onReceiveSpeakStatus(boolean someoneSpeaking);
+    void onReceiveSpeakStatus(List<Contact> contactList);
 
     // WebSocket断开
     void onWebSocketClosed();

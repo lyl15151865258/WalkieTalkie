@@ -97,6 +97,12 @@ public class ActivityController {
      * 退出程序
      */
     public static void exit() {
+
+        Intent intent = new Intent(WalkieTalkieApplication.getInstance(), WebSocketService.class);
+        WalkieTalkieApplication.getInstance().stopService(intent);
+        Intent intent1 = new Intent(WalkieTalkieApplication.getInstance(), VoiceService.class);
+        WalkieTalkieApplication.getInstance().stopService(intent1);
+
         List<Activity> delList = new ArrayList<>();
         for (Activity activity : activities) {
             if (!activity.isFinishing()) {
@@ -105,11 +111,6 @@ public class ActivityController {
             }
         }
         activities.removeAll(delList);
-
-        Intent intent = new Intent(WalkieTalkieApplication.getInstance(), WebSocketService.class);
-        WalkieTalkieApplication.getInstance().stopService(intent);
-        Intent intent1 = new Intent(WalkieTalkieApplication.getInstance(), VoiceService.class);
-        WalkieTalkieApplication.getInstance().stopService(intent1);
 
         android.os.Process.killProcess(android.os.Process.myPid());
         System.exit(0);

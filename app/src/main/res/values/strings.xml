@@ -6,6 +6,7 @@
     <string name="room">群组名称：</string>
     <string name="contact">联系人</string>
     <string name="malfunction">报警信息</string>
+    <string name="chatroom">聊天室</string>
     <string name="pressToJoinChat">加入聊天</string>
     <string name="releaseToExitChat">退出聊天</string>
     <string name="pressToSpeak">按下说话</string>

@@ -10,7 +10,6 @@ import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
-import android.graphics.Color;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -23,18 +22,18 @@ import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.view.GravityCompat;
+import android.support.v4.view.ViewPager;
 import android.support.v4.widget.DrawerLayout;
-import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AlertDialog;
-import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.ImageView;
+import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -52,12 +51,13 @@ import jp.co.shiratsuki.walkietalkie.activity.settings.LanguageActivity;
 import jp.co.shiratsuki.walkietalkie.activity.settings.SetMessageServerActivity;
 import jp.co.shiratsuki.walkietalkie.activity.settings.SetPersonalInfoActivity;
 import jp.co.shiratsuki.walkietalkie.activity.settings.SetVoiceServerActivity;
-import jp.co.shiratsuki.walkietalkie.adapter.ContactAdapter;
 import jp.co.shiratsuki.walkietalkie.adapter.MalfunctionAdapter;
 import jp.co.shiratsuki.walkietalkie.bean.Contact;
 import jp.co.shiratsuki.walkietalkie.bean.WebSocketData;
 import jp.co.shiratsuki.walkietalkie.broadcast.BaseBroadcastReceiver;
 import jp.co.shiratsuki.walkietalkie.contentprovider.SPHelper;
+import jp.co.shiratsuki.walkietalkie.fragment.ContactsFragment;
+import jp.co.shiratsuki.walkietalkie.fragment.MalfunctionFragment;
 import jp.co.shiratsuki.walkietalkie.interfaces.OnPictureSelectedListener;
 import jp.co.shiratsuki.walkietalkie.service.IVoiceCallback;
 import jp.co.shiratsuki.walkietalkie.service.IVoiceService;
@@ -70,9 +70,8 @@ import jp.co.shiratsuki.walkietalkie.utils.PermissionUtil;
 import jp.co.shiratsuki.walkietalkie.utils.StatusBarUtil;
 import jp.co.shiratsuki.walkietalkie.utils.WifiUtil;
 import jp.co.shiratsuki.walkietalkie.webrtc.WebRTCHelper;
-import jp.co.shiratsuki.walkietalkie.widget.RecyclerViewDivider;
+import jp.co.shiratsuki.walkietalkie.widget.NoScrollViewPager;
 import jp.co.shiratsuki.walkietalkie.widget.SelectPicturePopupWindow;
-import jp.co.shiratsuki.walkietalkie.widget.SwipeItemLayout;
 import jp.co.shiratsuki.walkietalkie.widget.dialog.CommonWarningDialog;
 
 /**
@@ -89,23 +88,21 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
     private Context mContext;
     private DrawerLayout drawerLayout;
     private NavigationView navigation;
+    private NoScrollViewPager viewPager;
+    private List<FrameLayout> menus;
     private LinearLayout llMain, llNotification;
     private CircularImageView ivIcon, ivUserIcon;
     private TextView tvCompanyName, tvDepartment, tvUserName;
-    private ImageView ivRight;
-    private List<Contact> contactList;
-    private ContactAdapter contactAdapter;
-    private List<WebSocketData> malfunctionList;
-    private MalfunctionAdapter malfunctionAdapter;
     private MyReceiver myReceiver;
     private boolean sIsScrolling = false;
     private IVoiceService iVoiceService;
     private WebSocketService webSocketService;
+    private int fragmentPosition = 0;
 
     private CommonWarningDialog commonWarningDialog;
 
     private boolean isInRoom = false, isSpeaking = false, isUseSpeaker = false;
-    private TextView tvSSID, tvIp, tvEnterRoom, tvMessage, tvSpeaker;
+    private TextView tvSSID, tvIp;
     private Button btnEnterRoom, btnSpeak, btnSpeaker;
 
     // 振动电机
@@ -197,11 +194,48 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
         params.width = mWidth * 4 / 5;
         navigation.setLayoutParams(params);
 
-        ivRight = findViewById(R.id.iv_right);
-        ivRight.setOnClickListener(onClickListener);
-
         drawerLayout = findViewById(R.id.drawer_layout);
         drawerLayout.addDrawerListener(drawerListener);
+
+        menus = new ArrayList<>();
+        FrameLayout fl_a = findViewById(R.id.fl_a);
+        menus.add(fl_a);
+        FrameLayout fl_b = findViewById(R.id.fl_b);
+        menus.add(fl_b);
+        FrameLayout fl_c = findViewById(R.id.fl_c);
+        menus.add(fl_c);
+        for (FrameLayout frameLayout : menus) {
+            frameLayout.setOnClickListener(onClickListener);
+        }
+
+        viewPager = findViewById(R.id.viewPager);
+        //设置页面不可以左右滑动
+        viewPager.setNoScroll(true);
+        viewPager.setAdapter(viewPagerAdapter);
+        //设置Fragment预加载，非常重要,可以保存每个页面fragment已有的信息,防止切换后原页面信息丢失
+        viewPager.setOffscreenPageLimit(menus.size());
+        //刚进来默认选择第2个
+        menus.get(1).setSelected(true);
+        //viewPager添加滑动监听，用于控制TextView的展示
+        viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+            @Override
+            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+            }
+
+            @Override
+            public void onPageSelected(int position) {
+                for (FrameLayout menu : menus) {
+                    menu.setSelected(false);
+                }
+                menus.get(position).setSelected(true);
+            }
+
+            @Override
+            public void onPageScrollStateChanged(int state) {
+
+            }
+        });
+
         llMain = findViewById(R.id.ll_main);
         ivIcon = findViewById(R.id.iv_icon);
         ivUserIcon = findViewById(R.id.iv_userIcon);
@@ -214,53 +248,11 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
         tvDepartment = findViewById(R.id.tvDepartment);
         tvUserName = findViewById(R.id.tvUserName);
 
-        RecyclerView rvContacts = findViewById(R.id.rvContacts);
-        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(mContext);
-        linearLayoutManager.setOrientation(LinearLayoutManager.VERTICAL);
-        rvContacts.setLayoutManager(linearLayoutManager);
-        rvContacts.addItemDecoration(new RecyclerViewDivider(mContext, LinearLayoutManager.HORIZONTAL, 1, ContextCompat.getColor(mContext, R.color.gray_slight)));
-        contactList = new ArrayList<>();
-        contactAdapter = new ContactAdapter(mContext, contactList);
-        rvContacts.setAdapter(contactAdapter);
-
-
-        RecyclerView rvMalfunction = findViewById(R.id.rvMalfunction);
-        LinearLayoutManager linearLayoutManager1 = new LinearLayoutManager(mContext);
-        linearLayoutManager1.setOrientation(LinearLayoutManager.VERTICAL);
-        rvMalfunction.setLayoutManager(linearLayoutManager1);
-        rvMalfunction.addItemDecoration(new RecyclerViewDivider(mContext, LinearLayoutManager.HORIZONTAL, 1, ContextCompat.getColor(mContext, R.color.gray_slight)));
-
-        rvMalfunction.addOnItemTouchListener(new SwipeItemLayout.OnSwipeItemTouchListener(this));
-
-        malfunctionList = new ArrayList<>();
-        malfunctionAdapter = new MalfunctionAdapter(mContext, malfunctionList);
-        malfunctionAdapter.setOnItemClickListener(onItemClickListener);
-        rvMalfunction.setAdapter(malfunctionAdapter);
-        rvMalfunction.addOnScrollListener(onScrollListener);
-
         btnEnterRoom = findViewById(R.id.btnEnterRoom);
         btnEnterRoom.setOnClickListener(onClickListener);
 
-        // 下拉列表刷新
-        SwipeRefreshLayout swipeRefreshLayout = findViewById(R.id.swipeRefresh);
-        swipeRefreshLayout.setColorSchemeColors(Color.RED);
-        swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
-            @Override
-            public void onRefresh() {
-                swipeRefreshLayout.postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        swipeRefreshLayout.setRefreshing(false);
-                    }
-                }, 1000);
-            }
-        });
-
         tvSSID = findViewById(R.id.tvSSID);
         tvIp = findViewById(R.id.tvIp);
-        tvEnterRoom = findViewById(R.id.tvEnterRoom);
-        tvMessage = findViewById(R.id.tvMessage);
-        tvSpeaker = findViewById(R.id.tvSpeaker);
         btnEnterRoom = findViewById(R.id.btnEnterRoom);
         btnSpeak = findViewById(R.id.btnSpeak);
         btnSpeaker = findViewById(R.id.btnSpeaker);
@@ -278,6 +270,40 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
         findViewById(R.id.llShare).setOnClickListener(onClickListener);
         findViewById(R.id.btnExit).setOnClickListener(onClickListener);
     }
+
+    /**
+     * ViewPager适配器
+     */
+    private FragmentStatePagerAdapter viewPagerAdapter = new FragmentStatePagerAdapter(getSupportFragmentManager()) {
+        @Override
+        public int getCount() {
+            return 5;
+        }
+
+        @Override
+        public Fragment getItem(int position) {
+            switch (position) {
+                // 联系人
+                case 0:
+                    return new ContactsFragment();
+                // 异常信息
+                case 1:
+                    return new MalfunctionFragment();
+                // 联系人
+                case 2:
+                    return new ContactsFragment();
+                // 异常信息
+                case 3:
+                    return new MalfunctionFragment();
+                // 联系人
+                case 4:
+                    return new ContactsFragment();
+                default:
+                    break;
+            }
+            return null;
+        }
+    };
 
     /**
      * 显示连接Wifi的弹窗
@@ -436,7 +462,6 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
             runOnUiThread(new Thread(() -> {
                 isInRoom = true;
                 showToast(getString(R.string.InChatRoom));
-                tvEnterRoom.setText(getString(R.string.releaseToExitChat));
                 btnEnterRoom.setBackgroundResource(R.drawable.icon_chat_normal);
             }));
         }
@@ -447,16 +472,13 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
             runOnUiThread(new Thread(() -> {
                 // 重置房间按钮
                 isInRoom = false;
-                tvEnterRoom.setText(getString(R.string.pressToJoinChat));
                 btnEnterRoom.setBackgroundResource(R.drawable.icon_chat_pressed);
                 // 重置说话按钮
                 isSpeaking = false;
-                tvMessage.setText(getString(R.string.pressToSpeak));
                 btnSpeak.setBackgroundResource(R.drawable.icon_speak_pressed);
                 SPHelper.save("KEY_STATUS_UP", true);
                 // 重置扬声器按钮
                 isUseSpeaker = false;
-                tvSpeaker.setText(getString(R.string.pressToUseSpeaker));
                 btnSpeaker.setBackgroundResource(R.drawable.icon_speaker_pressed);
 
                 showToast(getString(R.string.ExitChatRoom));
@@ -468,7 +490,6 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
             // 打开麦克风成功
             runOnUiThread(new Thread(() -> {
                 isSpeaking = true;
-                tvMessage.setText(getString(R.string.releaseFinish));
                 btnSpeak.setBackgroundResource(R.drawable.icon_speak_normal);
             }));
         }
@@ -478,7 +499,6 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
             // 关闭麦克风成功
             runOnUiThread(new Thread(() -> {
                 isSpeaking = false;
-                tvMessage.setText(getString(R.string.pressToSpeak));
                 btnSpeak.setBackgroundResource(R.drawable.icon_speak_pressed);
             }));
         }
@@ -488,7 +508,6 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
             // 使用扬声器成功
             runOnUiThread(new Thread(() -> {
                 isUseSpeaker = true;
-                tvSpeaker.setText(getString(R.string.releaseToUseEarpiece));
                 btnSpeaker.setBackgroundResource(R.drawable.icon_speaker_normal);
             }));
         }
@@ -498,7 +517,6 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
             // 使用听筒成功
             runOnUiThread(new Thread(() -> {
                 isUseSpeaker = false;
-                tvSpeaker.setText(getString(R.string.pressToUseSpeaker));
                 btnSpeaker.setBackgroundResource(R.drawable.icon_speaker_pressed);
             }));
         }
@@ -509,22 +527,28 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    int position = -1;
-                    for (int i = 0; i < contactList.size(); i++) {
-                        if (contactList.get(i).getUserIP().equals(ipAddress)) {
-                            position = i;
-                            break;
+                    findViewById(R.id.fl_a).performClick();
+                    Fragment fragment = getSupportFragmentManager().getFragments().get(0);
+                    if (fragment instanceof ContactsFragment) {
+                        ContactsFragment contactsFragment = (ContactsFragment) fragment;
+                        int position = -1;
+                        for (int i = 0; i < contactsFragment.contactList.size(); i++) {
+                            if (contactsFragment.contactList.get(i).getUserIP().equals(ipAddress)) {
+                                position = i;
+                                break;
+                            }
+                        }
+                        if (position == -1) {
+                            contactsFragment.contactList.add(contactsFragment.contactList.size(), new Contact(ipAddress, name, "", false));
+                            contactsFragment.contactAdapter.notifyItemChanged(contactsFragment.contactList.size() - 1);
+                        } else {
+                            if (!contactsFragment.contactList.get(position).getUserName().equals(name)) {
+                                contactsFragment.contactList.get(position).setUserName(name);
+                                contactsFragment.contactAdapter.notifyItemChanged(position);
+                            }
                         }
                     }
-                    if (position == -1) {
-                        contactList.add(contactList.size(), new Contact(ipAddress, name, ""));
-                        contactAdapter.notifyItemChanged(contactList.size() - 1);
-                    } else {
-                        if (!contactList.get(position).getUserName().equals(name)) {
-                            contactList.get(position).setUserName(name);
-                            contactAdapter.notifyItemChanged(position);
-                        }
-                    }
+
                 }
             });
         }
@@ -535,16 +559,21 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    int position = -1;
-                    for (int i = 0; i < contactList.size(); i++) {
-                        if (contactList.get(i).getUserIP().equals(ipAddress)) {
-                            position = i;
-                            break;
+                    findViewById(R.id.fl_a).performClick();
+                    Fragment fragment = getSupportFragmentManager().getFragments().get(0);
+                    if (fragment instanceof ContactsFragment) {
+                        ContactsFragment contactsFragment = (ContactsFragment) fragment;
+                        int position = -1;
+                        for (int i = 0; i < contactsFragment.contactList.size(); i++) {
+                            if (contactsFragment.contactList.get(i).getUserIP().equals(ipAddress)) {
+                                position = i;
+                                break;
+                            }
                         }
-                    }
-                    if (position != -1) {
-                        contactList.remove(position);
-                        contactAdapter.notifyItemRemoved(position);
+                        if (position != -1) {
+                            contactsFragment.contactList.remove(position);
+                            contactsFragment.contactAdapter.notifyItemRemoved(position);
+                        }
                     }
                 }
             });
@@ -579,9 +608,6 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
     private View.OnClickListener onClickListener = (view) -> {
         Intent intent;
         switch (view.getId()) {
-            case R.id.iv_right:
-
-                break;
             case R.id.iv_icon:
                 drawerLayout.openDrawer(GravityCompat.START);
                 break;
@@ -592,6 +618,19 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
                 intent.setData(Uri.parse("package:" + getPackageName()));
                 intent.addFlags(Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
                 startActivity(intent);
+                break;
+            case R.id.fl_a:
+            case R.id.fl_b:
+            case R.id.fl_c:
+                for (int i = 0; i < menus.size(); i++) {
+                    menus.get(i).setSelected(false);
+                    menus.get(i).setTag(i);
+                }
+                //设置选择效果
+                view.setSelected(true);
+                //参数false代表瞬间切换，true表示平滑过渡
+                fragmentPosition = (Integer) view.getTag();
+                viewPager.setCurrentItem(fragmentPosition, false);
                 break;
             case R.id.btnEnterRoom:
                 vibrator.vibrate(50);
@@ -604,12 +643,10 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
                             isInRoom = false;
                             if (isSpeaking) {
                                 isSpeaking = false;
-                                tvMessage.setText(getString(R.string.pressToSpeak));
                                 btnSpeak.setBackgroundResource(R.drawable.icon_speak_pressed);
                             }
                             if (isUseSpeaker) {
                                 isUseSpeaker = false;
-                                tvSpeaker.setText(getString(R.string.pressToUseSpeaker));
                                 btnSpeaker.setBackgroundResource(R.drawable.icon_speaker_pressed);
                             }
                         } catch (RemoteException e) {
@@ -729,46 +766,56 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
             super.onReceive(context, intent);
             if (intent != null && intent.getAction() != null) {
                 switch (intent.getAction()) {
-                    case "RECEIVE_MALFUNCTION":
+                    case "RECEIVE_MALFUNCTION": {
                         WebSocketData webSocketData = (WebSocketData) intent.getSerializableExtra("data");
-                        if (webSocketData.isStatus()) {
-                            malfunctionList.add(malfunctionList.size(), webSocketData);
-                            malfunctionAdapter.notifyItemInserted(malfunctionList.size() - 1);
-                        } else {
-                            int position = -1;
-                            for (int i = 0; i < malfunctionList.size(); i++) {
-                                if (malfunctionList.get(i).getListNo() == webSocketData.getListNo()) {
-                                    position = i;
-                                    break;
+                        viewPager.setCurrentItem(1, false);
+                        Fragment fragment = getSupportFragmentManager().getFragments().get(1);
+                        if (fragment instanceof MalfunctionFragment) {
+                            MalfunctionFragment malfunctionFragment = (MalfunctionFragment) fragment;
+                            if (webSocketData.isStatus()) {
+                                malfunctionFragment.malfunctionList.add(malfunctionFragment.malfunctionList.size(), webSocketData);
+                                malfunctionFragment.malfunctionAdapter.notifyItemInserted(malfunctionFragment.malfunctionList.size() - 1);
+                            } else {
+                                int position = -1;
+                                for (int i = 0; i < malfunctionFragment.malfunctionList.size(); i++) {
+                                    if (malfunctionFragment.malfunctionList.get(i).getListNo() == webSocketData.getListNo()) {
+                                        position = i;
+                                        break;
+                                    }
                                 }
-                            }
-                            if (position != -1) {
-                                malfunctionList.remove(position);
-                                malfunctionAdapter.notifyItemRemoved(position);
+                                if (position != -1) {
+                                    malfunctionFragment.malfunctionList.remove(position);
+                                    malfunctionFragment.malfunctionAdapter.notifyItemRemoved(position);
+                                }
                             }
                         }
-                        break;
+                    }
+                    break;
                     case "CURRENT_PLAYING": {
                         int listNo = intent.getIntExtra("number", -1);
-                        if (listNo == -1) {
-                            for (int i = 0; i < malfunctionList.size(); i++) {
-                                if (malfunctionList.get(i).isPalying()) {
-                                    malfunctionList.get(i).setPalying(false);
-                                    malfunctionAdapter.notifyItemChanged(i, false);
-                                    break;
-                                }
-                            }
-                        } else {
-                            for (int i = 0; i < malfunctionList.size(); i++) {
-                                if (listNo == malfunctionList.get(i).getListNo()) {
-                                    if (!malfunctionList.get(i).isPalying()) {
-                                        malfunctionList.get(i).setPalying(true);
-                                        malfunctionAdapter.notifyItemChanged(i, true);
+                        Fragment fragment = getSupportFragmentManager().getFragments().get(1);
+                        if (fragment instanceof MalfunctionFragment) {
+                            MalfunctionFragment malfunctionFragment = (MalfunctionFragment) fragment;
+                            if (listNo == -1) {
+                                for (int i = 0; i < malfunctionFragment.malfunctionList.size(); i++) {
+                                    if (malfunctionFragment.malfunctionList.get(i).isPalying()) {
+                                        malfunctionFragment.malfunctionList.get(i).setPalying(false);
+                                        malfunctionFragment.malfunctionAdapter.notifyItemChanged(i, false);
+                                        break;
                                     }
-                                } else {
-                                    if (malfunctionList.get(i).isPalying()) {
-                                        malfunctionList.get(i).setPalying(false);
-                                        malfunctionAdapter.notifyItemChanged(i, false);
+                                }
+                            } else {
+                                for (int i = 0; i < malfunctionFragment.malfunctionList.size(); i++) {
+                                    if (listNo == malfunctionFragment.malfunctionList.get(i).getListNo()) {
+                                        if (!malfunctionFragment.malfunctionList.get(i).isPalying()) {
+                                            malfunctionFragment.malfunctionList.get(i).setPalying(true);
+                                            malfunctionFragment.malfunctionAdapter.notifyItemChanged(i, true);
+                                        }
+                                    } else {
+                                        if (malfunctionFragment.malfunctionList.get(i).isPalying()) {
+                                            malfunctionFragment.malfunctionList.get(i).setPalying(false);
+                                            malfunctionFragment.malfunctionAdapter.notifyItemChanged(i, false);
+                                        }
                                     }
                                 }
                             }
@@ -777,13 +824,17 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
                     break;
                     case "NO_LONGER_PLAYING": {
                         int listNo = intent.getIntExtra("number", -1);
-                        if (listNo != -1) {
-                            for (int i = 0; i < malfunctionList.size(); i++) {
-                                if (listNo == malfunctionList.get(i).getListNo()) {
-                                    malfunctionList.get(i).setPalying(false);
-                                    LogUtils.d(TAG, "Activity中List的长度：" + malfunctionList.size() + "，不再播放位置：" + i);
-                                    malfunctionAdapter.notifyItemChanged(i, i);
-                                    break;
+                        Fragment fragment = getSupportFragmentManager().getFragments().get(1);
+                        if (fragment instanceof MalfunctionFragment) {
+                            MalfunctionFragment malfunctionFragment = (MalfunctionFragment) fragment;
+                            if (listNo != -1) {
+                                for (int i = 0; i < malfunctionFragment.malfunctionList.size(); i++) {
+                                    if (listNo == malfunctionFragment.malfunctionList.get(i).getListNo()) {
+                                        malfunctionFragment.malfunctionList.get(i).setPalying(false);
+                                        LogUtils.d(TAG, "Activity中List的长度：" + malfunctionFragment.malfunctionList.size() + "，不再播放位置：" + i);
+                                        malfunctionFragment.malfunctionAdapter.notifyItemChanged(i, i);
+                                        break;
+                                    }
                                 }
                             }
                         }
@@ -799,7 +850,6 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
                     case "WIFI_DISCONNECTED":
                         // 清除TextView内容，弹出Dialog
                         tvIp.setText("");
-                        tvMessage.setText("");
                         tvSSID.setText("");
                         showConnectWifiDialog();
                         break;
@@ -812,21 +862,33 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
                             tvIp.setText(WifiUtil.getLocalIPAddress());
                         }
                         break;
-                    case "MESSAGE_WEBSOCKET_CLOSED":
+                    case "MESSAGE_WEBSOCKET_CLOSED": {
                         // 异常信息推送的WebSocket断开了，清空列表
-                        malfunctionList.clear();
-                        malfunctionAdapter.notifyDataSetChanged();
-                        break;
-                    case "UPDATE_CONTACTS":
-                        // 刷新联系人列表
-                        contactList.clear();
-                        List<Contact> contacts = (List<Contact>) intent.getSerializableExtra("contactList");
-                        for (int i = 0; i < contacts.size(); i++) {
-                            LogUtils.d(TAG, "联系人数量：" + contacts.size() + "," + contacts.get(i).getUserIP());
+                        findViewById(R.id.fl_b).performClick();
+                        Fragment fragment = getSupportFragmentManager().getFragments().get(1);
+                        if (fragment instanceof MalfunctionFragment) {
+                            MalfunctionFragment malfunctionFragment = (MalfunctionFragment) fragment;
+                            malfunctionFragment.malfunctionList.clear();
+                            malfunctionFragment.malfunctionAdapter.notifyDataSetChanged();
                         }
-                        contactList.addAll(contacts);
-                        contactAdapter.notifyDataSetChanged();
-                        break;
+                    }
+                    break;
+                    case "UPDATE_CONTACTS": {
+                        // 刷新联系人列表
+                        findViewById(R.id.fl_a).performClick();
+                        Fragment fragment = getSupportFragmentManager().getFragments().get(0);
+                        if (fragment instanceof ContactsFragment) {
+                            ContactsFragment contactsFragment = (ContactsFragment) fragment;
+                            contactsFragment.contactList.clear();
+                            List<Contact> contacts = (List<Contact>) intent.getSerializableExtra("contactList");
+                            for (int i = 0; i < contacts.size(); i++) {
+                                LogUtils.d(TAG, "联系人数量：" + contacts.size() + "," + contacts.get(i).getUserIP());
+                            }
+                            contactsFragment.contactList.addAll(contacts);
+                            contactsFragment.contactAdapter.notifyDataSetChanged();
+                        }
+                    }
+                    break;
                     default:
                         break;
                 }

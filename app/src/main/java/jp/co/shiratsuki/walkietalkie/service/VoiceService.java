@@ -96,20 +96,32 @@ public class VoiceService extends Service implements IWebRTCHelper {
 
         mAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
 
-        //当应用开始播放的时候首先需要请求焦点，调用该方法后，原先获取焦点的应用会释放焦点
-        mAudioManager.requestAudioFocus(focusChangeListener, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN);
-        //对媒体播放按钮进行封装
-        if (mComponentName == null) {
-            mComponentName = new ComponentName(getPackageName(), MediaButtonReceiver.class.getName());
-        }
-        //注册封装的ComponentName
-        mAudioManager.registerMediaButtonEventReceiver(mComponentName);
+        // 注册媒体按键
+        registerMediaButton();
 
         // 记录当前媒体音量
         SPHelper.save("defaultVolume", mAudioManager.getStreamVolume(AudioManager.STREAM_MUSIC));
         registerVolumeChangeReceiver();
 
         mediaPlayer = new MediaPlayer();
+    }
+
+    // 注册耳机按钮事件
+    private void registerMediaButton() {
+        //对媒体播放按钮进行封装
+        mComponentName = new ComponentName(getPackageName(), MediaButtonReceiver.class.getName());
+        //注册封装的ComponentName
+        mAudioManager.registerMediaButtonEventReceiver(mComponentName);
+        //当应用开始播放的时候首先需要请求焦点，调用该方法后，原先获取焦点的应用会释放焦点
+        mAudioManager.requestAudioFocus(focusChangeListener, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN);
+
+
+        mAudioManager.requestAudioFocus(new AudioManager.OnAudioFocusChangeListener() {
+            @Override
+            public void onAudioFocusChange(int focusChange) {
+            }
+        }, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN);
+
     }
 
     //焦点问题
@@ -132,7 +144,6 @@ public class VoiceService extends Service implements IWebRTCHelper {
             }
         }
     };
-
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -354,19 +365,6 @@ public class VoiceService extends Service implements IWebRTCHelper {
     }
 
     @Override
-    public void receiveSpeakStatus(boolean someoneSpeaking) {
-        int defaultVolume = SPHelper.getInt("defaultVolume", mAudioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC));
-        // 如果所有人都不讲话了
-        if (!someoneSpeaking) {
-            mAudioManager.setStreamVolume(AudioManager.STREAM_MUSIC, defaultVolume, AudioManager.FLAG_VIBRATE);
-            SPHelper.save("SomeoneSpeaking", false);
-        } else {
-            mAudioManager.setStreamVolume(AudioManager.STREAM_MUSIC, defaultVolume - 4, AudioManager.FLAG_VIBRATE);
-            SPHelper.save("SomeoneSpeaking", true);
-        }
-    }
-
-    @Override
     public void addUser(String userIP, String userName) {
         Intent intent = new Intent();
         intent.putExtra("userIP", userIP);
@@ -383,6 +381,26 @@ public class VoiceService extends Service implements IWebRTCHelper {
 
     @Override
     public void updateContacts(List<Contact> contactList) {
+        // 调节音量
+        int defaultVolume = SPHelper.getInt("defaultVolume", mAudioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC));
+        boolean someoneSpeaking = false;
+        for (int i = 0; i < contactList.size(); i++) {
+            if (contactList.get(i).isSpeaking()) {
+                someoneSpeaking = true;
+                break;
+            }
+        }
+        // 如果所有人都不讲话了
+        if (!someoneSpeaking) {
+            LogUtils.d(TAG, "所有人都不讲话了，当前音量为：" + defaultVolume);
+            mAudioManager.setStreamVolume(AudioManager.STREAM_MUSIC, defaultVolume, AudioManager.FLAG_VIBRATE);
+            SPHelper.save("SomeoneSpeaking", false);
+        } else {
+            LogUtils.d(TAG, "当前有人在讲话，当前音量为：" + defaultVolume / 2);
+            mAudioManager.setStreamVolume(AudioManager.STREAM_MUSIC, defaultVolume / 2, AudioManager.FLAG_VIBRATE);
+            SPHelper.save("SomeoneSpeaking", true);
+        }
+
         Intent intent = new Intent();
         intent.putExtra("contactList", (Serializable) contactList);
         intent.setAction("UPDATE_CONTACTS");

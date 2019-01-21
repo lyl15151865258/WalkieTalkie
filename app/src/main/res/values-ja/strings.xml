@@ -6,6 +6,7 @@
     <string name="room">グループ名：</string>
     <string name="contact">連絡先</string>
     <string name="malfunction">アラーム情報</string>
+    <string name="chatroom">チャットルーム</string>
     <string name="pressToJoinChat">チャットに参加</string>
     <string name="releaseToExitChat">チャットを終了</string>
     <string name="pressToSpeak">プレスアンドトーク</string>

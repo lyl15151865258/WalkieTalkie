@@ -26,9 +26,6 @@ public interface IWebRTCHelper {
 
     void onCloseWithId(String socketId);
 
-    // 收到说话状态变化标志
-    void receiveSpeakStatus(boolean someoneSpeaking);
-
     // 有人进入房间
     void addUser(String userIP, String userName);
 

@@ -18,10 +18,13 @@ public class Contact implements Serializable {
 
     private String iconUrl;
 
-    public Contact(String userIP, String userName, String iconUrl) {
+    private boolean speaking = false;
+
+    public Contact(String userIP, String userName, String iconUrl,boolean speaking) {
         this.userIP = userIP;
         this.userName = userName;
         this.iconUrl = iconUrl;
+        this.speaking = speaking;
     }
 
     public String getUserIP() {
@@ -46,5 +49,13 @@ public class Contact implements Serializable {
 
     public void setIconUrl(String iconUrl) {
         this.iconUrl = iconUrl;
+    }
+
+    public boolean isSpeaking() {
+        return speaking;
+    }
+
+    public void setSpeaking(boolean speaking) {
+        this.speaking = speaking;
     }
 }

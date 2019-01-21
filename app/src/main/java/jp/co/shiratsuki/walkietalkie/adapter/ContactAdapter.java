@@ -44,6 +44,11 @@ public class ContactAdapter extends RecyclerView.Adapter<ContactAdapter.ContactV
         Contact con = contactList.get(position);
         viewHolder.tvUserIP.setText(con.getUserIP());
         viewHolder.tvUserName.setText(con.getUserName());
+        if (con.isSpeaking()) {
+            viewHolder.ivSpeaking.setVisibility(View.VISIBLE);
+        } else {
+            viewHolder.ivSpeaking.setVisibility(View.INVISIBLE);
+        }
     }
 
     @Override

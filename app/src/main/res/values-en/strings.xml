@@ -6,6 +6,7 @@
     <string name="room">Group name：</string>
     <string name="contact">Contact</string>
     <string name="malfunction">Malfunction</string>
+    <string name="chatroom">Chat Room</string>
     <string name="pressToJoinChat">Join chat</string>
     <string name="releaseToExitChat">Exit chat</string>
     <string name="pressToSpeak">Press and talk</string>

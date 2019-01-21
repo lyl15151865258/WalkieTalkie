@@ -21,15 +21,15 @@
 
             <de.hdodenhof.circleimageview.CircleImageView
                 android:id="@+id/ivBack"
-                android:layout_width="@dimen/dp_40"
-                android:layout_height="@dimen/dp_40"
+                android:layout_width="@dimen/dp_50"
+                android:layout_height="@dimen/dp_50"
                 android:contentDescription="@null"
                 android:src="@color/black" />
 
             <ImageView
                 android:id="@+id/ivSpeaker"
-                android:layout_width="@dimen/dp_40"
-                android:layout_height="@dimen/dp_40"
+                android:layout_width="@dimen/dp_50"
+                android:layout_height="@dimen/dp_50"
                 android:contentDescription="@null"
                 android:padding="@dimen/dp_10"
                 android:src="@drawable/speaker"
@@ -52,7 +52,7 @@
                 android:padding="@dimen/dp_2"
                 android:singleLine="true"
                 android:text="电机异常"
-                android:textSize="@dimen/sp_16" />
+                android:textSize="@dimen/sp_18" />
 
             <TextView
                 android:id="@+id/tvMalfunctionTime"
@@ -63,7 +63,7 @@
                 android:includeFontPadding="false"
                 android:singleLine="true"
                 android:text="2018-11-28 12:12:12"
-                android:textSize="@dimen/sp_12" />
+                android:textSize="@dimen/sp_14" />
 
         </LinearLayout>
 

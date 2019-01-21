@@ -182,7 +182,7 @@ public class JavaWebSocket implements IWebSocket {
     public void handleMessage(String message) {
         Map map = JSON.parseObject(message, Map.class);
         String eventName = (String) map.get("eventName");
-        LogUtils.d(TAG, "收到信息：" + eventName);
+        LogUtils.d(TAG, "收到信息：" + message);
         if (eventName.equals("_peers")) {
             handleJoinToRoom(map);
         }
@@ -205,7 +205,7 @@ public class JavaWebSocket implements IWebSocket {
             handlePong(map);
         }
         if (eventName.equals("_speak_status")) {
-            handleVoice(map);
+            handleVoice(message);
         }
     }
 
@@ -275,11 +275,13 @@ public class JavaWebSocket implements IWebSocket {
     }
 
     // 处理声音状态位
-    private void handleVoice(Map map) {
-        Map data = (Map) map.get("data");
-        boolean someoneSpeaking = (boolean) data.get("speakStatus");
-        events.onReceiveSpeakStatus(someoneSpeaking);
-        LogUtils.d(TAG, "收到服务端传回来的声音状态位：" + someoneSpeaking);
+    private void handleVoice(String message) {
+        ContactsList contactsList = GsonUtils.parseJSON(message, ContactsList.class);
+        String socketId = contactsList.getData().getSocketId();
+        String socketName = contactsList.getData().getSocketName();
+        List<Contact> contactList = contactsList.getData().getContacts();
+        events.onRemoteJoinToRoom(socketId, socketName, contactList);
+        events.onReceiveSpeakStatus(contactList);
     }
 
     // 发送消息的方法

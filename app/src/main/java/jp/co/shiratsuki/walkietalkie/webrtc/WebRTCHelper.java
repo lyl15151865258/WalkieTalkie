@@ -204,8 +204,8 @@ public class WebRTCHelper implements ISignalingEvents {
     }
 
     @Override
-    public void onReceiveSpeakStatus(boolean someoneSpeaking) {
-        IHelper.receiveSpeakStatus(someoneSpeaking);
+    public void onReceiveSpeakStatus(List<Contact> contactList) {
+        IHelper.updateContacts(contactList);
     }
 
     @Override

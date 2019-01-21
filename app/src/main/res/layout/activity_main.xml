@@ -42,59 +42,48 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="@dimen/dp_5"
-                android:layout_marginEnd="@dimen/dp_5"
                 android:layout_weight="1"
                 android:gravity="center_vertical"
                 android:orientation="vertical">
 
-                <LinearLayout
-                    android:layout_width="match_parent"
+                <TextView
+                    android:id="@+id/tvSSID"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal">
+                    android:textColor="@color/white" />
 
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/ssid"
-                        android:textColor="@color/white" />
-
-                    <TextView
-                        android:id="@+id/tvSSID"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:textColor="@color/white" />
-
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="match_parent"
+                <TextView
+                    android:id="@+id/tvIp"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/room"
-                        android:textColor="@color/white" />
-
-                    <TextView
-                        android:id="@+id/tvIp"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:textColor="@color/white" />
-
-                </LinearLayout>
+                    android:textColor="@color/white" />
 
             </LinearLayout>
 
-            <ImageView
-                android:id="@+id/iv_right"
-                android:layout_width="@dimen/dp_30"
-                android:layout_height="@dimen/dp_30"
-                android:layout_marginEnd="@dimen/dp_6"
-                android:contentDescription="@null"
-                android:src="@drawable/icon_toolbar_menu_open"
-                android:visibility="invisible" />
+            <Button
+                android:id="@+id/btnEnterRoom"
+                android:layout_width="@dimen/dp_40"
+                android:layout_height="@dimen/dp_40"
+                android:layout_marginStart="@dimen/dp_5"
+                android:background="@drawable/icon_chat_pressed"
+                android:textColor="#fff" />
+
+            <Button
+                android:id="@+id/btnSpeak"
+                android:layout_width="@dimen/dp_40"
+                android:layout_height="@dimen/dp_40"
+                android:layout_marginStart="@dimen/dp_5"
+                android:background="@drawable/icon_speak_pressed"
+                android:textColor="#fff" />
+
+            <Button
+                android:id="@+id/btnSpeaker"
+                android:layout_width="@dimen/dp_40"
+                android:layout_height="@dimen/dp_40"
+                android:layout_marginStart="@dimen/dp_5"
+                android:layout_marginEnd="@dimen/dp_5"
+                android:background="@drawable/icon_speaker_pressed"
+                android:textColor="#fff" />
 
         </LinearLayout>
 
@@ -125,183 +114,148 @@
 
         </LinearLayout>
 
-        <android.support.v4.widget.SwipeRefreshLayout
-            android:id="@+id/swipeRefresh"
+        <jp.co.shiratsuki.walkietalkie.widget.NoScrollViewPager
+            android:id="@+id/viewPager"
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_weight="1">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:orientation="vertical">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal">
-
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="2"
-                        android:gravity="center"
-                        android:padding="@dimen/dp_10"
-                        android:text="联系人"
-                        android:textSize="@dimen/sp_18"
-                        android:textStyle="bold" />
-
-                    <View
-                        android:layout_width="@dimen/dp_2"
-                        android:layout_height="match_parent"
-                        android:background="@color/gray" />
-
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="3"
-                        android:gravity="center"
-                        android:padding="@dimen/dp_10"
-                        android:text="异常信息"
-                        android:textSize="@dimen/sp_18"
-                        android:textStyle="bold" />
-
-                </LinearLayout>
-
-                <View
-                    android:layout_height="@dimen/dp_1"
-                    android:layout_width="match_parent"
-                    android:background="@color/gray" />
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal">
-
-                    <android.support.v7.widget.RecyclerView
-                        android:id="@+id/rvContacts"
-                        android:layout_width="0dp"
-                        android:layout_height="match_parent"
-                        android:layout_weight="2"
-                        android:overScrollMode="never" />
-
-                    <View
-                        android:layout_width="@dimen/dp_2"
-                        android:layout_height="match_parent"
-                        android:background="@color/gray" />
-
-                    <android.support.v7.widget.RecyclerView
-                        android:id="@+id/rvMalfunction"
-                        android:layout_width="0dp"
-                        android:layout_height="match_parent"
-                        android:layout_weight="3"
-                        android:overScrollMode="never" />
-
-                </LinearLayout>
-
-            </LinearLayout>
-
-        </android.support.v4.widget.SwipeRefreshLayout>
-
-        <View
-            android:layout_height="@dimen/dp_1"
-            android:layout_width="match_parent"
-            android:background="@color/gray" />
+            android:layout_weight="1"
+            android:background="@android:color/white"
+            android:overScrollMode="never" />
 
         <LinearLayout
+            android:id="@+id/llMenu"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@color/gray_6"
             android:baselineAligned="false"
-            android:gravity="center"
             android:orientation="horizontal">
 
-            <LinearLayout
-                android:layout_width="0dp"
+            <FrameLayout
+                android:id="@+id/fl_a"
+                android:layout_width="@dimen/dp_0"
                 android:layout_height="wrap_content"
+                android:layout_gravity="center"
                 android:layout_weight="1"
                 android:gravity="center"
-                android:orientation="vertical">
+                android:orientation="vertical"
+                android:padding="@dimen/dp_3">
 
-                <Button
-                    android:id="@+id/btnEnterRoom"
-                    android:layout_width="@dimen/dp_60"
-                    android:layout_height="@dimen/dp_60"
-                    android:layout_marginTop="@dimen/dp_10"
-                    android:background="@drawable/icon_chat_pressed"
-                    android:textColor="#fff" />
-
-                <TextView
-                    android:id="@+id/tvEnterRoom"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/dp_5"
-                    android:layout_marginBottom="@dimen/dp_5"
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
                     android:gravity="center"
-                    android:lines="2"
-                    android:text="@string/pressToJoinChat"
-                    android:textColor="#000"
-                    android:textSize="@dimen/sp_14" />
+                    android:orientation="vertical">
 
-            </LinearLayout>
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:contentDescription="@null"
+                        android:scaleType="centerCrop"
+                        android:src="@drawable/home_selector" />
 
-            <LinearLayout
-                android:layout_width="0dp"
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/dp_2"
+                        android:text="@string/chatroom"
+                        android:textColor="@drawable/color_radiobutton"
+                        android:textSize="@dimen/sp_12" />
+
+                </LinearLayout>
+
+            </FrameLayout>
+
+            <FrameLayout
+                android:id="@+id/fl_b"
+                android:layout_width="@dimen/dp_0"
                 android:layout_height="wrap_content"
+                android:layout_gravity="center"
                 android:layout_weight="1"
                 android:gravity="center"
-                android:orientation="vertical">
+                android:orientation="vertical"
+                android:padding="@dimen/dp_3">
 
-                <Button
-                    android:id="@+id/btnSpeak"
-                    android:layout_width="@dimen/dp_60"
-                    android:layout_height="@dimen/dp_60"
-                    android:layout_marginTop="@dimen/dp_10"
-                    android:background="@drawable/icon_speak_pressed"
-                    android:textColor="#fff" />
-
-                <TextView
-                    android:id="@+id/tvMessage"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/dp_5"
-                    android:layout_marginBottom="@dimen/dp_5"
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
                     android:gravity="center"
-                    android:lines="2"
-                    android:text="@string/pressToSpeak"
-                    android:textColor="#000"
-                    android:textSize="@dimen/sp_14" />
+                    android:orientation="vertical">
 
-            </LinearLayout>
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:contentDescription="@null"
+                        android:scaleType="centerCrop"
+                        android:src="@drawable/product_selector" />
 
-            <LinearLayout
-                android:layout_width="0dp"
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/dp_2"
+                        android:text="@string/malfunction"
+                        android:textColor="@drawable/color_radiobutton"
+                        android:textSize="@dimen/sp_12" />
+
+                </LinearLayout>
+
+                <ImageView
+                    android:id="@+id/ivNewProduct"
+                    android:layout_width="@dimen/dp_10"
+                    android:layout_height="@dimen/dp_10"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginStart="@dimen/dp_12"
+                    android:background="@drawable/unread_msg_red"
+                    android:contentDescription="@null"
+                    android:gravity="center"
+                    android:visibility="gone" />
+
+            </FrameLayout>
+
+            <FrameLayout
+                android:id="@+id/fl_c"
+                android:layout_width="@dimen/dp_0"
                 android:layout_height="wrap_content"
+                android:layout_gravity="center"
                 android:layout_weight="1"
                 android:gravity="center"
-                android:orientation="vertical">
+                android:orientation="vertical"
+                android:padding="@dimen/dp_3">
 
-                <Button
-                    android:id="@+id/btnSpeaker"
-                    android:layout_width="@dimen/dp_60"
-                    android:layout_height="@dimen/dp_60"
-                    android:layout_marginTop="@dimen/dp_10"
-                    android:background="@drawable/icon_speaker_pressed"
-                    android:textColor="#fff" />
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:orientation="vertical">
+
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:contentDescription="@null"
+                        android:scaleType="centerCrop"
+                        android:src="@drawable/contacts_selector" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/dp_2"
+                        android:text="@string/contact"
+                        android:textColor="@drawable/color_radiobutton"
+                        android:textSize="@dimen/sp_12" />
+
+                </LinearLayout>
 
                 <TextView
-                    android:id="@+id/tvSpeaker"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/dp_5"
-                    android:layout_marginBottom="@dimen/dp_5"
+                    android:id="@+id/tvNewMessageCount"
+                    android:layout_width="@dimen/dp_20"
+                    android:layout_height="@dimen/dp_20"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginStart="@dimen/dp_12"
+                    android:background="@drawable/unread_msg_red"
+                    android:elevation="7dp"
                     android:gravity="center"
-                    android:lines="2"
-                    android:text="@string/pressToUseSpeaker"
-                    android:textColor="#000"
-                    android:textSize="@dimen/sp_14" />
-
-            </LinearLayout>
+                    android:textColor="@android:color/white"
+                    android:textSize="@dimen/sp_10"
+                    android:visibility="invisible" />
+            </FrameLayout>
 
         </LinearLayout>
 
