@@ -15,10 +15,14 @@ import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.net.ssl.X509TrustManager;
 
+import jp.co.shiratsuki.walkietalkie.bean.Contact;
+import jp.co.shiratsuki.walkietalkie.bean.websocket.ContactsList;
+import jp.co.shiratsuki.walkietalkie.utils.GsonUtils;
 import jp.co.shiratsuki.walkietalkie.utils.LogUtils;
 
 /**
@@ -41,7 +45,7 @@ public class JavaWebSocket implements IWebSocket {
         this.events = events;
     }
 
-    public void connect(String wss, final String room, final String userName) {
+    public void connect(String wss, final String room, final String userIP, final String userName) {
         URI uri;
         try {
             uri = new URI(wss);
@@ -53,7 +57,7 @@ public class JavaWebSocket implements IWebSocket {
             mWebSocketClient = new WebSocketClient(uri) {
                 @Override
                 public void onOpen(ServerHandshake handshake) {
-                    joinRoom(room, userName);
+                    joinRoom(room, userIP, userName);
                 }
 
                 @Override
@@ -65,11 +69,14 @@ public class JavaWebSocket implements IWebSocket {
                 @Override
                 public void onClose(int code, String reason, boolean remote) {
                     LogUtils.d(TAG, "关闭WebSocket连接：" + reason);
+                    // WebSocket断开连接，退出房间
+                    events.onWebSocketClosed();
                 }
 
                 @Override
                 public void onError(Exception ex) {
                     LogUtils.d(TAG, "WebSocket连接出错：" + ex.toString());
+                    ex.printStackTrace();
                 }
             };
         }
@@ -105,11 +112,12 @@ public class JavaWebSocket implements IWebSocket {
 
     //============================需要发送的=====================================
     @Override
-    public void joinRoom(String room, String userName) {
+    public void joinRoom(String room, String userIP, String userName) {
         Map<String, Object> map = new HashMap<>();
         map.put("eventName", "__join");
         Map<String, String> childMap = new HashMap<>();
         childMap.put("room", room);
+        childMap.put("userIP", userIP);
         childMap.put("userName", userName);
         map.put("data", childMap);
         JSONObject object = new JSONObject(map);
@@ -179,7 +187,7 @@ public class JavaWebSocket implements IWebSocket {
             handleJoinToRoom(map);
         }
         if (eventName.equals("_new_peer")) {
-            handleRemoteInRoom(map);
+            handleRemoteInRoom(message);
         }
         if (eventName.equals("_ice_candidate")) {
             handleRemoteCandidate(map);
@@ -201,7 +209,6 @@ public class JavaWebSocket implements IWebSocket {
         }
     }
 
-
     // 自己进入房间
     private void handleJoinToRoom(Map map) {
         Map data = (Map) map.get("data");
@@ -213,10 +220,15 @@ public class JavaWebSocket implements IWebSocket {
     }
 
     // 自己已经在房间，有人进来
-    private void handleRemoteInRoom(Map map) {
-        Map data = (Map) map.get("data");
-        String socketId = (String) data.get("socketId");
-        events.onRemoteJoinToRoom(socketId);
+    private void handleRemoteInRoom(String message) {
+        ContactsList contactsList = GsonUtils.parseJSON(message, ContactsList.class);
+        String socketId = contactsList.getData().getSocketId();
+        String socketName = contactsList.getData().getSocketName();
+        List<Contact> contactList = contactsList.getData().getContacts();
+        for (int i = 0; i < contactList.size(); i++) {
+            LogUtils.d(TAG, "联系人数量：" + contactList.size() + "," + contactList.get(i).getUserIP());
+        }
+        events.onRemoteJoinToRoom(socketId, socketName, contactList);
     }
 
     // 处理交换信息

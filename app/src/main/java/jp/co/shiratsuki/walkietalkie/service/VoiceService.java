@@ -29,9 +29,12 @@ import android.support.v4.app.NotificationCompat;
 import org.webrtc.MediaStream;
 
 import java.io.IOException;
+import java.io.Serializable;
+import java.util.List;
 
 import jp.co.shiratsuki.walkietalkie.R;
 import jp.co.shiratsuki.walkietalkie.activity.MainActivity;
+import jp.co.shiratsuki.walkietalkie.bean.Contact;
 import jp.co.shiratsuki.walkietalkie.broadcast.BaseBroadcastReceiver;
 import jp.co.shiratsuki.walkietalkie.broadcast.MediaButtonReceiver;
 import jp.co.shiratsuki.walkietalkie.broadcast.SettingsContentObserver;
@@ -55,7 +58,7 @@ public class VoiceService extends Service implements IWebRTCHelper {
     private boolean isInRoom = false;
 
     enum TYPE {
-        EnterGroup, LeaveGroup, StartRecord, StopRecord, UseSpeaker, UseEarpiece
+        EnterGroup, LeaveGroup, StartRecord, StopRecord, UseSpeaker, UseEarpiece, AddUser, DeleteUser
     }
 
     private final static String TAG = "VoiceService";
@@ -183,7 +186,9 @@ public class VoiceService extends Service implements IWebRTCHelper {
             String roomId = SPHelper.getString("VoiceRoomId", WebRTC.WEBRTC_SERVER_ROOM);
 
             String signal = "ws://" + ip + ":" + port;
-            helper.initSocket(signal, roomId, WifiUtil.getLocalIPAddress(), false);
+            String userIP = WifiUtil.getLocalIPAddress();
+            String userName = SPHelper.getString("UserName", "UnDefined");
+            helper.initSocket(signal, roomId, userIP, userName, false);
         }
 
         @Override
@@ -191,7 +196,7 @@ public class VoiceService extends Service implements IWebRTCHelper {
             // 离开房间
             isInRoom = false;
             helper.exitRoom();
-            broadcastCallback(TYPE.LeaveGroup);
+            broadcastCallback(TYPE.LeaveGroup, null);
         }
 
         @Override
@@ -200,7 +205,7 @@ public class VoiceService extends Service implements IWebRTCHelper {
                 // 打开麦克风
                 helper.sendSpeakStatus(true);
                 helper.toggleMute(true);
-                broadcastCallback(TYPE.StartRecord);
+                broadcastCallback(TYPE.StartRecord, null);
                 // 播放提示音
                 try {
                     Uri setDataSourceuri = Uri.parse("android.resource://jp.co.shiratsuki.walkietalkie/" + R.raw.dingdong);
@@ -236,7 +241,7 @@ public class VoiceService extends Service implements IWebRTCHelper {
                 // 关闭麦克风
                 helper.sendSpeakStatus(false);
                 helper.toggleMute(false);
-                broadcastCallback(TYPE.StopRecord);
+                broadcastCallback(TYPE.StopRecord, null);
                 // 播放提示音
                 try {
                     Uri setDataSourceuri = Uri.parse("android.resource://jp.co.shiratsuki.walkietalkie/" + R.raw.du);
@@ -256,13 +261,13 @@ public class VoiceService extends Service implements IWebRTCHelper {
         @Override
         public void useSpeaker() {
             helper.toggleSpeaker(true);
-            broadcastCallback(TYPE.UseSpeaker);
+            broadcastCallback(TYPE.UseSpeaker, null);
         }
 
         @Override
         public void useEarpiece() {
             helper.toggleSpeaker(false);
-            broadcastCallback(TYPE.UseEarpiece);
+            broadcastCallback(TYPE.UseEarpiece, null);
         }
 
         @Override
@@ -332,7 +337,7 @@ public class VoiceService extends Service implements IWebRTCHelper {
     @Override
     public void onEnterRoom() {
         isInRoom = true;
-        broadcastCallback(TYPE.EnterGroup);
+        broadcastCallback(TYPE.EnterGroup, null);
         helper.toggleMute(false);
         helper.toggleSpeaker(false);
     }
@@ -340,7 +345,7 @@ public class VoiceService extends Service implements IWebRTCHelper {
     @Override
     public void onLeaveRoom() {
         isInRoom = false;
-        broadcastCallback(TYPE.LeaveGroup);
+        broadcastCallback(TYPE.LeaveGroup, null);
     }
 
     @Override
@@ -361,8 +366,32 @@ public class VoiceService extends Service implements IWebRTCHelper {
         }
     }
 
+    @Override
+    public void addUser(String userIP, String userName) {
+        Intent intent = new Intent();
+        intent.putExtra("userIP", userIP);
+        intent.putExtra("userName", userName);
+        broadcastCallback(TYPE.AddUser, intent);
+    }
+
+    @Override
+    public void removeUser(String userIP) {
+        Intent intent = new Intent();
+        intent.putExtra("userIP", userIP);
+        broadcastCallback(TYPE.DeleteUser, intent);
+    }
+
+    @Override
+    public void updateContacts(List<Contact> contactList) {
+        Intent intent = new Intent();
+        intent.putExtra("contactList", (Serializable) contactList);
+        intent.setAction("UPDATE_CONTACTS");
+        LogUtils.d(TAG, "联系人数量：" + contactList.size());
+        sendBroadcast(intent);
+    }
+
     // 回调公共方法
-    private void broadcastCallback(TYPE type) {
+    private void broadcastCallback(TYPE type, Intent intent) {
         final int size = mCallbackList.beginBroadcast();
         for (int i = 0; i < size; i++) {
             IVoiceCallback callback = mCallbackList.getBroadcastItem(i);
@@ -380,6 +409,17 @@ public class VoiceService extends Service implements IWebRTCHelper {
                         callback.useSpeakerSuccess();
                     } else if (type == TYPE.UseEarpiece) {
                         callback.useEarpieceSuccess();
+                    } else if (type == TYPE.AddUser) {
+                        if (intent != null) {
+                            String userIP = intent.getStringExtra("userIP");
+                            String userName = intent.getStringExtra("userName");
+                            callback.findNewUser(userIP, userName);
+                        }
+                    } else if (type == TYPE.DeleteUser) {
+                        if (intent != null) {
+                            String userIP = intent.getStringExtra("userIP");
+                            callback.removeUser(userIP, "");
+                        }
                     }
                 } catch (RemoteException e) {
                     e.printStackTrace();

@@ -24,9 +24,9 @@
 
             <com.pkmmte.view.CircularImageView
                 android:id="@+id/iv_icon"
-                android:layout_width="@dimen/dp_60"
-                android:layout_height="@dimen/dp_60"
-                android:layout_marginStart="@dimen/dp_8"
+                android:layout_width="@dimen/dp_50"
+                android:layout_height="@dimen/dp_50"
+                android:layout_marginStart="@dimen/dp_5"
                 android:scaleType="centerInside"
                 android:src="@drawable/photo_user"
                 app:border="true"
@@ -41,8 +41,8 @@
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="@dimen/dp_10"
-                android:layout_marginEnd="@dimen/dp_10"
+                android:layout_marginStart="@dimen/dp_5"
+                android:layout_marginEnd="@dimen/dp_5"
                 android:layout_weight="1"
                 android:gravity="center_vertical"
                 android:orientation="vertical">

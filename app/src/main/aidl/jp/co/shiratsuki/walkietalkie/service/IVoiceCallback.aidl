@@ -7,6 +7,6 @@ interface IVoiceCallback {
     void leaveGroupSuccess();
     void useSpeakerSuccess();
     void useEarpieceSuccess();
-    void findNewUser(String ipAddress,String name,String speakStatus);
-    void removeUser(String ipAddress,String name,String speakStatus);
+    void findNewUser(String ipAddress,String name);
+    void removeUser(String ipAddress,String name);
 }

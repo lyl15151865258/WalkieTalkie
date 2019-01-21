@@ -12,12 +12,12 @@ import org.webrtc.IceCandidate;
 
 public interface IWebSocket {
 
-    void connect(String wss, final String room, final String userName);
+    void connect(String wss, final String room, final String userIP, final String userName);
 
     void close();
 
     // 加入房间
-    void joinRoom(String room, String userName);
+    void joinRoom(String room, String userIP, String userName);
 
     //处理回调消息
     void handleMessage(String message);

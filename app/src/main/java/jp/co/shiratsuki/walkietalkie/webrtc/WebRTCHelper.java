@@ -8,7 +8,9 @@ import android.util.Log;
 
 import com.alibaba.fastjson.JSONObject;
 
+import jp.co.shiratsuki.walkietalkie.bean.Contact;
 import jp.co.shiratsuki.walkietalkie.constant.NetWork;
+import jp.co.shiratsuki.walkietalkie.contentprovider.SPHelper;
 import jp.co.shiratsuki.walkietalkie.utils.LogUtils;
 import jp.co.shiratsuki.walkietalkie.webrtc.websocket.ISignalingEvents;
 import jp.co.shiratsuki.walkietalkie.webrtc.websocket.IWebSocket;
@@ -31,6 +33,7 @@ import org.webrtc.VideoTrack;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.SynchronousQueue;
@@ -96,10 +99,10 @@ public class WebRTCHelper implements ISignalingEvents {
         });
     }
 
-    public void initSocket(String ws, final String room, final String userName, boolean videoEnable) {
+    public void initSocket(String ws, final String room, final String userIP, final String userName, boolean videoEnable) {
         this.videoEnable = videoEnable;
         webSocket = new JavaWebSocket(this);
-        webSocket.connect(ws, room, userName);
+        webSocket.connect(ws, room, userIP, userName);
     }
 
 
@@ -136,8 +139,7 @@ public class WebRTCHelper implements ISignalingEvents {
     private Runnable heartBeatRunnable = new Runnable() {
         @Override
         public void run() {
-            // 心跳包只需发送一个SocketId过去, 以节约数据流量
-            // 如果发送失败，就重新初始化一个socket
+            // 心跳包发送一个SocketId过去
             Runnable runnable = () -> {
                 LogUtils.d(TAG, "WebSocket发送心跳包");
 
@@ -156,7 +158,15 @@ public class WebRTCHelper implements ISignalingEvents {
     };
 
     @Override  // 其他人加入到房间
-    public void onRemoteJoinToRoom(String socketId) {
+    public void onRemoteJoinToRoom(String socketId, String socketName, List<Contact> contactList) {
+        LogUtils.d(TAG, "有人加入到房间：" + socketId + "," + socketName);
+
+        IHelper.updateContacts(contactList);
+
+//        if (IHelper != null) {
+//            IHelper.addUser(socketId, socketName);
+//        }
+
         if (_localStream == null) {
             createLocalStream();
         }
@@ -196,6 +206,11 @@ public class WebRTCHelper implements ISignalingEvents {
     @Override
     public void onReceiveSpeakStatus(boolean someoneSpeaking) {
         IHelper.receiveSpeakStatus(someoneSpeaking);
+    }
+
+    @Override
+    public void onWebSocketClosed() {
+        exitRoom();
     }
 
 
@@ -272,10 +287,11 @@ public class WebRTCHelper implements ISignalingEvents {
 
         if (IHelper != null) {
             IHelper.onLeaveRoom();
+            SPHelper.save("KEY_STATUS_UP", true);
         }
 
         mHandler.removeCallbacksAndMessages(null);
-        executorService.shutdown();
+        executorService.shutdownNow();
     }
 
     // 创建本地流
@@ -363,6 +379,9 @@ public class WebRTCHelper implements ISignalingEvents {
 
     // 关闭通道流
     private void closePeerConnection(String connectionId) {
+        if (IHelper != null) {
+            IHelper.removeUser(connectionId);
+        }
         Log.v(TAG, "关闭通道流");
         Peer mPeer = _connectionPeerDic.get(connectionId);
         if (mPeer != null) {

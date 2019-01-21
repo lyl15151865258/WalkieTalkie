@@ -3,6 +3,7 @@ package jp.co.shiratsuki.walkietalkie.service;
 import android.app.Service;
 import android.content.Intent;
 import android.os.Binder;
+import android.os.Handler;
 import android.os.IBinder;
 
 import jp.co.shiratsuki.walkietalkie.bean.Music;
@@ -16,7 +17,6 @@ import jp.co.shiratsuki.walkietalkie.voice.MusicPlay;
 
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.drafts.Draft_6455;
-import org.java_websocket.framing.CloseFrame;
 import org.java_websocket.handshake.ServerHandshake;
 
 import java.net.URI;
@@ -24,7 +24,9 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 接收服务器异常信息的WebSocket
@@ -44,7 +46,7 @@ public class WebSocketService extends Service {
 
     private ExecutorService threadPool;
 
-    private long currentThreadId = -1;
+    private Handler mHandler = new Handler();
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -65,14 +67,20 @@ public class WebSocketService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
+        threadPool = new ThreadPoolExecutor(5, 10, 60, TimeUnit.SECONDS,
+                new SynchronousQueue<>(), (r) -> {
+            Thread thread = new Thread(r);
+            thread.setDaemon(true);
+            return thread;
+        });
         webSocketServiceBinder = new WebSocketServiceBinder();
         MusicPlay.with(WebSocketService.this).play();
         initWebSocket();
+        threadPool.submit(heartBeatRunnable);
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        connectWebSocket();
         return START_STICKY;
     }
 
@@ -80,13 +88,16 @@ public class WebSocketService extends Service {
      * 初始化并启动启动WebSocket
      */
     public void initWebSocket() {
-        threadPool = Executors.newScheduledThreadPool(1);
-        try {
-            mSocketClient = getWebSocketClient(Thread.currentThread());
-            LogUtils.d(TAG, "创建线程：" + Thread.currentThread().getId());
-        } catch (URISyntaxException e) {
-            e.printStackTrace();
-        }
+        threadPool.execute(() -> {
+            try {
+                mSocketClient = getWebSocketClient();
+            } catch (URISyntaxException e) {
+                e.printStackTrace();
+            }
+            if (mSocketClient != null) {
+                mSocketClient.connect();
+            }
+        });
     }
 
     /**
@@ -95,12 +106,12 @@ public class WebSocketService extends Service {
      * @return WebSocketClient对象
      * @throws URISyntaxException
      */
-    public WebSocketClient getWebSocketClient(final Thread currentThread) throws URISyntaxException {
+    public WebSocketClient getWebSocketClient() throws URISyntaxException {
         // 获取最新的WebSocket参数
         serverHost = SPHelper.getString("MessageServerIP", NetWork.WEBSOCKET_IP);
         String webSocketPort = SPHelper.getString("MessageServerPort", NetWork.WEBSOCKET_PORT);
         String webSocketName = String.valueOf(NetWork.WEBSOCKET_NAME);
-        return new WebSocketClient(new URI("ws://" + serverHost + ":" + webSocketPort + "/" + webSocketName), new Draft_6455()) {
+        return new WebSocketClient(new URI("ws://" + serverHost + ":" + webSocketPort + "/" + webSocketName), new Draft_6455(), null, 5000) {
             @Override
             public void onOpen(ServerHandshake handshakedata) {
                 //通道打开
@@ -146,16 +157,6 @@ public class WebSocketService extends Service {
 //                        sendBroadcast(intent);
                 // 清空异常信息音乐列表
                 MusicPlay.with(WebSocketService.this).getMusicListList().clear();
-                // 如果code等于CloseFrame.NORMAL，表示是用户手动断开的，否则是异常断开的，就需要重连
-                if (code == CloseFrame.NORMAL) {
-                    // 调用close 方法
-                    LogUtils.d(TAG, "WebSocket正常关闭，关闭代码：" + code + ",关闭线程：" + currentThread.getId());
-                    currentThread.interrupt();
-                } else {
-                    // 出现异常，重新连接
-                    LogUtils.d(TAG, "WebSocket异常关闭，关闭代码：" + code + ",重新连接");
-                    reConnect();
-                }
             }
 
             @Override
@@ -167,25 +168,38 @@ public class WebSocketService extends Service {
     }
 
     /**
+     * 发送心跳包
+     */
+    private Runnable heartBeatRunnable = new Runnable() {
+        @Override
+        public void run() {
+            // 心跳包只需发送一个SocketId过去, 以节约数据流量
+            // 如果发送失败，就重新初始化一个socket
+            Runnable runnable = () -> {
+                LogUtils.d(TAG, "WebSocket发送心跳包");
+                sendMessage("");
+            };
+            threadPool.submit(runnable);
+            mHandler.postDelayed(this, NetWork.HEART_BEAT_RATE);
+        }
+    };
+
+    /**
      * 重连WebSocket
      */
     public void reConnect() {
-        // 等待5秒再重连
-        LogUtils.d(TAG, "WebSocket重连");
         threadPool.execute(() -> {
-            currentThreadId = Thread.currentThread().getId();
             try {
+                // 等待5秒再重连
                 Thread.sleep(NetWork.WEBSOCKET_RECONNECT_TIME_INTERVAL);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            } finally {
                 try {
-                    LogUtils.d(TAG, "创建线程：" + Thread.currentThread().getId());
-                    mSocketClient = getWebSocketClient(Thread.currentThread());
+                    mSocketClient = getWebSocketClient();
                 } catch (URISyntaxException e) {
                     e.printStackTrace();
                 }
                 mSocketClient.connect();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
         });
     }
@@ -196,21 +210,8 @@ public class WebSocketService extends Service {
     public void closeWebSocket() {
         if (mSocketClient != null) {
             LogUtils.d(TAG, "手动关闭WebSocket");
-            mSocketClient.onClose(CloseFrame.NORMAL, "用户手动关闭", true);
-//            mSocketClient.close(CloseFrame.NORMAL, "用户手动关闭");
+            mSocketClient.close();
         }
-    }
-
-    /**
-     * 连接WebSocket
-     */
-    public void connectWebSocket() {
-        threadPool.execute(() -> {
-            currentThreadId = Thread.currentThread().getId();
-            if (mSocketClient != null) {
-                mSocketClient.connect();
-            }
-        });
     }
 
     /**
@@ -230,6 +231,8 @@ public class WebSocketService extends Service {
     public void sendMessage(String msg) {
         if (isOpen()) {
             mSocketClient.send(msg);
+        } else {
+            reConnect();
         }
     }
 
@@ -238,7 +241,7 @@ public class WebSocketService extends Service {
         super.onDestroy();
         MusicPlay.with(WebSocketService.this).release();
         closeWebSocket();
-        threadPool.shutdown();
+        threadPool.shutdownNow();
     }
 
 }

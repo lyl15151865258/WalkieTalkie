@@ -52,7 +52,9 @@ import jp.co.shiratsuki.walkietalkie.activity.settings.LanguageActivity;
 import jp.co.shiratsuki.walkietalkie.activity.settings.SetMessageServerActivity;
 import jp.co.shiratsuki.walkietalkie.activity.settings.SetPersonalInfoActivity;
 import jp.co.shiratsuki.walkietalkie.activity.settings.SetVoiceServerActivity;
+import jp.co.shiratsuki.walkietalkie.adapter.ContactAdapter;
 import jp.co.shiratsuki.walkietalkie.adapter.MalfunctionAdapter;
+import jp.co.shiratsuki.walkietalkie.bean.Contact;
 import jp.co.shiratsuki.walkietalkie.bean.WebSocketData;
 import jp.co.shiratsuki.walkietalkie.broadcast.BaseBroadcastReceiver;
 import jp.co.shiratsuki.walkietalkie.contentprovider.SPHelper;
@@ -91,6 +93,8 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
     private CircularImageView ivIcon, ivUserIcon;
     private TextView tvCompanyName, tvDepartment, tvUserName;
     private ImageView ivRight;
+    private List<Contact> contactList;
+    private ContactAdapter contactAdapter;
     private List<WebSocketData> malfunctionList;
     private MalfunctionAdapter malfunctionAdapter;
     private MyReceiver myReceiver;
@@ -210,10 +214,20 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
         tvDepartment = findViewById(R.id.tvDepartment);
         tvUserName = findViewById(R.id.tvUserName);
 
-        RecyclerView rvMalfunction = findViewById(R.id.rvMalfunction);
+        RecyclerView rvContacts = findViewById(R.id.rvContacts);
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(mContext);
         linearLayoutManager.setOrientation(LinearLayoutManager.VERTICAL);
-        rvMalfunction.setLayoutManager(linearLayoutManager);
+        rvContacts.setLayoutManager(linearLayoutManager);
+        rvContacts.addItemDecoration(new RecyclerViewDivider(mContext, LinearLayoutManager.HORIZONTAL, 1, ContextCompat.getColor(mContext, R.color.gray_slight)));
+        contactList = new ArrayList<>();
+        contactAdapter = new ContactAdapter(mContext, contactList);
+        rvContacts.setAdapter(contactAdapter);
+
+
+        RecyclerView rvMalfunction = findViewById(R.id.rvMalfunction);
+        LinearLayoutManager linearLayoutManager1 = new LinearLayoutManager(mContext);
+        linearLayoutManager1.setOrientation(LinearLayoutManager.VERTICAL);
+        rvMalfunction.setLayoutManager(linearLayoutManager1);
         rvMalfunction.addItemDecoration(new RecyclerViewDivider(mContext, LinearLayoutManager.HORIZONTAL, 1, ContextCompat.getColor(mContext, R.color.gray_slight)));
 
         rvMalfunction.addOnItemTouchListener(new SwipeItemLayout.OnSwipeItemTouchListener(this));
@@ -338,6 +352,7 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
         intentFilter.addAction("WIFI_CONNECTED");
         intentFilter.addAction("WIFI_DISCONNECTED");
         intentFilter.addAction("MESSAGE_WEBSOCKET_CLOSED");
+        intentFilter.addAction("UPDATE_CONTACTS");
         mContext.registerReceiver(myReceiver, intentFilter);
     }
 
@@ -430,10 +445,21 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
         public void leaveGroupSuccess() throws RemoteException {
             // 离开房间成功
             runOnUiThread(new Thread(() -> {
+                // 重置房间按钮
                 isInRoom = false;
-                showToast(getString(R.string.ExitChatRoom));
                 tvEnterRoom.setText(getString(R.string.pressToJoinChat));
                 btnEnterRoom.setBackgroundResource(R.drawable.icon_chat_pressed);
+                // 重置说话按钮
+                isSpeaking = false;
+                tvMessage.setText(getString(R.string.pressToSpeak));
+                btnSpeak.setBackgroundResource(R.drawable.icon_speak_pressed);
+                SPHelper.save("KEY_STATUS_UP", true);
+                // 重置扬声器按钮
+                isUseSpeaker = false;
+                tvSpeaker.setText(getString(R.string.pressToUseSpeaker));
+                btnSpeaker.setBackgroundResource(R.drawable.icon_speaker_pressed);
+
+                showToast(getString(R.string.ExitChatRoom));
             }));
         }
 
@@ -478,15 +504,50 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
         }
 
         @Override
-        public void findNewUser(String ipAddress, String name, String speakStatus) {
+        public void findNewUser(String ipAddress, String name) {
             // 发送到主线程更新UI
-
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    int position = -1;
+                    for (int i = 0; i < contactList.size(); i++) {
+                        if (contactList.get(i).getUserIP().equals(ipAddress)) {
+                            position = i;
+                            break;
+                        }
+                    }
+                    if (position == -1) {
+                        contactList.add(contactList.size(), new Contact(ipAddress, name, ""));
+                        contactAdapter.notifyItemChanged(contactList.size() - 1);
+                    } else {
+                        if (!contactList.get(position).getUserName().equals(name)) {
+                            contactList.get(position).setUserName(name);
+                            contactAdapter.notifyItemChanged(position);
+                        }
+                    }
+                }
+            });
         }
 
         @Override
-        public void removeUser(String ipAddress, String name, String speakStatus) {
+        public void removeUser(String ipAddress, String name) {
             // 发送到主线程更新UI
-
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    int position = -1;
+                    for (int i = 0; i < contactList.size(); i++) {
+                        if (contactList.get(i).getUserIP().equals(ipAddress)) {
+                            position = i;
+                            break;
+                        }
+                    }
+                    if (position != -1) {
+                        contactList.remove(position);
+                        contactAdapter.notifyItemRemoved(position);
+                    }
+                }
+            });
         }
     };
 
@@ -756,6 +817,16 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
                         malfunctionList.clear();
                         malfunctionAdapter.notifyDataSetChanged();
                         break;
+                    case "UPDATE_CONTACTS":
+                        // 刷新联系人列表
+                        contactList.clear();
+                        List<Contact> contacts = (List<Contact>) intent.getSerializableExtra("contactList");
+                        for (int i = 0; i < contacts.size(); i++) {
+                            LogUtils.d(TAG, "联系人数量：" + contacts.size() + "," + contacts.get(i).getUserIP());
+                        }
+                        contactList.addAll(contacts);
+                        contactAdapter.notifyDataSetChanged();
+                        break;
                     default:
                         break;
                 }
@@ -892,8 +963,7 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
                     // 设置消息服务器地址后返回
                     if (webSocketService != null) {
                         webSocketService.closeWebSocket();
-                        webSocketService.initWebSocket();
-                        webSocketService.connectWebSocket();
+                        webSocketService.reConnect();
                     }
                     break;
                 default:
