@@ -227,7 +227,7 @@ public class JavaWebSocket implements IWebSocket {
         String socketName = contactsList.getData().getSocketName();
         List<Contact> contactList = contactsList.getData().getContacts();
         for (int i = 0; i < contactList.size(); i++) {
-            LogUtils.d(TAG, "联系人数量：" + contactList.size() + "," + contactList.get(i).getUserId());
+            LogUtils.d(TAG, "联系人数量：" + contactList.size() + "," + contactList.get(i).getUserIP());
         }
         events.onRemoteJoinToRoom(socketId, socketName, contactList);
     }
