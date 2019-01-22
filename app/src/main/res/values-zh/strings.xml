@@ -88,5 +88,9 @@
     <string name="permission_write_storage_rationale">拍照时需要存储权限</string>
 
     <string name="copyright">Copyright © 2019 JSS Co., LTD. All rights reserved.</string>
+    <string name="FloatWindowPermission">您没有打开悬浮窗权限，将接收不到消息推送和弹窗信息，点击这里设置</string>
+    <string name="NotificationPermission">您没有打开通知权限，将不会显示弹窗信息，点击这里设置</string>
+    <string name="StopPlay">停止播放</string>
+    <string name="Delete">删除</string>
 
 </resources>

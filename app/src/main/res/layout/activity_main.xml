@@ -106,11 +106,12 @@
                 android:src="@drawable/icon_bell" />
 
             <TextView
+                android:id="@+id/tvNotification"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:maxLines="1"
-                android:text="未打开通知权限，您可能错过重要信息（点我设置）" />
+                android:text="@string/FloatWindowPermission" />
 
         </LinearLayout>
 

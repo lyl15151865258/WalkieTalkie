@@ -10,8 +10,8 @@
         android:id="@+id/llMain"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:gravity="center_vertical"
         android:background="@color/gray_7"
+        android:gravity="center_vertical"
         android:orientation="horizontal"
         android:padding="@dimen/dp_5">
 
@@ -50,7 +50,6 @@
                 android:ellipsize="end"
                 android:includeFontPadding="false"
                 android:padding="@dimen/dp_2"
-                android:singleLine="true"
                 android:text="电机异常"
                 android:textSize="@dimen/sp_18" />
 
@@ -79,16 +78,16 @@
             android:layout_height="match_parent"
             android:background="#D1BA74"
             android:gravity="center"
-            android:text="标记已读"
+            android:text="@string/StopPlay"
             android:textColor="@color/white" />
 
         <TextView
             android:id="@+id/tvDelete"
-            android:layout_width="@dimen/dp_60"
+            android:layout_width="@dimen/dp_80"
             android:layout_height="match_parent"
             android:background="#FF0000"
             android:gravity="center"
-            android:text="删除"
+            android:text="@string/Delete"
             android:textColor="@color/white" />
 
     </LinearLayout>

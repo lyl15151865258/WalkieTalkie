@@ -88,5 +88,9 @@
     <string name="permission_write_storage_rationale">写真を撮るときは保管許可が必要</string>
 
     <string name="copyright">Copyright © 2019 J システムサポートー株式会社</string>
+    <string name="FloatWindowPermission">フローティングウィンドウの権限を開いていません。メッセージのプッシュとポップアップ情報は表示されません。設定するにはここをクリックしてください</string>
+    <string name="NotificationPermission">通知権限がありません、ポップアップ情報は表示されません。設定するにはここをクリックしてください</string>
+    <string name="StopPlay">演奏を停止する</string>
+    <string name="Delete">削除する</string>
 
 </resources>

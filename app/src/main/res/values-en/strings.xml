@@ -88,6 +88,10 @@
     <string name="permission_write_storage_rationale">Need storage permission when taking photos</string>
 
     <string name="copyright">Copyright © 2019 JSS Co., LTD. All rights reserved.</string>
+    <string name="FloatWindowPermission">Floating window permission is not turned on, you may miss important information</string>
+    <string name="NotificationPermission">Notification permission is not turned on, you may miss important information</string>
+    <string name="StopPlay">Stop play</string>
+    <string name="Delete">Delete</string>
 
 
 </resources>

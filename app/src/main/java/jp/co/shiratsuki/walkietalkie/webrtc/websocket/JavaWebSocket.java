@@ -48,7 +48,8 @@ public class JavaWebSocket implements IWebSocket {
     public void connect(String wss, final String room, final String userIP, final String userName) {
         URI uri;
         try {
-            uri = new URI(wss);
+//            uri = new URI(wss );
+            uri = new URI("ws://192.168.51.102:8080/WalkieTalkieServer/");
         } catch (URISyntaxException e) {
             e.printStackTrace();
             return;
@@ -226,7 +227,7 @@ public class JavaWebSocket implements IWebSocket {
         String socketName = contactsList.getData().getSocketName();
         List<Contact> contactList = contactsList.getData().getContacts();
         for (int i = 0; i < contactList.size(); i++) {
-            LogUtils.d(TAG, "联系人数量：" + contactList.size() + "," + contactList.get(i).getUserIP());
+            LogUtils.d(TAG, "联系人数量：" + contactList.size() + "," + contactList.get(i).getUserId());
         }
         events.onRemoteJoinToRoom(socketId, socketName, contactList);
     }

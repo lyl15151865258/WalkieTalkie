@@ -59,6 +59,7 @@ import jp.co.shiratsuki.walkietalkie.contentprovider.SPHelper;
 import jp.co.shiratsuki.walkietalkie.fragment.ContactsFragment;
 import jp.co.shiratsuki.walkietalkie.fragment.MalfunctionFragment;
 import jp.co.shiratsuki.walkietalkie.interfaces.OnPictureSelectedListener;
+import jp.co.shiratsuki.walkietalkie.permission.floatwindow.FloatWindowManager;
 import jp.co.shiratsuki.walkietalkie.service.IVoiceCallback;
 import jp.co.shiratsuki.walkietalkie.service.IVoiceService;
 import jp.co.shiratsuki.walkietalkie.service.VoiceService;
@@ -92,7 +93,7 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
     private List<FrameLayout> menus;
     private LinearLayout llMain, llNotification;
     private CircularImageView ivIcon, ivUserIcon;
-    private TextView tvCompanyName, tvDepartment, tvUserName;
+    private TextView tvNotification,tvCompanyName, tvDepartment, tvUserName;
     private MyReceiver myReceiver;
     private boolean sIsScrolling = false;
     private IVoiceService iVoiceService;
@@ -244,6 +245,7 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
         llNotification.setOnClickListener(onClickListener);
         ivUserIcon.setOnClickListener(onClickListener);
 
+        tvNotification = findViewById(R.id.tvNotification);
         tvCompanyName = findViewById(R.id.tvCompanyName);
         tvDepartment = findViewById(R.id.tvDepartment);
         tvUserName = findViewById(R.id.tvUserName);
@@ -386,9 +388,18 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
      * 显示或隐藏“打开悬浮窗”的提示
      */
     private void showOrHideNotification() {
-        if (NotificationsUtil.isNotificationEnabled(this)) {
-            llNotification.setVisibility(View.GONE);
+        //检查悬浮窗权限（Android8.0及以上需要手动打开悬浮窗权限，否则即使打开通知权限，Toast也不会显示）
+        if (FloatWindowManager.getInstance().checkPermission(mContext)) {
+            //悬浮窗权限已经打开，检查通知权限
+            tvNotification.setText(R.string.NotificationPermission);
+            if (NotificationsUtil.isNotificationEnabled(mContext)) {
+                llNotification.setVisibility(View.GONE);
+            } else {
+                llNotification.setVisibility(View.VISIBLE);
+            }
         } else {
+            //悬浮窗权限未打开
+            tvNotification.setText(R.string.FloatWindowPermission);
             llNotification.setVisibility(View.VISIBLE);
         }
     }
