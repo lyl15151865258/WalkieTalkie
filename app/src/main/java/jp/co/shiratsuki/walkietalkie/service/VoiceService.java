@@ -173,97 +173,115 @@ public class VoiceService extends Service implements IWebRTCHelper {
         @Override
         public void enterGroup() {
             // 进入房间
-            String ip = SPHelper.getString("VoiceServerIP", WebRTC.WEBRTC_SERVER_IP);
-            String port = SPHelper.getString("VoiceServerPort", WebRTC.WEBRTC_SERVER_PORT);
-            String roomId = SPHelper.getString("VoiceRoomId", WebRTC.WEBRTC_SERVER_ROOM);
+            try {
+                String ip = SPHelper.getString("VoiceServerIP", WebRTC.WEBRTC_SERVER_IP);
+                String port = SPHelper.getString("VoiceServerPort", WebRTC.WEBRTC_SERVER_PORT);
+                String roomId = SPHelper.getString("VoiceRoomId", WebRTC.WEBRTC_SERVER_ROOM);
+                String userIp = WifiUtil.getLocalIPAddress();
 
-            String signal = "ws://" + ip + ":" + port + "/WalkieTalkieServer/" + ip;
-            String userIP = WifiUtil.getLocalIPAddress();
-            String userName = SPHelper.getString("UserName", "UnDefined");
-            helper.initSocket(signal, roomId, userIP, userName, false);
+                String userIP = WifiUtil.getLocalIPAddress();
+                String userName = SPHelper.getString("UserName", "UnDefined");
+                String signal = "ws://" + ip + ":" + port + "/WalkieTalkieServer/" + userIp + "/" + userName;
+                helper.initSocket(signal, roomId, userIP, userName, false);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
 
         @Override
         public void leaveGroup() {
             // 离开房间
-            broadcastCallback(TYPE.LeaveGroup, null);
-            isInRoom = false;
-            helper.exitRoom();
-            // 标记耳机按键状态为抬起并发送广播，停止录音
-            Intent intent1 = new Intent();
-            intent1.setAction("KEY_UP");
-            sendBroadcast(intent1);
-            SPHelper.save("KEY_STATUS_UP", true);
-            LogUtils.d(TAG, "离开房间");
+            try {
+                mBinder.stopRecord();
+                helper.exitRoom();
+                broadcastCallback(TYPE.LeaveGroup, null);
+                SPHelper.save("KEY_STATUS_UP", true);
+                isInRoom = false;
+                LogUtils.d(TAG, "离开房间");
+            } catch (RemoteException e) {
+                e.printStackTrace();
+            }
         }
 
         @Override
         public void startRecord() {
-            if (isInRoom) {
-                // 打开麦克风
-                helper.sendSpeakStatus(true);
-                helper.toggleMute(true);
-                broadcastCallback(TYPE.StartRecord, null);
-                // 播放提示音
-                try {
-                    Uri setDataSourceuri = Uri.parse("android.resource://jp.co.shiratsuki.walkietalkie/" + R.raw.dingdong);
-                    mediaPlayer.setDataSource(VoiceService.this, setDataSourceuri);
-                    mediaPlayer.prepareAsync();
-                    mediaPlayer.setOnPreparedListener(mediaPlayer -> mediaPlayer.start());
-                    mediaPlayer.setOnCompletionListener(mediaPlayer -> {
-                        mediaPlayer.reset();
-                    });
-                } catch (IOException e) {
-                    e.printStackTrace();
+            try {
+                if (isInRoom) {
+                    // 打开麦克风
+                    helper.sendSpeakStatus(true);
+                    helper.toggleMute(true);
+                    broadcastCallback(TYPE.StartRecord, null);
+                    // 播放提示音
+                    try {
+                        Uri setDataSourceuri = Uri.parse("android.resource://jp.co.shiratsuki.walkietalkie/" + R.raw.dingdong);
+                        mediaPlayer.setDataSource(VoiceService.this, setDataSourceuri);
+                        mediaPlayer.prepareAsync();
+                        mediaPlayer.setOnPreparedListener(mediaPlayer -> mediaPlayer.start());
+                        mediaPlayer.setOnCompletionListener(mediaPlayer -> mediaPlayer.reset());
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    SPHelper.save("KEY_STATUS_UP", false);
+                } else {
+                    try {
+                        Uri setDataSourceuri = Uri.parse("android.resource://jp.co.shiratsuki.walkietalkie/" + R.raw.du);
+                        mediaPlayer.setDataSource(VoiceService.this, setDataSourceuri);
+                        mediaPlayer.prepareAsync();
+                        mediaPlayer.setOnPreparedListener(mediaPlayer -> mediaPlayer.start());
+                        mediaPlayer.setOnCompletionListener(mediaPlayer -> mediaPlayer.reset());
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    SPHelper.save("KEY_STATUS_UP", true);
                 }
-                SPHelper.save("KEY_STATUS_UP", false);
-            } else {
-                try {
-                    Uri setDataSourceuri = Uri.parse("android.resource://jp.co.shiratsuki.walkietalkie/" + R.raw.du);
-                    mediaPlayer.setDataSource(VoiceService.this, setDataSourceuri);
-                    mediaPlayer.prepareAsync();
-                    mediaPlayer.setOnPreparedListener(mediaPlayer -> mediaPlayer.start());
-                    mediaPlayer.setOnCompletionListener(mediaPlayer -> {
-                        mediaPlayer.reset();
-                    });
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                SPHelper.save("KEY_STATUS_UP", true);
+            } catch (Exception e) {
+                e.printStackTrace();
             }
         }
 
         @Override
         public void stopRecord() {
-            if (isInRoom) {
-                // 关闭麦克风
-                helper.sendSpeakStatus(false);
-                helper.toggleMute(false);
-                broadcastCallback(TYPE.StopRecord, null);
-                // 播放提示音
-                try {
-                    Uri setDataSourceuri = Uri.parse("android.resource://jp.co.shiratsuki.walkietalkie/" + R.raw.du);
-                    mediaPlayer.setDataSource(VoiceService.this, setDataSourceuri);
-                    mediaPlayer.prepareAsync();
-                    mediaPlayer.setOnPreparedListener(mediaPlayer -> mediaPlayer.start());
-                    mediaPlayer.setOnCompletionListener(mediaPlayer -> mediaPlayer.reset());
-                } catch (IOException e) {
-                    e.printStackTrace();
+            try {
+                if (isInRoom) {
+                    // 关闭麦克风
+                    helper.sendSpeakStatus(false);
+                    helper.toggleMute(false);
+                    broadcastCallback(TYPE.StopRecord, null);
+                    // 播放提示音
+                    try {
+                        Uri setDataSourceuri = Uri.parse("android.resource://jp.co.shiratsuki.walkietalkie/" + R.raw.du);
+                        mediaPlayer.setDataSource(VoiceService.this, setDataSourceuri);
+                        mediaPlayer.prepareAsync();
+                        mediaPlayer.setOnPreparedListener(mediaPlayer -> mediaPlayer.start());
+                        mediaPlayer.setOnCompletionListener(mediaPlayer -> mediaPlayer.reset());
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    SPHelper.save("KEY_STATUS_UP", true);
                 }
-                SPHelper.save("KEY_STATUS_UP", true);
+            } catch (Exception e) {
+                e.printStackTrace();
             }
         }
 
         @Override
         public void useSpeaker() {
-            helper.toggleSpeaker(true);
+            try {
+                helper.toggleSpeaker(true);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
             broadcastCallback(TYPE.UseSpeaker, null);
         }
 
         @Override
         public void useEarpiece() {
-            helper.toggleSpeaker(false);
-            broadcastCallback(TYPE.UseEarpiece, null);
+            try {
+                helper.toggleSpeaker(false);
+                broadcastCallback(TYPE.UseEarpiece, null);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
 
         @Override

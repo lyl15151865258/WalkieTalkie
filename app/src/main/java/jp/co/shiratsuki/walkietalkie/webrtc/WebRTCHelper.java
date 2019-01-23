@@ -129,9 +129,9 @@ public class WebRTCHelper implements ISignalingEvents {
             if (webSocket != null) {
                 try {
                     LogUtils.d(TAG, "WebSocket发送心跳包");
-                    HashMap<String, Object> childMap = new HashMap();
+                    HashMap<String, Object> childMap = new HashMap<>();
                     childMap.put("socketId", _myId);
-                    HashMap<String, Object> map = new HashMap();
+                    HashMap<String, Object> map = new HashMap<>();
                     map.put("eventName", "__ping");
                     map.put("data", childMap);
                     JSONObject object = new JSONObject(map);

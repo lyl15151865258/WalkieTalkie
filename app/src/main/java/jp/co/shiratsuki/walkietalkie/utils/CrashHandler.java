@@ -53,6 +53,8 @@ import static android.content.Context.ACTIVITY_SERVICE;
 
 public class CrashHandler implements UncaughtExceptionHandler {
 
+    private static final String TAG = "CrashHandler";
+
     /**
      * 系统默认的UncaughtException处理类
      */
@@ -72,6 +74,11 @@ public class CrashHandler implements UncaughtExceptionHandler {
      * Map表：用来存储设备信息和异常信息
      */
     private Map<String, String> infos = new HashMap<>();
+
+    /**
+     * 用来标记出现异常的时候是否需要重启APP
+     */
+    public static boolean shouldRestart = false;
 
     /**
      * 获取CrashHandler实例 ,单例模式
@@ -138,14 +145,9 @@ public class CrashHandler implements UncaughtExceptionHandler {
         mContext.stopService(intent1);
 
         //重启App
-        Intent intent = mContext.getPackageManager().getLaunchIntentForPackage(mContext.getPackageName());
-        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        PendingIntent restartIntent = PendingIntent.getActivity(mContext, 0, intent, PendingIntent.FLAG_ONE_SHOT);
-        AlarmManager mgr = (AlarmManager) mContext.getSystemService(Context.ALARM_SERVICE);
-        LogUtils.d("KillSelfService", "启动了自启功能");
-        mgr.set(AlarmManager.RTC, System.currentTimeMillis() + 300, restartIntent);
-        ActivityController.exit();
+        if (shouldRestart) {
+            restartApp();
+        }
 
         ActivityManager am = (ActivityManager) mContext.getSystemService(ACTIVITY_SERVICE);
         if (am != null) {
@@ -153,6 +155,20 @@ public class CrashHandler implements UncaughtExceptionHandler {
         }
         android.os.Process.killProcess(android.os.Process.myPid());
         return true;
+    }
+
+    /**
+     * 重启应用
+     */
+    private void restartApp() {
+        LogUtils.d(TAG, "启动了自启功能");
+        Intent intent = mContext.getPackageManager().getLaunchIntentForPackage(mContext.getPackageName());
+        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        PendingIntent restartIntent = PendingIntent.getActivity(mContext, 0, intent, PendingIntent.FLAG_ONE_SHOT);
+        AlarmManager mgr = (AlarmManager) mContext.getSystemService(Context.ALARM_SERVICE);
+        mgr.set(AlarmManager.RTC, System.currentTimeMillis() + 300, restartIntent);
+        ActivityController.exit(mContext);
     }
 
     /**
@@ -264,18 +280,18 @@ public class CrashHandler implements UncaughtExceptionHandler {
             @Override
             public void onNext(NormalResult normalResult) {
                 if (normalResult == null) {
-                    LogUtils.d("retrofit", "返回值异常，上传失败");
+                    LogUtils.d(TAG, "返回值异常，上传失败");
                 } else {
                     String result = normalResult.getResult();
                     switch (result) {
                         case NetWork.SUCCESS:
-                            LogUtils.d("retrofit", "错误日志上传成功");
+                            LogUtils.d(TAG, "错误日志上传成功");
                             break;
                         case NetWork.FAIL:
-                            LogUtils.d("retrofit", "服务器保存异常，上传失败");
+                            LogUtils.d(TAG, "服务器保存异常，上传失败");
                             break;
                         default:
-                            LogUtils.d("retrofit", "未知错误，上传失败");
+                            LogUtils.d(TAG, "未知错误，上传失败");
                             break;
                     }
                 }

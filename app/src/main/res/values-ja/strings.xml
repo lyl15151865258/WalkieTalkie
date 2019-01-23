@@ -92,5 +92,6 @@
     <string name="NotificationPermission">通知権限がありません、ポップアップ情報は表示されません。設定するにはここをクリックしてください</string>
     <string name="StopPlay">演奏を停止する</string>
     <string name="Delete">削除する</string>
+    <string name="channel_description">バックグラウンドで実行されているトランシーバー</string>
 
 </resources>

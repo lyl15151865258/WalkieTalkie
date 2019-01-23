@@ -20,7 +20,6 @@ public class WalkieTalkieApplication extends Application {
 
     private static WalkieTalkieApplication instance;
 
-
     @Override
     public void onCreate() {
         super.onCreate();

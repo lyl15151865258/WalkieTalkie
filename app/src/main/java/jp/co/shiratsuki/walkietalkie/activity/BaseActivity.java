@@ -346,7 +346,7 @@ public abstract class BaseActivity extends AppCompatActivity {
             showToast(getString(R.string.click_again_exit));
             exitTime = System.currentTimeMillis();
         } else {
-            ActivityController.exit();
+            ActivityController.exit(this);
         }
     }
 

@@ -92,5 +92,6 @@
     <string name="NotificationPermission">您没有打开通知权限，将不会显示弹窗信息，点击这里设置</string>
     <string name="StopPlay">停止播放</string>
     <string name="Delete">删除</string>
+    <string name="channel_description">正在使用对讲机</string>
 
 </resources>

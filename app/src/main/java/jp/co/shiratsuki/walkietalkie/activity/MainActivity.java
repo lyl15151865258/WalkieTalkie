@@ -133,13 +133,11 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
         //权限检查
         PermissionUtil.isNeedRequestPermission(this);
 
-        if (iVoiceService == null) {
-            Intent intent = new Intent(mContext, VoiceService.class);
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                startForegroundService(intent);
-            } else {
-                startService(intent);
-            }
+        Intent intent = new Intent(mContext, VoiceService.class);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            startForegroundService(intent);
+        } else {
+            startService(intent);
         }
 
         // 初始化耳机按键标记
@@ -487,11 +485,19 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
                 // 重置说话按钮
                 isSpeaking = false;
                 btnSpeak.setBackgroundResource(R.drawable.icon_speak_pressed);
-                SPHelper.save("KEY_STATUS_UP", true);
                 // 重置扬声器按钮
                 isUseSpeaker = false;
                 btnSpeaker.setBackgroundResource(R.drawable.icon_speaker_pressed);
 
+                // 清空联系人列表
+                Fragment fragment = getSupportFragmentManager().getFragments().get(0);
+                if (fragment instanceof ContactsFragment) {
+                    ContactsFragment contactsFragment = (ContactsFragment) fragment;
+                    contactsFragment.contactList.clear();
+                    contactsFragment.contactAdapter.notifyDataSetChanged();
+                }
+
+                SPHelper.save("KEY_STATUS_UP", true);
                 showToast(getString(R.string.ExitChatRoom));
             }));
         }
@@ -650,23 +656,6 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
                     if (iVoiceService != null) {
                         try {
                             iVoiceService.leaveGroup();
-                            // 重置标记位
-                            isInRoom = false;
-                            if (isSpeaking) {
-                                isSpeaking = false;
-                                btnSpeak.setBackgroundResource(R.drawable.icon_speak_pressed);
-                            }
-                            if (isUseSpeaker) {
-                                isUseSpeaker = false;
-                                btnSpeaker.setBackgroundResource(R.drawable.icon_speaker_pressed);
-                            }
-                            // 清空联系人列表
-                            Fragment fragment = getSupportFragmentManager().getFragments().get(0);
-                            if (fragment instanceof ContactsFragment) {
-                                ContactsFragment contactsFragment = (ContactsFragment) fragment;
-                                contactsFragment.contactList.clear();
-                                contactsFragment.contactAdapter.notifyDataSetChanged();
-                            }
                         } catch (RemoteException e) {
                             e.printStackTrace();
                         }
@@ -771,7 +760,7 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
                 break;
             case R.id.btnExit:
                 // 彻底退出程序
-                ActivityController.exit();
+                ActivityController.exit(this);
                 break;
             default:
                 break;

@@ -185,6 +185,9 @@ public class JavaWebSocket implements IWebSocket {
         Map map = JSON.parseObject(message, Map.class);
         String eventName = (String) map.get("eventName");
         LogUtils.d(TAG, "收到信息：" + message);
+        if (eventName.equals("_new_user")) {
+            handleNewUser(message);
+        }
         if (eventName.equals("_peers")) {
             handleJoinToRoom(message);
         }
@@ -209,6 +212,14 @@ public class JavaWebSocket implements IWebSocket {
         if (eventName.equals("_speak_status")) {
             handleVoice(message);
         }
+    }
+
+    // 新用户连接到服务器
+    private void handleNewUser(String message) {
+//        Peers peers = GsonUtils.parseJSON(message, Peers.class);
+//        String myId = peers.getData().getYou();
+//        List<String> connections = peers.getData().getConnections();
+//        events.onJoinToRoom(connections, myId);
     }
 
     // 自己进入房间
@@ -284,7 +295,12 @@ public class JavaWebSocket implements IWebSocket {
     // 发送消息的方法
     public void sendMessage(String message) {
         LogUtils.d(TAG, "用户往服务端发送数据" + message);
-        mWebSocketClient.send(message);
+        if (mWebSocketClient.isOpen()) {
+            mWebSocketClient.send(message);
+        } else {
+            // WebSocket断开连接，退出房间
+            events.onWebSocketClosed();
+        }
     }
 
     //============================需要接收的=====================================
