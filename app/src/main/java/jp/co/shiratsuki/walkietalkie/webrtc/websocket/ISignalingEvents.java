@@ -18,7 +18,7 @@ import jp.co.shiratsuki.walkietalkie.bean.Contact;
 public interface ISignalingEvents {
 
     // 进入房间
-    void onJoinToRoom(ArrayList<String> connections, String myId);
+    void onJoinToRoom(List<String> connections, String myId);
 
     // 有新人进入房间
     void onRemoteJoinToRoom(String socketId, String socketName, List<Contact> contactList);

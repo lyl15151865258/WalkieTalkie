@@ -3,13 +3,14 @@ package jp.co.shiratsuki.walkietalkie.webrtc;
 import android.content.Context;
 import android.media.AudioManager;
 import android.os.Handler;
+import android.os.Looper;
 import android.os.Parcelable;
-import android.util.Log;
 
 import com.alibaba.fastjson.JSONObject;
 
 import jp.co.shiratsuki.walkietalkie.bean.Contact;
 import jp.co.shiratsuki.walkietalkie.constant.NetWork;
+import jp.co.shiratsuki.walkietalkie.constant.WebRTC;
 import jp.co.shiratsuki.walkietalkie.contentprovider.SPHelper;
 import jp.co.shiratsuki.walkietalkie.utils.LogUtils;
 import jp.co.shiratsuki.walkietalkie.webrtc.websocket.ISignalingEvents;
@@ -35,10 +36,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.SynchronousQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
 /**
  * WebRTC辅助类
@@ -60,7 +57,6 @@ public class WebRTCHelper implements ISignalingEvents {
 
     private AudioManager mAudioManager;
 
-
     private ArrayList<String> _connectionIdArray;
     private Map<String, Peer> _connectionPeerDic;
 
@@ -76,9 +72,7 @@ public class WebRTCHelper implements ISignalingEvents {
 
     private IWebSocket webSocket;
 
-    private static ExecutorService executorService;
-
-    private Handler mHandler = new Handler();
+    private Handler mHandler = new Handler(Looper.getMainLooper());
 
     public WebRTCHelper(Context context, IWebRTCHelper IHelper, Parcelable[] servers) {
         this.IHelper = IHelper;
@@ -91,12 +85,9 @@ public class WebRTCHelper implements ISignalingEvents {
             ICEServers.add(iceServer);
         }
         mAudioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
-        executorService = new ThreadPoolExecutor(5, 10, 60, TimeUnit.SECONDS,
-                new SynchronousQueue<>(), (r) -> {
-            Thread thread = new Thread(r);
-            thread.setDaemon(true);
-            return thread;
-        });
+        LogUtils.d(TAG, "初始化PeerConnection");
+        PeerConnectionFactory.initializeAndroidGlobals(IHelper, true, true, true);
+        _factory = new PeerConnectionFactory();
     }
 
     public void initSocket(String ws, final String room, final String userIP, final String userName, boolean videoEnable) {
@@ -108,15 +99,10 @@ public class WebRTCHelper implements ISignalingEvents {
 
     // ===================================webSocket回调信息=======================================
     @Override  // 我加入到房间
-    public void onJoinToRoom(ArrayList<String> connections, String myId) {
+    public void onJoinToRoom(List<String> connections, String myId) {
         LogUtils.d(TAG, "自己加入到房间");
         _connectionIdArray.addAll(connections);
         _myId = myId;
-        if (_factory == null) {
-            LogUtils.d(TAG, "初始化PeerConnection");
-            PeerConnectionFactory.initializeAndroidGlobals(IHelper, true, true, true);
-            _factory = new PeerConnectionFactory();
-        }
         if (_localStream == null) {
             LogUtils.d(TAG, "创建本地流");
             createLocalStream();
@@ -130,7 +116,7 @@ public class WebRTCHelper implements ISignalingEvents {
         }
 
         // 连接成功后，就准备发送心跳包
-        executorService.submit(heartBeatRunnable);
+        mHandler.postDelayed(heartBeatRunnable, NetWork.HEART_BEAT_RATE);
     }
 
     /**
@@ -140,19 +126,22 @@ public class WebRTCHelper implements ISignalingEvents {
         @Override
         public void run() {
             // 心跳包发送一个SocketId过去
-            Runnable runnable = () -> {
-                LogUtils.d(TAG, "WebSocket发送心跳包");
-
-                HashMap<String, Object> childMap = new HashMap();
-                childMap.put("socketId", _myId);
-                HashMap<String, Object> map = new HashMap();
-                map.put("eventName", "__ping");
-                map.put("data", childMap);
-                JSONObject object = new JSONObject(map);
-                String jsonString = object.toString();
-                sendMessage(jsonString);
-            };
-            executorService.submit(runnable);
+            if (webSocket != null) {
+                try {
+                    LogUtils.d(TAG, "WebSocket发送心跳包");
+                    HashMap<String, Object> childMap = new HashMap();
+                    childMap.put("socketId", _myId);
+                    HashMap<String, Object> map = new HashMap();
+                    map.put("eventName", "__ping");
+                    map.put("data", childMap);
+                    JSONObject object = new JSONObject(map);
+                    String jsonString = object.toString();
+                    sendMessage(jsonString);
+                } catch (Exception e) {
+                    LogUtils.d(TAG, "WebSocket发送心跳包失败");
+                    e.printStackTrace();
+                }
+            }
             mHandler.postDelayed(this, NetWork.HEART_BEAT_RATE);
         }
     };
@@ -185,6 +174,7 @@ public class WebRTCHelper implements ISignalingEvents {
 
     @Override
     public void onRemoteOutRoom(String socketId) {
+        LogUtils.d(TAG, "有人离开房间，ID为：" + socketId);
         closePeerConnection(socketId);
     }
 
@@ -221,12 +211,12 @@ public class WebRTCHelper implements ISignalingEvents {
         captureAndroid.switchCamera(new VideoCapturerAndroid.CameraSwitchHandler() {
             @Override
             public void onCameraSwitchDone(boolean b) {
-                Log.i(TAG, "切换摄像头");
+                LogUtils.d(TAG, "切换摄像头");
             }
 
             @Override
             public void onCameraSwitchError(String s) {
-                Log.i(TAG, "切换摄像头失败");
+                LogUtils.d(TAG, "切换摄像头失败");
             }
         });
 
@@ -253,14 +243,20 @@ public class WebRTCHelper implements ISignalingEvents {
 
     // 给服务器发送当前是否在讲话的标记
     public void sendSpeakStatus(boolean isSpeaking) {
-        HashMap<String, Object> childMap = new HashMap<>();
-        childMap.put("socketId", _myId);
-        childMap.put("isSpeaking", isSpeaking);
-        HashMap<String, Object> map = new HashMap<>();
+        String userName = SPHelper.getString("UserName", "UnDefined");
+        String roomId = SPHelper.getString("VoiceRoomId", WebRTC.WEBRTC_SERVER_ROOM);
+        Map<String, Object> map = new HashMap<>();
         map.put("eventName", "__speakStatus");
+        Map<String, Object> childMap = new HashMap<>();
+        childMap.put("userId", _myId);
+        childMap.put("userName", userName);
+        childMap.put("roomId", roomId);
+        childMap.put("roomName", roomId);
+        childMap.put("iconUrl", "");
+        childMap.put("speaking", isSpeaking);
         map.put("data", childMap);
         JSONObject object = new JSONObject(map);
-        String jsonString = object.toString();
+        final String jsonString = object.toString();
         sendMessage(jsonString);
     }
 
@@ -290,8 +286,7 @@ public class WebRTCHelper implements ISignalingEvents {
             SPHelper.save("KEY_STATUS_UP", true);
         }
 
-        mHandler.removeCallbacksAndMessages(null);
-        executorService.shutdownNow();
+        mHandler.removeCallbacks(heartBeatRunnable);
     }
 
     // 创建本地流
@@ -355,7 +350,7 @@ public class WebRTCHelper implements ISignalingEvents {
 
     // 为所有连接添加流
     private void addStreams() {
-        Log.v(TAG, "为所有连接添加流");
+        LogUtils.d(TAG, "为所有连接添加流");
         for (Map.Entry<String, Peer> entry : _connectionPeerDic.entrySet()) {
             if (_localStream == null) {
                 createLocalStream();
@@ -367,7 +362,7 @@ public class WebRTCHelper implements ISignalingEvents {
 
     // 为所有连接创建offer
     private void createOffers() {
-        Log.v(TAG, "为所有连接创建offer");
+        LogUtils.d(TAG, "为所有连接创建offer");
 
         for (Map.Entry<String, Peer> entry : _connectionPeerDic.entrySet()) {
             _role = Role.Caller;
@@ -382,7 +377,7 @@ public class WebRTCHelper implements ISignalingEvents {
         if (IHelper != null) {
             IHelper.removeUser(connectionId);
         }
-        Log.v(TAG, "关闭通道流");
+        LogUtils.d(TAG, "关闭通道流");
         Peer mPeer = _connectionPeerDic.get(connectionId);
         if (mPeer != null) {
             mPeer.pc.close();
@@ -441,7 +436,7 @@ public class WebRTCHelper implements ISignalingEvents {
         //****************************PeerConnection.Observer****************************/
         @Override
         public void onSignalingChange(PeerConnection.SignalingState signalingState) {
-            Log.v(TAG, "ice 状态改变 " + signalingState);
+            LogUtils.d(TAG, "ice 状态改变 " + signalingState);
         }
 
         @Override
@@ -492,14 +487,14 @@ public class WebRTCHelper implements ISignalingEvents {
 
         @Override
         public void onCreateSuccess(SessionDescription sessionDescription) {
-            Log.v(TAG, "sdp创建成功       " + sessionDescription.type);
+            LogUtils.d(TAG, "sdp创建成功       " + sessionDescription.type);
             //设置本地的SDP
             pc.setLocalDescription(Peer.this, sessionDescription);
         }
 
         @Override
         public void onSetSuccess() {
-            Log.v(TAG, "sdp连接成功        " + pc.signalingState().toString());
+            LogUtils.d(TAG, "sdp连接成功        " + pc.signalingState().toString());
 
             if (pc.signalingState() == PeerConnection.SignalingState.HAVE_REMOTE_OFFER) {
                 pc.createAnswer(Peer.this, offerOrAnswerConstraint());
@@ -534,7 +529,6 @@ public class WebRTCHelper implements ISignalingEvents {
 
         //初始化 RTCPeerConnection 连接管道
         private PeerConnection createPeerConnection() {
-
             if (_factory == null) {
                 PeerConnectionFactory.initializeAndroidGlobals(IHelper, true, true, true);
                 _factory = new PeerConnectionFactory();

@@ -93,7 +93,7 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
     private List<FrameLayout> menus;
     private LinearLayout llMain, llNotification;
     private CircularImageView ivIcon, ivUserIcon;
-    private TextView tvNotification,tvCompanyName, tvDepartment, tvUserName;
+    private TextView tvNotification, tvCompanyName, tvDepartment, tvUserName;
     private MyReceiver myReceiver;
     private boolean sIsScrolling = false;
     private IVoiceService iVoiceService;
@@ -544,13 +544,13 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
                         ContactsFragment contactsFragment = (ContactsFragment) fragment;
                         int position = -1;
                         for (int i = 0; i < contactsFragment.contactList.size(); i++) {
-                            if (contactsFragment.contactList.get(i).getUserIP().equals(ipAddress)) {
+                            if (contactsFragment.contactList.get(i).getUserId().equals(ipAddress)) {
                                 position = i;
                                 break;
                             }
                         }
                         if (position == -1) {
-                            contactsFragment.contactList.add(contactsFragment.contactList.size(), new Contact(ipAddress, name, "", false));
+                            contactsFragment.contactList.add(contactsFragment.contactList.size(), new Contact(ipAddress, name, "", "", "", false));
                             contactsFragment.contactAdapter.notifyItemChanged(contactsFragment.contactList.size() - 1);
                         } else {
                             if (!contactsFragment.contactList.get(position).getUserName().equals(name)) {
@@ -576,7 +576,7 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
                         ContactsFragment contactsFragment = (ContactsFragment) fragment;
                         int position = -1;
                         for (int i = 0; i < contactsFragment.contactList.size(); i++) {
-                            if (contactsFragment.contactList.get(i).getUserIP().equals(ipAddress)) {
+                            if (contactsFragment.contactList.get(i).getUserId().equals(ipAddress)) {
                                 position = i;
                                 break;
                             }
@@ -659,6 +659,13 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
                             if (isUseSpeaker) {
                                 isUseSpeaker = false;
                                 btnSpeaker.setBackgroundResource(R.drawable.icon_speaker_pressed);
+                            }
+                            // 清空联系人列表
+                            Fragment fragment = getSupportFragmentManager().getFragments().get(0);
+                            if (fragment instanceof ContactsFragment) {
+                                ContactsFragment contactsFragment = (ContactsFragment) fragment;
+                                contactsFragment.contactList.clear();
+                                contactsFragment.contactAdapter.notifyDataSetChanged();
                             }
                         } catch (RemoteException e) {
                             e.printStackTrace();
@@ -893,7 +900,7 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
                             contactsFragment.contactList.clear();
                             List<Contact> contacts = (List<Contact>) intent.getSerializableExtra("contactList");
                             for (int i = 0; i < contacts.size(); i++) {
-                                LogUtils.d(TAG, "联系人数量：" + contacts.size() + "," + contacts.get(i).getUserIP());
+                                LogUtils.d(TAG, "联系人数量：" + contacts.size() + "," + contacts.get(i).getUserId());
                             }
                             contactsFragment.contactList.addAll(contacts);
                             contactsFragment.contactAdapter.notifyDataSetChanged();

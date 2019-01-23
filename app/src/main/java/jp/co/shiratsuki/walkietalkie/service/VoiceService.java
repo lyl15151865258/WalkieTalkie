@@ -90,9 +90,7 @@ public class VoiceService extends Service implements IWebRTCHelper {
         registerReceiver(headsetPlugReceiver, filter3);
 
 //        showNotification();
-        if (helper == null) {
-            helper = new WebRTCHelper(this, this, WebRTC.iceServers);
-        }
+        helper = new WebRTCHelper(this, this, WebRTC.iceServers);
 
         mAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
 
@@ -114,14 +112,6 @@ public class VoiceService extends Service implements IWebRTCHelper {
         mAudioManager.registerMediaButtonEventReceiver(mComponentName);
         //当应用开始播放的时候首先需要请求焦点，调用该方法后，原先获取焦点的应用会释放焦点
         mAudioManager.requestAudioFocus(focusChangeListener, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN);
-
-
-        mAudioManager.requestAudioFocus(new AudioManager.OnAudioFocusChangeListener() {
-            @Override
-            public void onAudioFocusChange(int focusChange) {
-            }
-        }, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN);
-
     }
 
     //焦点问题
@@ -153,11 +143,6 @@ public class VoiceService extends Service implements IWebRTCHelper {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        LogUtils.d(TAG, "VoiceService——————生命周期——————:onStartCommand");
-        if (helper == null) {
-            LogUtils.d(TAG, "VoiceService——————生命周期——————:创建WebRTCHelper");
-            helper = new WebRTCHelper(this, this, WebRTC.iceServers);
-        }
         return super.onStartCommand(intent, flags, startId);
     }
 
@@ -188,15 +173,11 @@ public class VoiceService extends Service implements IWebRTCHelper {
         @Override
         public void enterGroup() {
             // 进入房间
-            if (helper == null) {
-                helper = new WebRTCHelper(VoiceService.this, VoiceService.this, WebRTC.iceServers);
-            }
-
             String ip = SPHelper.getString("VoiceServerIP", WebRTC.WEBRTC_SERVER_IP);
             String port = SPHelper.getString("VoiceServerPort", WebRTC.WEBRTC_SERVER_PORT);
             String roomId = SPHelper.getString("VoiceRoomId", WebRTC.WEBRTC_SERVER_ROOM);
 
-            String signal = "ws://" + ip + ":" + port;
+            String signal = "ws://" + ip + ":" + port + "/WalkieTalkieServer/" + ip;
             String userIP = WifiUtil.getLocalIPAddress();
             String userName = SPHelper.getString("UserName", "UnDefined");
             helper.initSocket(signal, roomId, userIP, userName, false);
@@ -205,9 +186,15 @@ public class VoiceService extends Service implements IWebRTCHelper {
         @Override
         public void leaveGroup() {
             // 离开房间
+            broadcastCallback(TYPE.LeaveGroup, null);
             isInRoom = false;
             helper.exitRoom();
-            broadcastCallback(TYPE.LeaveGroup, null);
+            // 标记耳机按键状态为抬起并发送广播，停止录音
+            Intent intent1 = new Intent();
+            intent1.setAction("KEY_UP");
+            sendBroadcast(intent1);
+            SPHelper.save("KEY_STATUS_UP", true);
+            LogUtils.d(TAG, "离开房间");
         }
 
         @Override
@@ -259,9 +246,7 @@ public class VoiceService extends Service implements IWebRTCHelper {
                     mediaPlayer.setDataSource(VoiceService.this, setDataSourceuri);
                     mediaPlayer.prepareAsync();
                     mediaPlayer.setOnPreparedListener(mediaPlayer -> mediaPlayer.start());
-                    mediaPlayer.setOnCompletionListener(mediaPlayer -> {
-                        mediaPlayer.reset();
-                    });
+                    mediaPlayer.setOnCompletionListener(mediaPlayer -> mediaPlayer.reset());
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -355,8 +340,8 @@ public class VoiceService extends Service implements IWebRTCHelper {
 
     @Override
     public void onLeaveRoom() {
-        isInRoom = false;
         broadcastCallback(TYPE.LeaveGroup, null);
+        isInRoom = false;
     }
 
     @Override
@@ -409,12 +394,13 @@ public class VoiceService extends Service implements IWebRTCHelper {
     }
 
     // 回调公共方法
-    private void broadcastCallback(TYPE type, Intent intent) {
-        final int size = mCallbackList.beginBroadcast();
-        for (int i = 0; i < size; i++) {
-            IVoiceCallback callback = mCallbackList.getBroadcastItem(i);
-            if (callback != null) {
-                try {
+    private synchronized void broadcastCallback(TYPE type, Intent intent) {
+        try {
+            final int size = mCallbackList.beginBroadcast();
+            for (int i = 0; i < size; i++) {
+                LogUtils.d(TAG, "走回调方法broadcastCallback");
+                IVoiceCallback callback = mCallbackList.getBroadcastItem(i);
+                if (callback != null) {
                     if (type == TYPE.EnterGroup) {
                         callback.enterRoomSuccess();
                     } else if (type == TYPE.LeaveGroup) {
@@ -439,12 +425,13 @@ public class VoiceService extends Service implements IWebRTCHelper {
                             callback.removeUser(userIP, "");
                         }
                     }
-                } catch (RemoteException e) {
-                    e.printStackTrace();
                 }
             }
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        } finally {
+            mCallbackList.finishBroadcast();
         }
-        mCallbackList.finishBroadcast();
     }
 
     private void registerVolumeChangeReceiver() {
@@ -542,12 +529,14 @@ public class VoiceService extends Service implements IWebRTCHelper {
     public void onDestroy() {
         super.onDestroy();
         helper.exitRoom();
+        helper = null;
         if (keyEventBroadcastReceiver != null) {
             unregisterReceiver(keyEventBroadcastReceiver);
         }
         if (headsetPlugReceiver != null) {
             unregisterReceiver(headsetPlugReceiver);
         }
+        mCallbackList.kill();
         mAudioManager.unregisterMediaButtonEventReceiver(mComponentName);
         unregisterVolumeChangeReceiver();
         // 停止前台Service

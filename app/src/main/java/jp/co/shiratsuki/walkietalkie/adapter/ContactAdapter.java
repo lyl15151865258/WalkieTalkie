@@ -42,7 +42,7 @@ public class ContactAdapter extends RecyclerView.Adapter<ContactAdapter.ContactV
     @Override
     public void onBindViewHolder(@NonNull ContactViewHolder viewHolder, int position) {
         Contact con = contactList.get(position);
-        viewHolder.tvUserIP.setText(con.getUserIP());
+        viewHolder.tvUserIP.setText(con.getUserId());
         viewHolder.tvUserName.setText(con.getUserName());
         if (con.isSpeaking()) {
             viewHolder.ivSpeaking.setVisibility(View.VISIBLE);

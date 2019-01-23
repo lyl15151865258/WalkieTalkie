@@ -59,11 +59,11 @@
 
         <ImageView
             android:id="@+id/ivSpeaking"
-            android:layout_width="@dimen/dp_50"
-            android:layout_height="@dimen/dp_50"
+            android:layout_width="@dimen/dp_40"
+            android:layout_height="@dimen/dp_40"
             android:contentDescription="@null"
-            android:padding="@dimen/dp_10"
-            android:src="@drawable/icon_speaker_normal"
+            android:padding="@dimen/dp_8"
+            android:src="@drawable/icon_speaking"
             android:visibility="visible" />
 
     </LinearLayout>
