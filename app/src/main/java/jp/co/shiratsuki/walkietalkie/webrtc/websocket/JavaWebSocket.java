@@ -44,6 +44,7 @@ public class JavaWebSocket implements IWebSocket {
     }
 
     public void connect(String wss, final String room, final String userIP, final String userName) {
+        LogUtils.d(TAG, "WebRTC服务器地址：" + wss);
         URI uri;
         try {
             uri = new URI(wss);
@@ -66,7 +67,7 @@ public class JavaWebSocket implements IWebSocket {
 
                 @Override
                 public void onClose(int code, String reason, boolean remote) {
-                    LogUtils.d(TAG, "关闭WebSocket连接：" + reason);
+                    LogUtils.d(TAG, "关闭WebSocket连接：" + reason + "，是远端关闭的吗：" + remote);
                     // WebSocket断开连接，退出房间
                     events.onWebSocketClosed();
                 }

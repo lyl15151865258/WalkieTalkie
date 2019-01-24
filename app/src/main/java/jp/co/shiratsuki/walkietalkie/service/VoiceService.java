@@ -39,6 +39,7 @@ import jp.co.shiratsuki.walkietalkie.broadcast.BaseBroadcastReceiver;
 import jp.co.shiratsuki.walkietalkie.broadcast.MediaButtonReceiver;
 import jp.co.shiratsuki.walkietalkie.broadcast.SettingsContentObserver;
 import jp.co.shiratsuki.walkietalkie.contentprovider.SPHelper;
+import jp.co.shiratsuki.walkietalkie.utils.DbcSbcUtils;
 import jp.co.shiratsuki.walkietalkie.utils.LogUtils;
 import jp.co.shiratsuki.walkietalkie.utils.WifiUtil;
 import jp.co.shiratsuki.walkietalkie.webrtc.IWebRTCHelper;
@@ -181,7 +182,7 @@ public class VoiceService extends Service implements IWebRTCHelper {
 
                 String userIP = WifiUtil.getLocalIPAddress();
                 String userName = SPHelper.getString("UserName", "UnDefined");
-                String signal = "ws://" + ip + ":" + port + "/WalkieTalkieServer/" + userIp + "/" + userName;
+                String signal = DbcSbcUtils.getPatStr("ws://" + ip + ":" + port + "/WalkieTalkieServer/" + userIp + "/" + userName);
                 helper.initSocket(signal, roomId, userIP, userName, false);
             } catch (Exception e) {
                 e.printStackTrace();

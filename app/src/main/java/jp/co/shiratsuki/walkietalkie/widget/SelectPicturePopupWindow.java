@@ -34,7 +34,7 @@ public class SelectPicturePopupWindow extends PopupWindow implements View.OnClic
      * 把一个View控件添加到PopupWindow上并且显示
      */
     public void showPopupWindow(View parent) {
-        popupWindow = new PopupWindow(mMenuView, ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+        popupWindow = new PopupWindow(mMenuView, ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         popupWindow.showAtLocation(parent, Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL, 0, 0);
         ColorDrawable dw = new ColorDrawable(0x30000000);
         popupWindow.setBackgroundDrawable(dw);
