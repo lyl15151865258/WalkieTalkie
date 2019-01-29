@@ -2,6 +2,7 @@ package jp.co.shiratsuki.walkietalkie.voice;
 
 import android.content.Context;
 import android.content.Intent;
+import android.media.AudioManager;
 import android.media.MediaPlayer;
 
 import jp.co.shiratsuki.walkietalkie.bean.Music;
@@ -162,6 +163,7 @@ public class MusicPlay {
     private void playOneList(int position) {
         synchronized (MusicPlay.this) {
             MediaPlayer mMediaPlayer = new MediaPlayer();
+            mMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
             CountDownLatch mCountDownLatch = new CountDownLatch(1);
             try {
                 final int[] counter = {0};
@@ -177,14 +179,20 @@ public class MusicPlay {
                 intent.putExtra("number", musicList.get(counter[0]).getListNo());
                 mContext.sendBroadcast(intent);
 
-                mMediaPlayer.setDataSource(musicList.get(counter[0]).getFilePath());
-                mMediaPlayer.prepareAsync();
-                mMediaPlayer.setScreenOnWhilePlaying(true);
+                try {
+                    mMediaPlayer.reset();
+                    mMediaPlayer.setDataSource(musicList.get(counter[0]).getFilePath());
+                    mMediaPlayer.prepareAsync();
+                    mMediaPlayer.setScreenOnWhilePlaying(true);
+                } catch (IllegalArgumentException | IllegalStateException | IOException e) {
+                    e.printStackTrace();
+                }
                 mMediaPlayer.setOnPreparedListener(mediaPlayer -> mMediaPlayer.start());
                 mMediaPlayer.setOnErrorListener(new MediaPlayer.OnErrorListener() {
                     @Override
                     public boolean onError(MediaPlayer mp, int what, int extra) {
                         // 遇到错误就重置MediaPlayer
+                        LogUtils.d(TAG, "媒体文件获取异常，播放失败");
                         mp.reset();
                         return false;
                     }

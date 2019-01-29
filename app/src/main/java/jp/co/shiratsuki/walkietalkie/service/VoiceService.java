@@ -402,13 +402,13 @@ public class VoiceService extends Service implements IWebRTCHelper, VolumeChange
         }
         // 如果所有人都不讲话了
         if (!someoneSpeaking) {
+            SPHelper.save("SomeoneSpeaking", false);
             LogUtils.d(TAG, "所有人都不讲话了，当前音量为：" + defaultVolume);
             mAudioManager.setStreamVolume(AudioManager.STREAM_MUSIC, defaultVolume, AudioManager.FLAG_VIBRATE);
-            SPHelper.save("SomeoneSpeaking", false);
         } else {
+            SPHelper.save("SomeoneSpeaking", true);
             LogUtils.d(TAG, "当前有人在讲话，当前音量为：" + defaultVolume / 2);
             mAudioManager.setStreamVolume(AudioManager.STREAM_MUSIC, defaultVolume / 2, AudioManager.FLAG_VIBRATE);
-            SPHelper.save("SomeoneSpeaking", true);
         }
 
         Intent intent = new Intent();
@@ -548,11 +548,11 @@ public class VoiceService extends Service implements IWebRTCHelper, VolumeChange
         AudioManager audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
         if (SPHelper.getBoolean("SomeoneSpeaking", false)) {
             // 有人正在讲话
-            LogUtils.d(TAG, "当前有人在讲话");
             SPHelper.save("defaultVolume", currentVolume * 2 > audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC) ? audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC) : currentVolume * 2);
+            LogUtils.d(TAG, "当前有人在讲话，保存默认音量：" + (currentVolume * 2 > audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC) ? audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC) : currentVolume * 2));
         } else {
             // 没有人在讲话
-            LogUtils.d(TAG, "当前没有人讲话");
+            LogUtils.d(TAG, "所有人都不讲话了，保存默认音量：" + currentVolume);
             SPHelper.save("defaultVolume", currentVolume);
         }
     }
