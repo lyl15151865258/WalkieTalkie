@@ -19,7 +19,6 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
 import android.net.wifi.WifiManager;
-import android.os.Handler;
 import android.os.IBinder;
 import android.os.Parcelable;
 import android.os.RemoteCallbackList;
@@ -37,7 +36,7 @@ import jp.co.shiratsuki.walkietalkie.activity.MainActivity;
 import jp.co.shiratsuki.walkietalkie.bean.Contact;
 import jp.co.shiratsuki.walkietalkie.broadcast.BaseBroadcastReceiver;
 import jp.co.shiratsuki.walkietalkie.broadcast.MediaButtonReceiver;
-import jp.co.shiratsuki.walkietalkie.broadcast.SettingsContentObserver;
+import jp.co.shiratsuki.walkietalkie.broadcast.VolumeChangeObserver;
 import jp.co.shiratsuki.walkietalkie.contentprovider.SPHelper;
 import jp.co.shiratsuki.walkietalkie.utils.DbcSbcUtils;
 import jp.co.shiratsuki.walkietalkie.utils.LogUtils;
@@ -54,7 +53,7 @@ import jp.co.shiratsuki.walkietalkie.constant.WebRTC;
  * @version 1.0
  */
 
-public class VoiceService extends Service implements IWebRTCHelper {
+public class VoiceService extends Service implements IWebRTCHelper, VolumeChangeObserver.VolumeChangeListener {
 
     private boolean isInRoom = false;
 
@@ -67,13 +66,13 @@ public class VoiceService extends Service implements IWebRTCHelper {
 
     private KeyEventBroadcastReceiver keyEventBroadcastReceiver;
 
-    private SettingsContentObserver mSettingsContentObserver;
-
     private RemoteCallbackList<IVoiceCallback> mCallbackList = new RemoteCallbackList<>();
 
     private AudioManager mAudioManager;
     private ComponentName mComponentName;
     private MediaPlayer mediaPlayer;
+
+    private VolumeChangeObserver mVolumeChangeObserver;
 
     @Override
     public void onCreate() {
@@ -100,9 +99,13 @@ public class VoiceService extends Service implements IWebRTCHelper {
 
         // 记录当前媒体音量
         SPHelper.save("defaultVolume", mAudioManager.getStreamVolume(AudioManager.STREAM_MUSIC));
-        registerVolumeChangeReceiver();
 
         mediaPlayer = new MediaPlayer();
+
+        //实例化对象并设置监听器
+        mVolumeChangeObserver = new VolumeChangeObserver(this);
+        mVolumeChangeObserver.setVolumeChangeListener(this);
+        mVolumeChangeObserver.registerReceiver();
     }
 
     // 注册耳机按钮事件
@@ -456,15 +459,6 @@ public class VoiceService extends Service implements IWebRTCHelper {
         }
     }
 
-    private void registerVolumeChangeReceiver() {
-        mSettingsContentObserver = new SettingsContentObserver(this, new Handler());
-        getApplicationContext().getContentResolver().registerContentObserver(android.provider.Settings.System.CONTENT_URI, true, mSettingsContentObserver);
-    }
-
-    private void unregisterVolumeChangeReceiver() {
-        getApplicationContext().getContentResolver().unregisterContentObserver(mSettingsContentObserver);
-    }
-
     //网络状态广播
     public class NetworkStatusReceiver extends BaseBroadcastReceiver {
         @Override
@@ -548,6 +542,22 @@ public class VoiceService extends Service implements IWebRTCHelper {
     }
 
     @Override
+    public void onVolumeChanged(int currentVolume) {
+        LogUtils.d(TAG, "系统媒体音量发生变化，当前媒体音量为：" + currentVolume);
+
+        AudioManager audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+        if (SPHelper.getBoolean("SomeoneSpeaking", false)) {
+            // 有人正在讲话
+            LogUtils.d(TAG, "当前有人在讲话");
+            SPHelper.save("defaultVolume", currentVolume * 2 > audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC) ? audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC) : currentVolume * 2);
+        } else {
+            // 没有人在讲话
+            LogUtils.d(TAG, "当前没有人讲话");
+            SPHelper.save("defaultVolume", currentVolume);
+        }
+    }
+
+    @Override
     public void onDestroy() {
         super.onDestroy();
         helper.exitRoom();
@@ -560,7 +570,7 @@ public class VoiceService extends Service implements IWebRTCHelper {
         }
         mCallbackList.kill();
         mAudioManager.unregisterMediaButtonEventReceiver(mComponentName);
-        unregisterVolumeChangeReceiver();
+        mVolumeChangeObserver.unregisterReceiver();
         // 停止前台Service
         stopForeground(true);
         stopSelf();
