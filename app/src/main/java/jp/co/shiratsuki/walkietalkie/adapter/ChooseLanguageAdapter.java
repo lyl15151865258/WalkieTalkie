@@ -11,6 +11,7 @@ import android.widget.TextView;
 import jp.co.shiratsuki.walkietalkie.R;
 import jp.co.shiratsuki.walkietalkie.bean.Language;
 import jp.co.shiratsuki.walkietalkie.utils.LanguageUtil;
+import jp.co.shiratsuki.walkietalkie.utils.ViewUtil;
 
 import java.util.List;
 
@@ -46,6 +47,7 @@ public class ChooseLanguageAdapter extends RecyclerView.Adapter<ChooseLanguageAd
     public void onBindViewHolder(ListViewHolder holder, int position) {
         Language language = list.get(position);
         holder.tvLanguage.setText(language.getLanguageName());
+        ViewUtil.updateViewLanguage(holder.tvLanguage);
         if (LanguageUtil.getLanguageLocal(mContext).equals(language.getLanguageCode())) {
             holder.ivSelect.setImageResource(R.drawable.checkbox_choose_language_selected);
         } else {

@@ -2,25 +2,24 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
     android:layout_height="wrap_content"
-    android:gravity="bottom" >
+    android:gravity="bottom">
 
     <RelativeLayout
         android:id="@+id/listview_header_content"
         android:layout_width="fill_parent"
         android:layout_height="80dp"
-        android:paddingTop="10dip"
-        >
+        android:paddingTop="10dip">
 
         <LinearLayout
+            android:id="@+id/listview_header_text"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:minWidth="100dip"
             android:layout_centerInParent="true"
             android:gravity="center"
-            android:orientation="vertical"
-            android:id="@+id/listview_header_text">
+            android:minWidth="100dip"
+            android:orientation="vertical">
 
-            <TextView
+            <jp.co.shiratsuki.walkietalkie.widget.MyTextView
                 android:id="@+id/refresh_status_textview"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -30,16 +29,16 @@
                 android:id="@+id/header_refresh_time_container"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:visibility="gone"
-                android:layout_marginTop="3dp" >
+                android:layout_marginTop="3dp"
+                android:visibility="gone">
 
-                <TextView
+                <jp.co.shiratsuki.walkietalkie.widget.MyTextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/listview_header_last_time"
                     android:textSize="12sp" />
 
-                <TextView
+                <jp.co.shiratsuki.walkietalkie.widget.MyTextView
                     android:id="@+id/last_refresh_time"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -61,10 +60,10 @@
             android:id="@+id/listview_header_progressbar"
             android:layout_width="30dip"
             android:layout_height="30dip"
-            android:layout_toStartOf="@+id/listview_header_text"
             android:layout_centerVertical="true"
             android:layout_marginStart="40dp"
             android:layout_marginEnd="10dp"
+            android:layout_toStartOf="@+id/listview_header_text"
             android:visibility="invisible" />
     </RelativeLayout>
 

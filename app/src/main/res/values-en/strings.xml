@@ -48,9 +48,6 @@
     <string name="ChooseLanguage">Language selection</string>
     <string name="Save">Save</string>
     <string name="lan_default">Follow system</string>
-    <string name="lan_chinese">Chinese</string>
-    <string name="lan_en">English</string>
-    <string name="lan_ja">Japanese</string>
 
     <string name="accessibility_description">Key capture</string>
     <string name="accessibility_name">WifiInterPhone(Recommended to open)</string>

@@ -241,7 +241,6 @@ public class WebSocketService extends Service {
         super.onDestroy();
         MusicPlay.with(WebSocketService.this).release();
         closeWebSocket();
-        threadPool.shutdownNow();
     }
 
 }

@@ -4,7 +4,7 @@
     android:layout_height="match_parent"
     android:background="@drawable/welcome">
 
-    <TextView
+    <jp.co.shiratsuki.walkietalkie.widget.MyTextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
@@ -13,6 +13,7 @@
         android:padding="@dimen/dp_10"
         android:text="开始使用"
         android:textColor="@color/white"
+        android:visibility="gone"
         android:textSize="@dimen/sp_22" />
 
 </RelativeLayout>

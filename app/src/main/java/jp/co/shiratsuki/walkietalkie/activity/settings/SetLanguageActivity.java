@@ -1,21 +1,23 @@
 package jp.co.shiratsuki.walkietalkie.activity.settings;
 
-import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.view.KeyEvent;
 import android.view.View;
-import android.widget.ImageView;
+
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
 
 import jp.co.shiratsuki.walkietalkie.R;
 import jp.co.shiratsuki.walkietalkie.activity.BaseActivity;
-import jp.co.shiratsuki.walkietalkie.activity.MainActivity;
 import jp.co.shiratsuki.walkietalkie.adapter.ChooseLanguageAdapter;
 import jp.co.shiratsuki.walkietalkie.bean.Language;
 import jp.co.shiratsuki.walkietalkie.contentprovider.SPHelper;
 import jp.co.shiratsuki.walkietalkie.utils.ActivityController;
+import jp.co.shiratsuki.walkietalkie.utils.LogUtils;
+import jp.co.shiratsuki.walkietalkie.utils.ViewUtil;
 import jp.co.shiratsuki.walkietalkie.widget.MyToolbar;
 import jp.co.shiratsuki.walkietalkie.widget.RecyclerViewDivider;
 
@@ -30,8 +32,9 @@ import java.util.List;
  * @version 1.0
  */
 
-public class LanguageActivity extends BaseActivity {
+public class SetLanguageActivity extends BaseActivity {
 
+    private String TAG = "SetLanguageActivity";
     private List<Language> languageList;
     private ChooseLanguageAdapter chooseLanguageAdapter;
 
@@ -40,7 +43,7 @@ public class LanguageActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_choose_language);
         MyToolbar toolbar = findViewById(R.id.myToolbar);
-        toolbar.initToolBar(this, toolbar, getString(R.string.ChooseLanguage), R.drawable.back_white, onClickListener);
+        toolbar.initToolBar(this, toolbar, R.string.ChooseLanguage, R.drawable.back_white, onClickListener);
         RecyclerView recyclerViewLanguage = findViewById(R.id.recyclerView_language);
         languageList = new ArrayList<>();
         addLanguages();
@@ -52,43 +55,33 @@ public class LanguageActivity extends BaseActivity {
         chooseLanguageAdapter = new ChooseLanguageAdapter(this, languageList);
         recyclerViewLanguage.setAdapter(chooseLanguageAdapter);
         chooseLanguageAdapter.setOnItemClickListener((view, position) -> {
-            for (int i = 0; i < chooseLanguageAdapter.getItemCount(); i++) {
-                ((ImageView) recyclerViewLanguage.getChildAt(i).findViewById(R.id.iv_select)).setImageResource(R.drawable.checkbox_choose_language_normal);
-            }
-            ((ImageView) view.findViewById(R.id.iv_select)).setImageResource(R.drawable.checkbox_choose_language_selected);
-
             SPHelper.save(getString(R.string.language), languageList.get(position).getLanguageCode());
-
             changeAppLanguage();
 
-            if (android.os.Build.VERSION.SDK_INT > android.os.Build.VERSION_CODES.M) {
-                //Android6.0以上直接调用recreate()方法刷新页面
-                recreate();
-            } else {
-                //Android6.0及以下调用recreate()方法刷新页面会闪屏，直接重新打开MainActivity
-                goBack();
-            }
+            languageList.clear();
+            addLanguages();
+            chooseLanguageAdapter.notifyDataSetChanged();
+
+            // 通过EventBus通知其他页面更改语言
+            EventBus.getDefault().post("CHANGE_LANGUAGE");
         });
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onStringEvent(String msg) {
+        LogUtils.d(TAG, "走了更新语言的方法");
+        ViewUtil.updateViewLanguage(findViewById(android.R.id.content));
     }
 
     private View.OnClickListener onClickListener = (v) -> {
         switch (v.getId()) {
             case R.id.iv_left:
-                goBack();
+                ActivityController.finishActivity(this);
                 break;
             default:
                 break;
         }
     };
-
-    private void goBack() {
-        //让之前打开的所有界面全部彻底关闭
-        ActivityController.finishOtherActivity(this);
-        //回到应用的首页
-        startActivity(new Intent(this, MainActivity.class));
-        overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
-        ActivityController.finishActivity(this);
-    }
 
     /**
      * 添加语言种类
@@ -115,12 +108,4 @@ public class LanguageActivity extends BaseActivity {
         languageList.add(japanese);
     }
 
-    @Override
-    public boolean onKeyDown(int keyCode, KeyEvent event) {
-        if (keyCode == KeyEvent.KEYCODE_BACK) {
-            goBack();
-            return false;
-        }
-        return super.onKeyDown(keyCode, event);
-    }
 }

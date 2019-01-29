@@ -36,7 +36,7 @@
             android:layout_weight="1"
             android:orientation="vertical">
 
-            <TextView
+            <jp.co.shiratsuki.walkietalkie.widget.MyTextView
                 android:id="@+id/tvUserName"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -46,7 +46,7 @@
                 android:singleLine="true"
                 android:textSize="@dimen/sp_18" />
 
-            <TextView
+            <jp.co.shiratsuki.walkietalkie.widget.MyTextView
                 android:id="@+id/tvUserIP"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

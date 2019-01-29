@@ -47,7 +47,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import jp.co.shiratsuki.walkietalkie.R;
-import jp.co.shiratsuki.walkietalkie.activity.settings.LanguageActivity;
+import jp.co.shiratsuki.walkietalkie.activity.settings.SetLanguageActivity;
 import jp.co.shiratsuki.walkietalkie.activity.settings.SetMessageServerActivity;
 import jp.co.shiratsuki.walkietalkie.activity.settings.SetPersonalInfoActivity;
 import jp.co.shiratsuki.walkietalkie.activity.settings.SetVoiceServerActivity;
@@ -98,7 +98,6 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
     private boolean sIsScrolling = false;
     private IVoiceService iVoiceService;
     private WebSocketService webSocketService;
-    private int fragmentPosition = 0;
 
     private CommonWarningDialog commonWarningDialog;
 
@@ -213,8 +212,8 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
         viewPager.setAdapter(viewPagerAdapter);
         //设置Fragment预加载，非常重要,可以保存每个页面fragment已有的信息,防止切换后原页面信息丢失
         viewPager.setOffscreenPageLimit(menus.size());
-        //刚进来默认选择第2个
-        menus.get(1).setSelected(true);
+        // 默认选中第一个
+        menus.get(0).setSelected(true);
         //viewPager添加滑动监听，用于控制TextView的展示
         viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             @Override
@@ -277,26 +276,20 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
     private FragmentStatePagerAdapter viewPagerAdapter = new FragmentStatePagerAdapter(getSupportFragmentManager()) {
         @Override
         public int getCount() {
-            return 5;
+            return menus.size();
         }
 
         @Override
         public Fragment getItem(int position) {
             switch (position) {
-                // 联系人
-                case 0:
-                    return new ContactsFragment();
                 // 异常信息
-                case 1:
+                case 0:
                     return new MalfunctionFragment();
+                // 联系人
+                case 1:
+                    return new ContactsFragment();
                 // 联系人
                 case 2:
-                    return new ContactsFragment();
-                // 异常信息
-                case 3:
-                    return new MalfunctionFragment();
-                // 联系人
-                case 4:
                     return new ContactsFragment();
                 default:
                     break;
@@ -449,6 +442,7 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
             iVoiceService = IVoiceService.Stub.asInterface(service);
             try {
                 iVoiceService.registerCallback(iVoiceCallback);
+                iVoiceService.enterGroup();
             } catch (RemoteException e) {
                 e.printStackTrace();
             }
@@ -490,7 +484,7 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
                 btnSpeaker.setBackgroundResource(R.drawable.icon_speaker_pressed);
 
                 // 清空联系人列表
-                Fragment fragment = getSupportFragmentManager().getFragments().get(0);
+                Fragment fragment = getSupportFragmentManager().getFragments().get(1);
                 if (fragment instanceof ContactsFragment) {
                     ContactsFragment contactsFragment = (ContactsFragment) fragment;
                     contactsFragment.contactList.clear();
@@ -544,8 +538,8 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    findViewById(R.id.fl_a).performClick();
-                    Fragment fragment = getSupportFragmentManager().getFragments().get(0);
+                    LogUtils.d(TAG, "有新用户，刷新ContactsFragment联系人列表");
+                    Fragment fragment = getSupportFragmentManager().getFragments().get(1);
                     if (fragment instanceof ContactsFragment) {
                         ContactsFragment contactsFragment = (ContactsFragment) fragment;
                         int position = -1;
@@ -576,8 +570,8 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    findViewById(R.id.fl_a).performClick();
-                    Fragment fragment = getSupportFragmentManager().getFragments().get(0);
+                    LogUtils.d(TAG, "移除用户，刷新ContactsFragment联系人列表");
+                    Fragment fragment = getSupportFragmentManager().getFragments().get(1);
                     if (fragment instanceof ContactsFragment) {
                         ContactsFragment contactsFragment = (ContactsFragment) fragment;
                         int position = -1;
@@ -646,8 +640,7 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
                 //设置选择效果
                 view.setSelected(true);
                 //参数false代表瞬间切换，true表示平滑过渡
-                fragmentPosition = (Integer) view.getTag();
-                viewPager.setCurrentItem(fragmentPosition, false);
+                viewPager.setCurrentItem((Integer) view.getTag(), false);
                 break;
             case R.id.btnEnterRoom:
                 vibrator.vibrate(50);
@@ -730,19 +723,17 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
                 break;
             case R.id.llLanguageSettings:
                 // 语言设置
-                openActivity(LanguageActivity.class);
+                openActivity(SetLanguageActivity.class);
                 break;
             case R.id.llVoiceServer:
                 // 语音服务器设置（修改语音服务器的话需要重启Service）
                 intent = new Intent(MainActivity.this, SetVoiceServerActivity.class);
                 startActivityForResult(intent, REQUEST_CODE_SET_VOICE_SERVER);
-                openActivity(SetVoiceServerActivity.class);
                 break;
             case R.id.llMessageServer:
                 // 消息服务器设置
                 intent = new Intent(MainActivity.this, SetMessageServerActivity.class);
                 startActivityForResult(intent, REQUEST_CODE_SET_MESSAGE_SERVER);
-                openActivity(SetMessageServerActivity.class);
                 break;
             case R.id.llWifiSetting:
                 // 无线网设置
@@ -775,8 +766,8 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
                 switch (intent.getAction()) {
                     case "RECEIVE_MALFUNCTION": {
                         WebSocketData webSocketData = (WebSocketData) intent.getSerializableExtra("data");
-                        viewPager.setCurrentItem(1, false);
-                        Fragment fragment = getSupportFragmentManager().getFragments().get(1);
+                        viewPager.setCurrentItem(0, false);
+                        Fragment fragment = getSupportFragmentManager().getFragments().get(0);
                         if (fragment instanceof MalfunctionFragment) {
                             MalfunctionFragment malfunctionFragment = (MalfunctionFragment) fragment;
                             if (webSocketData.isStatus()) {
@@ -800,7 +791,7 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
                     break;
                     case "CURRENT_PLAYING": {
                         int listNo = intent.getIntExtra("number", -1);
-                        Fragment fragment = getSupportFragmentManager().getFragments().get(1);
+                        Fragment fragment = getSupportFragmentManager().getFragments().get(0);
                         if (fragment instanceof MalfunctionFragment) {
                             MalfunctionFragment malfunctionFragment = (MalfunctionFragment) fragment;
                             if (listNo == -1) {
@@ -831,7 +822,7 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
                     break;
                     case "NO_LONGER_PLAYING": {
                         int listNo = intent.getIntExtra("number", -1);
-                        Fragment fragment = getSupportFragmentManager().getFragments().get(1);
+                        Fragment fragment = getSupportFragmentManager().getFragments().get(0);
                         if (fragment instanceof MalfunctionFragment) {
                             MalfunctionFragment malfunctionFragment = (MalfunctionFragment) fragment;
                             if (listNo != -1) {
@@ -871,8 +862,7 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
                         break;
                     case "MESSAGE_WEBSOCKET_CLOSED": {
                         // 异常信息推送的WebSocket断开了，清空列表
-                        findViewById(R.id.fl_b).performClick();
-                        Fragment fragment = getSupportFragmentManager().getFragments().get(1);
+                        Fragment fragment = getSupportFragmentManager().getFragments().get(0);
                         if (fragment instanceof MalfunctionFragment) {
                             MalfunctionFragment malfunctionFragment = (MalfunctionFragment) fragment;
                             malfunctionFragment.malfunctionList.clear();
@@ -882,8 +872,8 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
                     break;
                     case "UPDATE_CONTACTS": {
                         // 刷新联系人列表
-                        findViewById(R.id.fl_a).performClick();
-                        Fragment fragment = getSupportFragmentManager().getFragments().get(0);
+                        LogUtils.d(TAG, "刷新ContactsFragment联系人列表");
+                        Fragment fragment = getSupportFragmentManager().getFragments().get(1);
                         if (fragment instanceof ContactsFragment) {
                             ContactsFragment contactsFragment = (ContactsFragment) fragment;
                             contactsFragment.contactList.clear();
@@ -1020,9 +1010,9 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
                     // 设置音频服务器地址后返回
                     if (iVoiceService != null) {
                         try {
-                            if (isInRoom) {
-                                iVoiceService.leaveGroup();
-                            }
+                            iVoiceService.stopRecord();
+                            iVoiceService.leaveGroup();
+                            iVoiceService.unRegisterCallback(iVoiceCallback);
                         } catch (RemoteException e) {
                             e.printStackTrace();
                         }
@@ -1159,15 +1149,31 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
     protected void onDestroy() {
         super.onDestroy();
         if (webSocketService != null) {
-            webSocketService.closeWebSocket();
+            webSocketService.onDestroy();
+            unbindService(serviceConnection1);
         }
         if (iVoiceService != null) {
+            try {
+                iVoiceService.stopRecord();
+            } catch (RemoteException e) {
+                e.printStackTrace();
+            }
+            try {
+                iVoiceService.leaveGroup();
+            } catch (RemoteException e) {
+                e.printStackTrace();
+            }
             try {
                 iVoiceService.unRegisterCallback(iVoiceCallback);
             } catch (RemoteException e) {
                 e.printStackTrace();
             }
+            unbindService(serviceConnection2);
         }
+        Intent intent = new Intent(this, WebSocketService.class);
+        stopService(intent);
+        Intent intent1 = new Intent(this, VoiceService.class);
+        stopService(intent1);
         if (myReceiver != null) {
             mContext.unregisterReceiver(myReceiver);
         }

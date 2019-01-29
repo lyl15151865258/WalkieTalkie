@@ -9,7 +9,7 @@
     android:paddingLeft="@dimen/dp_16"
     android:paddingRight="@dimen/dp_16">
 
-    <TextView
+    <jp.co.shiratsuki.walkietalkie.widget.MyTextView
         android:id="@+id/tv_language"
         android:layout_width="0dp"
         android:layout_height="match_parent"
@@ -26,4 +26,5 @@
         android:gravity="center_vertical|end"
         android:padding="@dimen/dp_5"
         android:src="@drawable/checkbox_choose_language_normal" />
+
 </LinearLayout>

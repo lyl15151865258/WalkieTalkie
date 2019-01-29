@@ -43,7 +43,7 @@
             android:layout_marginStart="@dimen/dp_10"
             android:orientation="vertical">
 
-            <TextView
+            <jp.co.shiratsuki.walkietalkie.widget.MyTextView
                 android:id="@+id/tvMalfunctionType"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -53,7 +53,7 @@
                 android:text="电机异常"
                 android:textSize="@dimen/sp_18" />
 
-            <TextView
+            <jp.co.shiratsuki.walkietalkie.widget.MyTextView
                 android:id="@+id/tvMalfunctionTime"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -72,7 +72,7 @@
         android:layout_width="wrap_content"
         android:layout_height="match_parent">
 
-        <TextView
+        <jp.co.shiratsuki.walkietalkie.widget.MyTextView
             android:id="@+id/tvConfirm"
             android:layout_width="@dimen/dp_80"
             android:layout_height="match_parent"
@@ -81,7 +81,7 @@
             android:text="@string/StopPlay"
             android:textColor="@color/white" />
 
-        <TextView
+        <jp.co.shiratsuki.walkietalkie.widget.MyTextView
             android:id="@+id/tvDelete"
             android:layout_width="@dimen/dp_80"
             android:layout_height="match_parent"

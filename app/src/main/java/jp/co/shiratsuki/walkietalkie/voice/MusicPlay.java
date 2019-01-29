@@ -181,6 +181,14 @@ public class MusicPlay {
                 mMediaPlayer.prepareAsync();
                 mMediaPlayer.setScreenOnWhilePlaying(true);
                 mMediaPlayer.setOnPreparedListener(mediaPlayer -> mMediaPlayer.start());
+                mMediaPlayer.setOnErrorListener(new MediaPlayer.OnErrorListener() {
+                    @Override
+                    public boolean onError(MediaPlayer mp, int what, int extra) {
+                        // 遇到错误就重置MediaPlayer
+                        mp.reset();
+                        return false;
+                    }
+                });
                 mMediaPlayer.setOnCompletionListener(mediaPlayer -> {
                     mediaPlayer.reset();
                     counter[0]++;
@@ -223,6 +231,5 @@ public class MusicPlay {
 
     public void release() {
         flag = false;
-        mExecutorService.shutdown();
     }
 }

@@ -48,7 +48,7 @@
         android:padding="@dimen/dp_10"
         android:textSize="@dimen/sp_18" />
 
-    <Button
+    <jp.co.shiratsuki.walkietalkie.widget.MyButton
         android:id="@+id/btn_modify"
         style="@style/button_common_blue"
         android:layout_width="match_parent"
@@ -58,4 +58,5 @@
         android:textAllCaps="false"
         android:textColor="@color/white_alpha"
         android:textSize="@dimen/sp_20" />
+
 </LinearLayout>

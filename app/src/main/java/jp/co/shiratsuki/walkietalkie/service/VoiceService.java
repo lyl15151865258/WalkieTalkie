@@ -215,6 +215,7 @@ public class VoiceService extends Service implements IWebRTCHelper {
                     // 播放提示音
                     try {
                         Uri setDataSourceuri = Uri.parse("android.resource://jp.co.shiratsuki.walkietalkie/" + R.raw.dingdong);
+                        mediaPlayer.reset();
                         mediaPlayer.setDataSource(VoiceService.this, setDataSourceuri);
                         mediaPlayer.prepareAsync();
                         mediaPlayer.setOnPreparedListener(mediaPlayer -> mediaPlayer.start());
@@ -226,6 +227,7 @@ public class VoiceService extends Service implements IWebRTCHelper {
                 } else {
                     try {
                         Uri setDataSourceuri = Uri.parse("android.resource://jp.co.shiratsuki.walkietalkie/" + R.raw.du);
+                        mediaPlayer.reset();
                         mediaPlayer.setDataSource(VoiceService.this, setDataSourceuri);
                         mediaPlayer.prepareAsync();
                         mediaPlayer.setOnPreparedListener(mediaPlayer -> mediaPlayer.start());
@@ -251,6 +253,7 @@ public class VoiceService extends Service implements IWebRTCHelper {
                     // 播放提示音
                     try {
                         Uri setDataSourceuri = Uri.parse("android.resource://jp.co.shiratsuki.walkietalkie/" + R.raw.du);
+                        mediaPlayer.reset();
                         mediaPlayer.setDataSource(VoiceService.this, setDataSourceuri);
                         mediaPlayer.prepareAsync();
                         mediaPlayer.setOnPreparedListener(mediaPlayer -> mediaPlayer.start());

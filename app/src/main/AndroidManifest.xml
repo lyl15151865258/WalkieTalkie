@@ -71,43 +71,36 @@
         <!-- 主页面 -->
         <activity
             android:name=".activity.MainActivity"
-            android:launchMode="singleTask"
             android:screenOrientation="portrait" />
 
         <!-- 通用Html页面 -->
         <activity
             android:name=".activity.HtmlActivity"
-            android:launchMode="singleTask"
             android:screenOrientation="portrait" />
 
         <!-- 个人信息设置页面 -->
         <activity
             android:name=".activity.settings.SetPersonalInfoActivity"
-            android:launchMode="singleTask"
             android:screenOrientation="portrait" />
 
         <!-- 图片裁剪页面 -->
         <activity
             android:name=".activity.CropActivity"
-            android:launchMode="singleTask"
             android:screenOrientation="portrait" />
 
         <!-- 语言设置页面 -->
         <activity
-            android:name=".activity.settings.LanguageActivity"
-            android:launchMode="singleTask"
+            android:name=".activity.settings.SetLanguageActivity"
             android:screenOrientation="portrait" />
 
         <!-- 语音服务器设置页面 -->
         <activity
             android:name=".activity.settings.SetVoiceServerActivity"
-            android:launchMode="singleTask"
             android:screenOrientation="portrait" />
 
         <!-- 消息服务器设置页面 -->
         <activity
             android:name=".activity.settings.SetMessageServerActivity"
-            android:launchMode="singleTask"
             android:screenOrientation="portrait" />
 
         <!-- 局域网通信服务-->

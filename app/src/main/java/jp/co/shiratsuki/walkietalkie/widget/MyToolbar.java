@@ -64,6 +64,7 @@ public class MyToolbar extends Toolbar {
     public void setTitleByResourceId(int rid) {
         if (titleTextView != null) {
             titleTextView.setText(rid);
+            titleTextView.setTextById(rid);
         }
     }
 
@@ -125,6 +126,26 @@ public class MyToolbar extends Toolbar {
     }
 
     public void initToolBar(AppCompatActivity appCompatActivity, MyToolbar toolbar, String title, OnClickListener onClickListener) {
+        initToolBar(appCompatActivity, toolbar, title, -1, -1, onClickListener);
+    }
+
+
+
+    public void initToolBar(AppCompatActivity appCompatActivity, MyToolbar toolbar, int title, int leftImage, int rightImage, OnClickListener onClickListener) {
+        appCompatActivity.setSupportActionBar(toolbar);
+        appCompatActivity.getSupportActionBar().setDisplayShowTitleEnabled(false);
+        toolbar.setLeftButtonImage(leftImage);
+        toolbar.setLeftButtonOnClickListener(onClickListener);
+        toolbar.setRightButtonImage(rightImage);
+        toolbar.setRightButtonOnClickListener(onClickListener);
+        toolbar.setTitleByResourceId(title);
+    }
+
+    public void initToolBar(AppCompatActivity appCompatActivity, MyToolbar toolbar, int title, int leftImage, OnClickListener onClickListener) {
+        initToolBar(appCompatActivity, toolbar, title, leftImage, -1, onClickListener);
+    }
+
+    public void initToolBar(AppCompatActivity appCompatActivity, MyToolbar toolbar, int title, OnClickListener onClickListener) {
         initToolBar(appCompatActivity, toolbar, title, -1, -1, onClickListener);
     }
 }

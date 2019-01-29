@@ -1,7 +1,6 @@
 package jp.co.shiratsuki.walkietalkie.webrtc.websocket;
 
 import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
 
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
@@ -122,9 +121,7 @@ public class JavaWebSocket implements IWebSocket {
         childMap.put("iconUrl", "");
         childMap.put("speaking", false);
         map.put("data", childMap);
-        JSONObject object = new JSONObject(map);
-        final String jsonString = object.toString();
-        sendMessage(jsonString);
+        sendMessage(GsonUtils.convertJSON(map));
     }
 
     public void sendAnswer(String socketId, String sdp) {
@@ -138,9 +135,7 @@ public class JavaWebSocket implements IWebSocket {
         HashMap<String, Object> map = new HashMap();
         map.put("eventName", "__answer");
         map.put("data", childMap2);
-        JSONObject object = new JSONObject(map);
-        String jsonString = object.toString();
-        sendMessage(jsonString);
+        sendMessage(GsonUtils.convertJSON(map));
     }
 
 
@@ -157,24 +152,20 @@ public class JavaWebSocket implements IWebSocket {
         map.put("eventName", "__offer");
         map.put("data", childMap2);
 
-        JSONObject object = new JSONObject(map);
-        String jsonString = object.toString();
-        sendMessage(jsonString);
+        sendMessage(GsonUtils.convertJSON(map));
 
     }
 
     public void sendIceCandidate(String socketId, IceCandidate iceCandidate) {
-        HashMap<String, Object> childMap = new HashMap();
+        HashMap<String, Object> childMap = new HashMap<>();
         childMap.put("id", iceCandidate.sdpMid);
         childMap.put("label", iceCandidate.sdpMLineIndex);
         childMap.put("candidate", iceCandidate.sdp);
         childMap.put("socketId", socketId);
-        HashMap<String, Object> map = new HashMap();
+        HashMap<String, Object> map = new HashMap<>();
         map.put("eventName", "__ice_candidate");
         map.put("data", childMap);
-        JSONObject object = new JSONObject(map);
-        String jsonString = object.toString();
-        sendMessage(jsonString);
+        sendMessage(GsonUtils.convertJSON(map));
     }
 
     //============================需要发送的=====================================

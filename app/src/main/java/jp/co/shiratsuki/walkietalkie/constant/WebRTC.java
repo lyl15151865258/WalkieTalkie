@@ -19,7 +19,7 @@ public class WebRTC {
     };
     //    private static String signal = "wss://47.254.34.146/wss";
 
-    public static final String WEBRTC_SERVER_IP = "192.168.51.102";
+    public static final String WEBRTC_SERVER_IP = "192.168.51.123";
     public static final String WEBRTC_SERVER_PORT = "8080";
     public static final String WEBRTC_SERVER_ROOM = "jss";
 

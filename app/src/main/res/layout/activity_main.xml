@@ -46,13 +46,13 @@
                 android:gravity="center_vertical"
                 android:orientation="vertical">
 
-                <TextView
+                <jp.co.shiratsuki.walkietalkie.widget.MyTextView
                     android:id="@+id/tvSSID"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textColor="@color/white" />
 
-                <TextView
+                <jp.co.shiratsuki.walkietalkie.widget.MyTextView
                     android:id="@+id/tvIp"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -105,7 +105,7 @@
                 android:contentDescription="@null"
                 android:src="@drawable/icon_bell" />
 
-            <TextView
+            <jp.co.shiratsuki.walkietalkie.widget.MyTextView
                 android:id="@+id/tvNotification"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
@@ -151,17 +151,28 @@
                         android:layout_height="24dp"
                         android:contentDescription="@null"
                         android:scaleType="centerCrop"
-                        android:src="@drawable/home_selector" />
+                        android:src="@drawable/product_selector" />
 
-                    <TextView
+                    <jp.co.shiratsuki.walkietalkie.widget.MyTextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="@dimen/dp_2"
-                        android:text="@string/chatroom"
+                        android:text="@string/malfunction"
                         android:textColor="@drawable/color_radiobutton"
                         android:textSize="@dimen/sp_12" />
 
                 </LinearLayout>
+
+                <ImageView
+                    android:id="@+id/ivNewProduct"
+                    android:layout_width="@dimen/dp_10"
+                    android:layout_height="@dimen/dp_10"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginStart="@dimen/dp_12"
+                    android:background="@drawable/unread_msg_red"
+                    android:contentDescription="@null"
+                    android:gravity="center"
+                    android:visibility="gone" />
 
             </FrameLayout>
 
@@ -186,28 +197,17 @@
                         android:layout_height="24dp"
                         android:contentDescription="@null"
                         android:scaleType="centerCrop"
-                        android:src="@drawable/product_selector" />
+                        android:src="@drawable/home_selector" />
 
-                    <TextView
+                    <jp.co.shiratsuki.walkietalkie.widget.MyTextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="@dimen/dp_2"
-                        android:text="@string/malfunction"
+                        android:text="@string/chatroom"
                         android:textColor="@drawable/color_radiobutton"
                         android:textSize="@dimen/sp_12" />
 
                 </LinearLayout>
-
-                <ImageView
-                    android:id="@+id/ivNewProduct"
-                    android:layout_width="@dimen/dp_10"
-                    android:layout_height="@dimen/dp_10"
-                    android:layout_gravity="center_horizontal"
-                    android:layout_marginStart="@dimen/dp_12"
-                    android:background="@drawable/unread_msg_red"
-                    android:contentDescription="@null"
-                    android:gravity="center"
-                    android:visibility="gone" />
 
             </FrameLayout>
 
@@ -234,7 +234,7 @@
                         android:scaleType="centerCrop"
                         android:src="@drawable/contacts_selector" />
 
-                    <TextView
+                    <jp.co.shiratsuki.walkietalkie.widget.MyTextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="@dimen/dp_2"
@@ -244,7 +244,7 @@
 
                 </LinearLayout>
 
-                <TextView
+                <jp.co.shiratsuki.walkietalkie.widget.MyTextView
                     android:id="@+id/tvNewMessageCount"
                     android:layout_width="@dimen/dp_20"
                     android:layout_height="@dimen/dp_20"

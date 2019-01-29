@@ -48,9 +48,9 @@
     <string name="ChooseLanguage">语言选择</string>
     <string name="Save">保存</string>
     <string name="lan_default">跟随系统</string>
-    <string name="lan_chinese">中文</string>
-    <string name="lan_en">英语</string>
-    <string name="lan_ja">日本语</string>
+    <string name="lan_chinese" translatable="false">简体中文</string>
+    <string name="lan_en" translatable="false">English</string>
+    <string name="lan_ja" translatable="false">日本語</string>
 
     <string name="accessibility_name">局域网对讲机(推荐开启)</string>
     <string name="accessibility_description">按键捕获</string>

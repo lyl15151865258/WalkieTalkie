@@ -6,7 +6,7 @@
     android:orientation="vertical"
     android:padding="10dp">
 
-    <Button
+    <jp.co.shiratsuki.walkietalkie.widget.MyButton
         android:id="@+id/btn_camera_pop_camera"
         style="?android:attr/borderlessButtonStyle"
         android:layout_width="match_parent"
@@ -17,7 +17,7 @@
         android:textColor="@color/blue_sky"
         android:textSize="18sp" />
 
-    <Button
+    <jp.co.shiratsuki.walkietalkie.widget.MyButton
         android:id="@+id/btn_camera_pop_album"
         style="?android:attr/borderlessButtonStyle"
         android:layout_width="match_parent"
@@ -29,7 +29,7 @@
         android:textColor="@color/blue_sky"
         android:textSize="18sp" />
 
-    <Button
+    <jp.co.shiratsuki.walkietalkie.widget.MyButton
         android:id="@+id/btn_camera_pop_cancel"
         style="?android:attr/borderlessButtonStyle"
         android:layout_width="match_parent"

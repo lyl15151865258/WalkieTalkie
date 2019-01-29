@@ -22,6 +22,10 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
+
 import jp.co.shiratsuki.walkietalkie.R;
 import jp.co.shiratsuki.walkietalkie.utils.ActivityController;
 import jp.co.shiratsuki.walkietalkie.utils.LanguageUtil;
@@ -30,6 +34,7 @@ import jp.co.shiratsuki.walkietalkie.utils.MyLifecycleHandler;
 import jp.co.shiratsuki.walkietalkie.utils.NotificationsUtil;
 import jp.co.shiratsuki.walkietalkie.utils.StatusBarUtil;
 import jp.co.shiratsuki.walkietalkie.utils.ToastUtil;
+import jp.co.shiratsuki.walkietalkie.utils.ViewUtil;
 import jp.co.shiratsuki.walkietalkie.widget.dialog.LoadingDialog;
 
 import java.util.Locale;
@@ -76,6 +81,12 @@ public abstract class BaseActivity extends AppCompatActivity {
         mAvatarSize = (int) (50 * mDensity);
         loadingDialog = new LoadingDialog(this, R.style.loading_dialog);
         changeAppLanguage();
+        EventBus.getDefault().register(this);
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onStringEvent(String msg) {
+        ViewUtil.updateViewLanguage(findViewById(android.R.id.content));
     }
 
     @Override
@@ -149,6 +160,7 @@ public abstract class BaseActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        EventBus.getDefault().unregister(this);
         ActivityController.removeActivity(this);
         LogUtils.d(LogUtils.TAG, getClass().getSimpleName() + "onDestroy() ");
     }

@@ -38,7 +38,7 @@
                 app:selector_stroke_width="@dimen/dp_5"
                 app:shadow="false" />
 
-            <TextView
+            <jp.co.shiratsuki.walkietalkie.widget.MyTextView
                 android:id="@+id/tvUserName"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -59,7 +59,7 @@
             android:gravity="center"
             android:orientation="vertical">
 
-            <TextView
+            <jp.co.shiratsuki.walkietalkie.widget.MyTextView
                 android:id="@+id/tvCompanyName"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -70,7 +70,7 @@
                 android:textColor="@color/white"
                 android:textSize="@dimen/sp_18" />
 
-            <TextView
+            <jp.co.shiratsuki.walkietalkie.widget.MyTextView
                 android:id="@+id/tvDepartment"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -105,7 +105,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content">
 
-                    <TextView
+                    <jp.co.shiratsuki.walkietalkie.widget.MyTextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:padding="@dimen/dp_10"
@@ -123,7 +123,7 @@
                     android:paddingLeft="@dimen/dp_16"
                     android:paddingRight="@dimen/dp_16">
 
-                    <TextView
+                    <jp.co.shiratsuki.walkietalkie.widget.MyTextView
                         android:layout_width="0px"
                         android:layout_height="match_parent"
                         android:layout_marginStart="@dimen/dp_5"
@@ -158,7 +158,7 @@
                     android:paddingLeft="@dimen/dp_16"
                     android:paddingRight="@dimen/dp_16">
 
-                    <TextView
+                    <jp.co.shiratsuki.walkietalkie.widget.MyTextView
                         android:layout_width="0px"
                         android:layout_height="match_parent"
                         android:layout_marginStart="@dimen/dp_5"
@@ -191,7 +191,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content">
 
-                    <TextView
+                    <jp.co.shiratsuki.walkietalkie.widget.MyTextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:padding="@dimen/dp_10"
@@ -209,7 +209,7 @@
                     android:paddingLeft="@dimen/dp_16"
                     android:paddingRight="@dimen/dp_16">
 
-                    <TextView
+                    <jp.co.shiratsuki.walkietalkie.widget.MyTextView
                         android:layout_width="0px"
                         android:layout_height="match_parent"
                         android:layout_marginStart="@dimen/dp_5"
@@ -244,7 +244,7 @@
                     android:paddingLeft="@dimen/dp_16"
                     android:paddingRight="@dimen/dp_16">
 
-                    <TextView
+                    <jp.co.shiratsuki.walkietalkie.widget.MyTextView
                         android:layout_width="0px"
                         android:layout_height="match_parent"
                         android:layout_marginStart="@dimen/dp_5"
@@ -279,7 +279,7 @@
                     android:paddingLeft="@dimen/dp_16"
                     android:paddingRight="@dimen/dp_16">
 
-                    <TextView
+                    <jp.co.shiratsuki.walkietalkie.widget.MyTextView
                         android:layout_width="0px"
                         android:layout_height="match_parent"
                         android:layout_marginStart="@dimen/dp_5"
@@ -312,7 +312,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content">
 
-                    <TextView
+                    <jp.co.shiratsuki.walkietalkie.widget.MyTextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:padding="@dimen/dp_10"
@@ -330,7 +330,7 @@
                     android:paddingLeft="@dimen/dp_16"
                     android:paddingRight="@dimen/dp_16">
 
-                    <TextView
+                    <jp.co.shiratsuki.walkietalkie.widget.MyTextView
                         android:layout_width="0px"
                         android:layout_height="match_parent"
                         android:layout_marginStart="@dimen/dp_5"
@@ -365,7 +365,7 @@
                     android:paddingLeft="@dimen/dp_16"
                     android:paddingRight="@dimen/dp_16">
 
-                    <TextView
+                    <jp.co.shiratsuki.walkietalkie.widget.MyTextView
                         android:layout_width="0px"
                         android:layout_height="match_parent"
                         android:layout_marginStart="@dimen/dp_5"
@@ -399,7 +399,7 @@
                     android:paddingLeft="@dimen/dp_16"
                     android:paddingRight="@dimen/dp_16">
 
-                    <TextView
+                    <jp.co.shiratsuki.walkietalkie.widget.MyTextView
                         android:layout_width="0px"
                         android:layout_height="match_parent"
                         android:layout_marginStart="@dimen/dp_5"
@@ -421,7 +421,7 @@
 
             </LinearLayout>
 
-            <Button
+            <jp.co.shiratsuki.walkietalkie.widget.MyButton
                 android:id="@+id/btnExit"
                 android:layout_width="match_parent"
                 android:layout_height="@dimen/dp_40"
