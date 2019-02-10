@@ -12,10 +12,7 @@ public class ApkInfo {
     /**
      * 软件类型
      */
-    public static final String APK_TYPE_ID_METTER = "1";
-    public static final String APK_TYPE_ID_HYDRANT = "2";
-    public static final String APK_TYPE_ID_PIONEER = "3";
-    public static final String APK_TYPE_ID_CONSTANT_FLOW_VALVE = "4";
+    public static final String APK_TYPE_ID_WALKIE_TALKIE = "1";
 
     /**
      * 软件版本：预览版（测试版）

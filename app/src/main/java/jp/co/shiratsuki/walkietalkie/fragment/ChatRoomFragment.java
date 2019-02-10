@@ -18,14 +18,14 @@ import jp.co.shiratsuki.walkietalkie.bean.Contact;
 import jp.co.shiratsuki.walkietalkie.widget.RecyclerViewDivider;
 
 /**
- * 联系人页面
+ * 聊天室页面
  * Created at 2019/1/21 13:57
  *
  * @author Li Yuliang
  * @version 1.0
  */
 
-public class ContactsFragment extends BaseFragment {
+public class ChatRoomFragment extends BaseFragment {
 
     private Context mContext;
     public List<Contact> contactList;

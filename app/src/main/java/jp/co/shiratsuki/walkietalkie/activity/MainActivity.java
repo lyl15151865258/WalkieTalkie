@@ -56,6 +56,7 @@ import jp.co.shiratsuki.walkietalkie.bean.Contact;
 import jp.co.shiratsuki.walkietalkie.bean.WebSocketData;
 import jp.co.shiratsuki.walkietalkie.broadcast.BaseBroadcastReceiver;
 import jp.co.shiratsuki.walkietalkie.contentprovider.SPHelper;
+import jp.co.shiratsuki.walkietalkie.fragment.ChatRoomFragment;
 import jp.co.shiratsuki.walkietalkie.fragment.ContactsFragment;
 import jp.co.shiratsuki.walkietalkie.fragment.MalfunctionFragment;
 import jp.co.shiratsuki.walkietalkie.interfaces.OnPictureSelectedListener;
@@ -285,9 +286,9 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
                 // 异常信息
                 case 0:
                     return new MalfunctionFragment();
-                // 联系人
+                // 聊天室
                 case 1:
-                    return new ContactsFragment();
+                    return new ChatRoomFragment();
                 // 联系人
                 case 2:
                     return new ContactsFragment();
@@ -485,10 +486,10 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
 
                 // 清空联系人列表
                 Fragment fragment = getSupportFragmentManager().getFragments().get(1);
-                if (fragment instanceof ContactsFragment) {
-                    ContactsFragment contactsFragment = (ContactsFragment) fragment;
-                    contactsFragment.contactList.clear();
-                    contactsFragment.contactAdapter.notifyDataSetChanged();
+                if (fragment instanceof ChatRoomFragment) {
+                    ChatRoomFragment ChatRoomFragment = (ChatRoomFragment) fragment;
+                    ChatRoomFragment.contactList.clear();
+                    ChatRoomFragment.contactAdapter.notifyDataSetChanged();
                 }
 
                 SPHelper.save("KEY_STATUS_UP", true);
@@ -540,22 +541,22 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
                 public void run() {
                     LogUtils.d(TAG, "有新用户，刷新ContactsFragment联系人列表");
                     Fragment fragment = getSupportFragmentManager().getFragments().get(1);
-                    if (fragment instanceof ContactsFragment) {
-                        ContactsFragment contactsFragment = (ContactsFragment) fragment;
+                    if (fragment instanceof ChatRoomFragment) {
+                        ChatRoomFragment chatRoomFragment = (ChatRoomFragment) fragment;
                         int position = -1;
-                        for (int i = 0; i < contactsFragment.contactList.size(); i++) {
-                            if (contactsFragment.contactList.get(i).getUserId().equals(ipAddress)) {
+                        for (int i = 0; i < chatRoomFragment.contactList.size(); i++) {
+                            if (chatRoomFragment.contactList.get(i).getUserId().equals(ipAddress)) {
                                 position = i;
                                 break;
                             }
                         }
                         if (position == -1) {
-                            contactsFragment.contactList.add(contactsFragment.contactList.size(), new Contact(ipAddress, name, "", "", "", false));
-                            contactsFragment.contactAdapter.notifyItemChanged(contactsFragment.contactList.size() - 1);
+                            chatRoomFragment.contactList.add(chatRoomFragment.contactList.size(), new Contact(ipAddress, name, "", "", "", false));
+                            chatRoomFragment.contactAdapter.notifyItemChanged(chatRoomFragment.contactList.size() - 1);
                         } else {
-                            if (!contactsFragment.contactList.get(position).getUserName().equals(name)) {
-                                contactsFragment.contactList.get(position).setUserName(name);
-                                contactsFragment.contactAdapter.notifyItemChanged(position);
+                            if (!chatRoomFragment.contactList.get(position).getUserName().equals(name)) {
+                                chatRoomFragment.contactList.get(position).setUserName(name);
+                                chatRoomFragment.contactAdapter.notifyItemChanged(position);
                             }
                         }
                     }
@@ -572,18 +573,18 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
                 public void run() {
                     LogUtils.d(TAG, "移除用户，刷新ContactsFragment联系人列表");
                     Fragment fragment = getSupportFragmentManager().getFragments().get(1);
-                    if (fragment instanceof ContactsFragment) {
-                        ContactsFragment contactsFragment = (ContactsFragment) fragment;
+                    if (fragment instanceof ChatRoomFragment) {
+                        ChatRoomFragment chatRoomFragment = (ChatRoomFragment) fragment;
                         int position = -1;
-                        for (int i = 0; i < contactsFragment.contactList.size(); i++) {
-                            if (contactsFragment.contactList.get(i).getUserId().equals(ipAddress)) {
+                        for (int i = 0; i < chatRoomFragment.contactList.size(); i++) {
+                            if (chatRoomFragment.contactList.get(i).getUserId().equals(ipAddress)) {
                                 position = i;
                                 break;
                             }
                         }
                         if (position != -1) {
-                            contactsFragment.contactList.remove(position);
-                            contactsFragment.contactAdapter.notifyItemRemoved(position);
+                            chatRoomFragment.contactList.remove(position);
+                            chatRoomFragment.contactAdapter.notifyItemRemoved(position);
                         }
                     }
                 }
@@ -874,15 +875,15 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
                         // 刷新联系人列表
                         LogUtils.d(TAG, "刷新ContactsFragment联系人列表");
                         Fragment fragment = getSupportFragmentManager().getFragments().get(1);
-                        if (fragment instanceof ContactsFragment) {
-                            ContactsFragment contactsFragment = (ContactsFragment) fragment;
-                            contactsFragment.contactList.clear();
+                        if (fragment instanceof ChatRoomFragment) {
+                            ChatRoomFragment chatRoomFragment = (ChatRoomFragment) fragment;
+                            chatRoomFragment.contactList.clear();
                             List<Contact> contacts = (List<Contact>) intent.getSerializableExtra("contactList");
                             for (int i = 0; i < contacts.size(); i++) {
                                 LogUtils.d(TAG, "联系人数量：" + contacts.size() + "," + contacts.get(i).getUserId());
                             }
-                            contactsFragment.contactList.addAll(contacts);
-                            contactsFragment.contactAdapter.notifyDataSetChanged();
+                            chatRoomFragment.contactList.addAll(contacts);
+                            chatRoomFragment.contactAdapter.notifyDataSetChanged();
                         }
                     }
                     break;

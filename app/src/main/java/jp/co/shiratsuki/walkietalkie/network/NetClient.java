@@ -200,7 +200,7 @@ public class NetClient {
                 .addCallAdapterFactory(RxJavaCallAdapterFactory.create())
                 .build();
         Map<String, String> params = new HashMap<>(2);
-        params.put("apkTypeId", ApkInfo.APK_TYPE_ID_METTER);
+        params.put("apkTypeId", ApkInfo.APK_TYPE_ID_WALKIE_TALKIE);
         Call<ResponseBody> downloadCall = mRetrofit.create(NjMeterApi.class).downloadFile(params);
         downloadCall.enqueue(callback);
     }

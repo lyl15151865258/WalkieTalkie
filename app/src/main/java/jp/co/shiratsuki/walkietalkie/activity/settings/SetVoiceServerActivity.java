@@ -11,7 +11,7 @@ import android.widget.Button;
 import android.widget.EditText;
 
 import jp.co.shiratsuki.walkietalkie.R;
-import jp.co.shiratsuki.walkietalkie.activity.BaseActivity;
+import jp.co.shiratsuki.walkietalkie.activity.SwipeBackActivity;
 import jp.co.shiratsuki.walkietalkie.contentprovider.SPHelper;
 import jp.co.shiratsuki.walkietalkie.utils.ActivityController;
 import jp.co.shiratsuki.walkietalkie.utils.RegexUtils;
@@ -26,7 +26,7 @@ import jp.co.shiratsuki.walkietalkie.widget.MyToolbar;
  * @version 1.0
  */
 
-public class SetVoiceServerActivity extends BaseActivity {
+public class SetVoiceServerActivity extends SwipeBackActivity {
 
     private Context mContext;
     private EditText etVoiceServerIP, etVoiceServerPort, etVoiceRoomId;

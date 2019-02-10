@@ -11,7 +11,7 @@ import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
 import jp.co.shiratsuki.walkietalkie.R;
-import jp.co.shiratsuki.walkietalkie.activity.BaseActivity;
+import jp.co.shiratsuki.walkietalkie.activity.SwipeBackActivity;
 import jp.co.shiratsuki.walkietalkie.adapter.ChooseLanguageAdapter;
 import jp.co.shiratsuki.walkietalkie.bean.Language;
 import jp.co.shiratsuki.walkietalkie.contentprovider.SPHelper;
@@ -32,7 +32,7 @@ import java.util.List;
  * @version 1.0
  */
 
-public class SetLanguageActivity extends BaseActivity {
+public class SetLanguageActivity extends SwipeBackActivity {
 
     private String TAG = "SetLanguageActivity";
     private List<Language> languageList;
