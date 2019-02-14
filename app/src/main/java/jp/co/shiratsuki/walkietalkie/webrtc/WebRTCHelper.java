@@ -150,11 +150,7 @@ public class WebRTCHelper implements ISignalingEvents {
     public void onRemoteJoinToRoom(String socketId, String socketName, List<Contact> contactList) {
         LogUtils.d(TAG, "有人加入到房间：" + socketId + "," + socketName);
 
-        IHelper.updateContacts(contactList);
-
-//        if (IHelper != null) {
-//            IHelper.addUser(socketId, socketName);
-//        }
+        IHelper.updateRoomContacts(contactList);
 
         if (_localStream == null) {
             createLocalStream();
@@ -195,6 +191,11 @@ public class WebRTCHelper implements ISignalingEvents {
 
     @Override
     public void onReceiveSpeakStatus(List<Contact> contactList) {
+        IHelper.updateRoomContacts(contactList);
+    }
+
+    @Override
+    public void onUserInOrOut(List<Contact> contactList) {
         IHelper.updateContacts(contactList);
     }
 

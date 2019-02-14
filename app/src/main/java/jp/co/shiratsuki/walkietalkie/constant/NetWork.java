@@ -29,7 +29,7 @@ public class NetWork {
     /**
      * WebSocket地址
      */
-    public static final String WEBSOCKET_IP = "192.168.5.123";
+    public static final String WEBSOCKET_IP = "192.168.1.134";
     /**
      * WebSocket端口号
      */

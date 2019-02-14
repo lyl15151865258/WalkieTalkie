@@ -32,7 +32,7 @@ public class SwipeBackActivityHelper {
         mSwipeBackLayout.attachToActivity(mActivity);
     }
 
-    public View findViewById(int id) {
+    public <T extends View> T findViewById(int id) {
         if (mSwipeBackLayout != null) {
             return mSwipeBackLayout.findViewById(id);
         }

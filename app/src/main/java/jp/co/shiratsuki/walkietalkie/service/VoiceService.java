@@ -58,7 +58,7 @@ public class VoiceService extends Service implements IWebRTCHelper, VolumeChange
     private boolean isInRoom = false;
 
     enum TYPE {
-        EnterGroup, LeaveGroup, StartRecord, StopRecord, UseSpeaker, UseEarpiece, AddUser, DeleteUser
+        EnterGroup, LeaveGroup, StartRecord, StopRecord, UseSpeaker, UseEarpiece, DeleteUser
     }
 
     private final static String TAG = "VoiceService";
@@ -375,14 +375,6 @@ public class VoiceService extends Service implements IWebRTCHelper, VolumeChange
     }
 
     @Override
-    public void addUser(String userIP, String userName) {
-        Intent intent = new Intent();
-        intent.putExtra("userIP", userIP);
-        intent.putExtra("userName", userName);
-        broadcastCallback(TYPE.AddUser, intent);
-    }
-
-    @Override
     public void removeUser(String userIP) {
         Intent intent = new Intent();
         intent.putExtra("userIP", userIP);
@@ -390,7 +382,7 @@ public class VoiceService extends Service implements IWebRTCHelper, VolumeChange
     }
 
     @Override
-    public void updateContacts(List<Contact> contactList) {
+    public void updateRoomContacts(List<Contact> contactList) {
         // 调节音量
         int defaultVolume = SPHelper.getInt("defaultVolume", mAudioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC));
         boolean someoneSpeaking = false;
@@ -400,21 +392,36 @@ public class VoiceService extends Service implements IWebRTCHelper, VolumeChange
                 break;
             }
         }
+
+        Intent intent = new Intent();
         // 如果所有人都不讲话了
         if (!someoneSpeaking) {
             SPHelper.save("SomeoneSpeaking", false);
             LogUtils.d(TAG, "所有人都不讲话了，当前音量为：" + defaultVolume);
             mAudioManager.setStreamVolume(AudioManager.STREAM_MUSIC, defaultVolume, AudioManager.FLAG_VIBRATE);
+
+            // 通知Activity修改音量键默认调节的音量类型
+            intent.putExtra("VolumeControlStream", AudioManager.STREAM_MUSIC);
         } else {
             SPHelper.save("SomeoneSpeaking", true);
             LogUtils.d(TAG, "当前有人在讲话，当前音量为：" + defaultVolume / 2);
             mAudioManager.setStreamVolume(AudioManager.STREAM_MUSIC, defaultVolume / 2, AudioManager.FLAG_VIBRATE);
-        }
 
+            // 通知Activity修改音量键默认调节的音量类型
+            intent.putExtra("VolumeControlStream", AudioManager.STREAM_VOICE_CALL);
+        }
+        intent.putExtra("contactList", (Serializable) contactList);
+        intent.setAction("UPDATE_CONTACTS_ROOM");
+        LogUtils.d(TAG, "房间内联系人数量：" + contactList.size());
+        sendBroadcast(intent);
+    }
+
+    @Override
+    public void updateContacts(List<Contact> contactList) {
         Intent intent = new Intent();
         intent.putExtra("contactList", (Serializable) contactList);
         intent.setAction("UPDATE_CONTACTS");
-        LogUtils.d(TAG, "联系人数量：" + contactList.size());
+        LogUtils.d(TAG, "总联系人数量：" + contactList.size());
         sendBroadcast(intent);
     }
 
@@ -438,12 +445,6 @@ public class VoiceService extends Service implements IWebRTCHelper, VolumeChange
                         callback.useSpeakerSuccess();
                     } else if (type == TYPE.UseEarpiece) {
                         callback.useEarpieceSuccess();
-                    } else if (type == TYPE.AddUser) {
-                        if (intent != null) {
-                            String userIP = intent.getStringExtra("userIP");
-                            String userName = intent.getStringExtra("userName");
-                            callback.findNewUser(userIP, userName);
-                        }
                     } else if (type == TYPE.DeleteUser) {
                         if (intent != null) {
                             String userIP = intent.getStringExtra("userIP");

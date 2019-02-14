@@ -24,13 +24,13 @@ public class SwipeBackActivity extends BaseActivity implements SwipeBackActivity
         mHelper.onPostCreate();
     }
 
-//    @Override
-//    public View findViewById(int id) {
-//        View v = super.findViewById(id);
-//        if (v == null && mHelper != null)
-//            return mHelper.findViewById(id);
-//        return v;
-//    }
+    @Override
+    public <T extends View> T findViewById(int id) {
+        T v = super.findViewById(id);
+        if (v == null && mHelper != null)
+            return mHelper.findViewById(id);
+        return v;
+    }
 
     @Override
     public SwipeBackLayout getSwipeBackLayout() {

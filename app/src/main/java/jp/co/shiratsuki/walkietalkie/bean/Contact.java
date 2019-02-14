@@ -14,18 +14,25 @@ public class Contact implements Serializable {
 
     private String userId;
     private String userName;
+    private String company;
+    private String department;
+    private String iconUrl;
     private String roomId;
     private String roomName;
-    private String iconUrl;
+    private boolean inRoom;
     private boolean speaking;
 
-    public Contact(String userId, String userName, String roomId, String roomName, String iconUrl, boolean speaking) {
+    public Contact(String userId, String userName, String company, String department, String iconUrl, String roomId,
+                String roomName, boolean inRoom, boolean speaking) {
         super();
         this.userId = userId;
         this.userName = userName;
+        this.company = company;
+        this.department = department;
+        this.iconUrl = iconUrl;
         this.roomId = roomId;
         this.roomName = roomName;
-        this.iconUrl = iconUrl;
+        this.inRoom = inRoom;
         this.speaking = speaking;
     }
 
@@ -45,6 +52,30 @@ public class Contact implements Serializable {
         this.userName = userName;
     }
 
+    public String getCompany() {
+        return company;
+    }
+
+    public void setCompany(String company) {
+        this.company = company;
+    }
+
+    public String getDepartment() {
+        return department;
+    }
+
+    public void setDepartment(String department) {
+        this.department = department;
+    }
+
+    public String getIconUrl() {
+        return iconUrl;
+    }
+
+    public void setIconUrl(String iconUrl) {
+        this.iconUrl = iconUrl;
+    }
+
     public String getRoomId() {
         return roomId;
     }
@@ -61,12 +92,12 @@ public class Contact implements Serializable {
         this.roomName = roomName;
     }
 
-    public String getIconUrl() {
-        return iconUrl;
+    public boolean isInRoom() {
+        return inRoom;
     }
 
-    public void setIconUrl(String iconUrl) {
-        this.iconUrl = iconUrl;
+    public void setInRoom(boolean inRoom) {
+        this.inRoom = inRoom;
     }
 
     public boolean isSpeaking() {

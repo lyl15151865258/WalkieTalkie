@@ -6,7 +6,7 @@ import android.support.annotation.StringRes;
 import android.support.v7.widget.AppCompatTextView;
 import android.util.AttributeSet;
 
-import jp.co.shiratsuki.walkietalkie.utils.LanguageChangableView;
+import jp.co.shiratsuki.walkietalkie.interfaces.LanguageChangableView;
 import jp.co.shiratsuki.walkietalkie.utils.StringUtil;
 
 public class MyTextView extends AppCompatTextView implements LanguageChangableView {

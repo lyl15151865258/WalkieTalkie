@@ -10,6 +10,7 @@ import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -34,13 +35,13 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
 import com.kevin.crop.UCrop;
-import com.pkmmte.view.CircularImageView;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -93,7 +94,7 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
     private NoScrollViewPager viewPager;
     private List<FrameLayout> menus;
     private LinearLayout llMain, llNotification;
-    private CircularImageView ivIcon, ivUserIcon;
+    private ImageView ivIcon, ivUserIcon;
     private TextView tvNotification, tvCompanyName, tvDepartment, tvUserName;
     private MyReceiver myReceiver;
     private boolean sIsScrolling = false;
@@ -373,6 +374,7 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
         intentFilter.addAction("WIFI_DISCONNECTED");
         intentFilter.addAction("MESSAGE_WEBSOCKET_CLOSED");
         intentFilter.addAction("UPDATE_CONTACTS");
+        intentFilter.addAction("UPDATE_CONTACTS_ROOM");
         mContext.registerReceiver(myReceiver, intentFilter);
     }
 
@@ -533,37 +535,39 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
             }));
         }
 
-        @Override
-        public void findNewUser(String ipAddress, String name) {
-            // 发送到主线程更新UI
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    LogUtils.d(TAG, "有新用户，刷新ContactsFragment联系人列表");
-                    Fragment fragment = getSupportFragmentManager().getFragments().get(1);
-                    if (fragment instanceof ChatRoomFragment) {
-                        ChatRoomFragment chatRoomFragment = (ChatRoomFragment) fragment;
-                        int position = -1;
-                        for (int i = 0; i < chatRoomFragment.contactList.size(); i++) {
-                            if (chatRoomFragment.contactList.get(i).getUserId().equals(ipAddress)) {
-                                position = i;
-                                break;
-                            }
-                        }
-                        if (position == -1) {
-                            chatRoomFragment.contactList.add(chatRoomFragment.contactList.size(), new Contact(ipAddress, name, "", "", "", false));
-                            chatRoomFragment.contactAdapter.notifyItemChanged(chatRoomFragment.contactList.size() - 1);
-                        } else {
-                            if (!chatRoomFragment.contactList.get(position).getUserName().equals(name)) {
-                                chatRoomFragment.contactList.get(position).setUserName(name);
-                                chatRoomFragment.contactAdapter.notifyItemChanged(position);
-                            }
-                        }
-                    }
-
-                }
-            });
-        }
+//        @Override
+//        public void findNewUser(String userId, String userName, String company, String department, String iconUrl, String roomId,
+//                                String roomName, boolean inRoom, boolean speaking) {
+//            // 发送到主线程更新UI
+//            runOnUiThread(new Runnable() {
+//                @Override
+//                public void run() {
+//                    LogUtils.d(TAG, "有新用户，刷新ContactsFragment联系人列表");
+//                    Fragment fragment = getSupportFragmentManager().getFragments().get(1);
+//                    if (fragment instanceof ChatRoomFragment) {
+//                        ChatRoomFragment chatRoomFragment = (ChatRoomFragment) fragment;
+//                        int position = -1;
+//                        for (int i = 0; i < chatRoomFragment.contactList.size(); i++) {
+//                            if (chatRoomFragment.contactList.get(i).getUserId().equals(userId)) {
+//                                position = i;
+//                                break;
+//                            }
+//                        }
+//                        if (position == -1) {
+//                            chatRoomFragment.contactList.add(chatRoomFragment.contactList.size(), new Contact(userId, userName, company, department, iconUrl, roomId,
+//                                    roomName, inRoom, speaking));
+//                            chatRoomFragment.contactAdapter.notifyItemChanged(chatRoomFragment.contactList.size() - 1);
+//                        } else {
+//                            if (!chatRoomFragment.contactList.get(position).getUserName().equals(userName)) {
+//                                chatRoomFragment.contactList.get(position).setUserName(userName);
+//                                chatRoomFragment.contactAdapter.notifyItemChanged(position);
+//                            }
+//                        }
+//                    }
+//
+//                }
+//            });
+//        }
 
         @Override
         public void removeUser(String ipAddress, String name) {
@@ -749,6 +753,10 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
                 break;
             case R.id.llShare:
                 // 版本分享
+                intent = new Intent(MainActivity.this, P2PRingingActivity.class);
+                intent.putExtra("Inviter", "张三");
+                intent.putExtra("IconUrl", "https://ss1.bdstatic.com/70cFuXSh_Q1YnxGkpoWK1HF6hhy/it/u=1565946200,1651212411&fm=26&gp=0.jpg");
+                startActivity(intent);
                 break;
             case R.id.btnExit:
                 // 彻底退出程序
@@ -871,9 +879,9 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
                         }
                     }
                     break;
-                    case "UPDATE_CONTACTS": {
+                    case "UPDATE_CONTACTS_ROOM": {
                         // 刷新联系人列表
-                        LogUtils.d(TAG, "刷新ContactsFragment联系人列表");
+                        LogUtils.d(TAG, "刷新ChatRoomFragment联系人列表");
                         Fragment fragment = getSupportFragmentManager().getFragments().get(1);
                         if (fragment instanceof ChatRoomFragment) {
                             ChatRoomFragment chatRoomFragment = (ChatRoomFragment) fragment;
@@ -884,6 +892,26 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
                             }
                             chatRoomFragment.contactList.addAll(contacts);
                             chatRoomFragment.contactAdapter.notifyDataSetChanged();
+                        }
+                        // 更改手机音量键调节的音量类型
+                        int streamType = intent.getIntExtra("VolumeControlStream", AudioManager.STREAM_RING);
+                        LogUtils.d(TAG, "修改当前调节的音量类型为：" + streamType);
+                        setVolumeControlStream(streamType);
+                    }
+                    break;
+                    case "UPDATE_CONTACTS": {
+                        // 刷新联系人列表
+                        LogUtils.d(TAG, "刷新ContactsFragment联系人列表");
+                        Fragment fragment = getSupportFragmentManager().getFragments().get(2);
+                        if (fragment instanceof ContactsFragment) {
+                            ContactsFragment contactsFragment = (ContactsFragment) fragment;
+                            contactsFragment.contactList.clear();
+                            List<Contact> contacts = (List<Contact>) intent.getSerializableExtra("contactList");
+                            for (int i = 0; i < contacts.size(); i++) {
+                                LogUtils.d(TAG, "联系人数量：" + contacts.size() + "," + contacts.get(i).getUserId());
+                            }
+                            contactsFragment.contactList.addAll(contacts);
+                            contactsFragment.contactAdapter.notifyDataSetChanged();
                         }
                     }
                     break;

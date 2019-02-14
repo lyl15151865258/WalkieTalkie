@@ -1,5 +1,8 @@
 package jp.co.shiratsuki.walkietalkie.webrtc.websocket;
 
+import android.content.Intent;
+import android.support.v7.app.AppCompatActivity;
+
 import com.alibaba.fastjson.JSON;
 
 import org.java_websocket.client.WebSocketClient;
@@ -16,9 +19,12 @@ import java.util.Map;
 
 import javax.net.ssl.X509TrustManager;
 
+import jp.co.shiratsuki.walkietalkie.activity.P2PRingingActivity;
 import jp.co.shiratsuki.walkietalkie.bean.Contact;
 import jp.co.shiratsuki.walkietalkie.bean.websocket.ContactsList;
 import jp.co.shiratsuki.walkietalkie.bean.websocket.Peers;
+import jp.co.shiratsuki.walkietalkie.bean.websocket.UserInOrOut;
+import jp.co.shiratsuki.walkietalkie.utils.ActivityController;
 import jp.co.shiratsuki.walkietalkie.utils.GsonUtils;
 import jp.co.shiratsuki.walkietalkie.utils.LogUtils;
 
@@ -116,9 +122,12 @@ public class JavaWebSocket implements IWebSocket {
         Map<String, Object> childMap = new HashMap<>();
         childMap.put("userId", userIP);
         childMap.put("userName", userName);
+        childMap.put("company", "");
+        childMap.put("department", "");
+        childMap.put("iconUrl", "");
         childMap.put("roomId", room);
         childMap.put("roomName", room);
-        childMap.put("iconUrl", "");
+        childMap.put("inRoom", false);
         childMap.put("speaking", false);
         map.put("data", childMap);
         sendMessage(GsonUtils.convertJSON(map));
@@ -126,13 +135,13 @@ public class JavaWebSocket implements IWebSocket {
 
     public void sendAnswer(String socketId, String sdp) {
 
-        Map<String, Object> childMap1 = new HashMap();
+        Map<String, Object> childMap1 = new HashMap<>();
         childMap1.put("type", "answer");
         childMap1.put("sdp", sdp);
-        HashMap<String, Object> childMap2 = new HashMap();
+        HashMap<String, Object> childMap2 = new HashMap<>();
         childMap2.put("socketId", socketId);
         childMap2.put("sdp", childMap1);
-        HashMap<String, Object> map = new HashMap();
+        HashMap<String, Object> map = new HashMap<>();
         map.put("eventName", "__answer");
         map.put("data", childMap2);
         sendMessage(GsonUtils.convertJSON(map));
@@ -140,15 +149,15 @@ public class JavaWebSocket implements IWebSocket {
 
 
     public void sendOffer(String socketId, String sdp) {
-        HashMap<String, Object> childMap1 = new HashMap();
+        HashMap<String, Object> childMap1 = new HashMap<>();
         childMap1.put("type", "offer");
         childMap1.put("sdp", sdp);
 
-        HashMap<String, Object> childMap2 = new HashMap();
+        HashMap<String, Object> childMap2 = new HashMap<>();
         childMap2.put("socketId", socketId);
         childMap2.put("sdp", childMap1);
 
-        HashMap<String, Object> map = new HashMap();
+        HashMap<String, Object> map = new HashMap<>();
         map.put("eventName", "__offer");
         map.put("data", childMap2);
 
@@ -177,41 +186,49 @@ public class JavaWebSocket implements IWebSocket {
         Map map = JSON.parseObject(message, Map.class);
         String eventName = (String) map.get("eventName");
         LogUtils.d(TAG, "收到信息：" + message);
-        if (eventName.equals("_new_user")) {
-            handleNewUser(message);
-        }
-        if (eventName.equals("_peers")) {
-            handleJoinToRoom(message);
-        }
-        if (eventName.equals("_new_peer")) {
-            handleRemoteInRoom(message);
-        }
-        if (eventName.equals("_ice_candidate")) {
-            handleRemoteCandidate(map);
-        }
-        if (eventName.equals("_remove_peer")) {
-            handleRemoteOutRoom(map);
-        }
-        if (eventName.equals("_offer")) {
-            handleOffer(map);
-        }
-        if (eventName.equals("_answer")) {
-            handleAnswer(map);
-        }
-        if (eventName.equals("_pong")) {
-            handlePong(map);
-        }
-        if (eventName.equals("_speak_status")) {
-            handleVoice(message);
+        if (eventName != null) {
+            switch (eventName) {
+                case "_new_user":
+                    handleNewUser(message);
+                    break;
+                case "_peers":
+                    handleJoinToRoom(message);
+                    break;
+                case "_new_peer":
+                    handleRemoteInRoom(message);
+                    break;
+                case "_ice_candidate":
+                    handleRemoteCandidate(map);
+                    break;
+                case "_remove_peer":
+                    handleRemoteOutRoom(map);
+                    break;
+                case "_offer":
+                    handleOffer(map);
+                    break;
+                case "_answer":
+                    handleAnswer(map);
+                    break;
+                case "_pong":
+                    handlePong(map);
+                    break;
+                case "_speak_status":
+                    handleVoice(message);
+                    break;
+                case "_p2p_request":
+                    handleP2PVoice(message);
+                    break;
+                default:
+                    break;
+            }
         }
     }
 
     // 新用户连接到服务器
     private void handleNewUser(String message) {
-//        Peers peers = GsonUtils.parseJSON(message, Peers.class);
-//        String myId = peers.getData().getYou();
-//        List<String> connections = peers.getData().getConnections();
-//        events.onJoinToRoom(connections, myId);
+        UserInOrOut userInOrOut = GsonUtils.parseJSON(message, UserInOrOut.class);
+        List<Contact> contactList = userInOrOut.getData().getContacts();
+        events.onUserInOrOut(contactList);
     }
 
     // 自己进入房间
@@ -282,6 +299,15 @@ public class JavaWebSocket implements IWebSocket {
         ContactsList contactsList = GsonUtils.parseJSON(message, ContactsList.class);
         List<Contact> contactList = contactsList.getData().getContacts();
         events.onReceiveSpeakStatus(contactList);
+    }
+
+    // 收到一对一通话请求
+    private void handleP2PVoice(String message) {
+        AppCompatActivity currentActivity = (AppCompatActivity) ActivityController.getInstance().getCurrentActivity();
+        Intent intent = new Intent(currentActivity, P2PRingingActivity.class);
+        intent.putExtra("Inviter", "张三");
+        intent.putExtra("IconUrl", "https://ss1.bdstatic.com/70cFuXSh_Q1YnxGkpoWK1HF6hhy/it/u=1565946200,1651212411&fm=26&gp=0.jpg");
+        currentActivity.startActivity(intent);
     }
 
     // 发送消息的方法

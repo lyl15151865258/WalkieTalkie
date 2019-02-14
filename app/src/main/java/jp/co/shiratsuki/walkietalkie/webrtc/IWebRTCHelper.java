@@ -26,13 +26,13 @@ public interface IWebRTCHelper {
 
     void onCloseWithId(String socketId);
 
-    // 有人进入房间
-    void addUser(String userIP, String userName);
-
     // 有人离开房间
     void removeUser(String userIP);
 
-    // 更新联系人列表
+    // 更新房间内联系人列表
+    void updateRoomContacts(List<Contact> contactList);
+
+    // 更新所有联系人列表
     void updateContacts(List<Contact> contactList);
 
 }

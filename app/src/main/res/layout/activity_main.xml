@@ -22,21 +22,14 @@
             android:minHeight="?attr/actionBarSize"
             android:orientation="horizontal">
 
-            <com.pkmmte.view.CircularImageView
+            <com.mikhaellopez.circularimageview.CircularImageView
                 android:id="@+id/iv_icon"
                 android:layout_width="@dimen/dp_50"
                 android:layout_height="@dimen/dp_50"
                 android:layout_marginStart="@dimen/dp_5"
-                android:scaleType="centerInside"
                 android:src="@drawable/photo_user"
-                app:border="true"
-                app:border_color="#16F5F5F5"
-                app:border_width="@dimen/dp_1"
-                app:selector="true"
-                app:selector_color="#4D000000"
-                app:selector_stroke_color="#16F5F5F5"
-                app:selector_stroke_width="@dimen/dp_2"
-                app:shadow="false" />
+                app:civ_border_color="#16F5F5F5"
+                app:civ_border_width="@dimen/dp_2"/>
 
             <LinearLayout
                 android:layout_width="0dp"

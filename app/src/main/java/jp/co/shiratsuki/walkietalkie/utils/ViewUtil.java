@@ -3,6 +3,8 @@ package jp.co.shiratsuki.walkietalkie.utils;
 import android.view.View;
 import android.view.ViewGroup;
 
+import jp.co.shiratsuki.walkietalkie.interfaces.LanguageChangableView;
+
 /**
  * 更新文本控件的方法
  * Created at 2019/1/28 19:33

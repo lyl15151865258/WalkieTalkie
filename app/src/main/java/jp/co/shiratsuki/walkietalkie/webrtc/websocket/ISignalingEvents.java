@@ -33,6 +33,8 @@ public interface ISignalingEvents {
 
     void onReceiveSpeakStatus(List<Contact> contactList);
 
+    void onUserInOrOut(List<Contact> contactList);
+
     // WebSocket断开
     void onWebSocketClosed();
 
