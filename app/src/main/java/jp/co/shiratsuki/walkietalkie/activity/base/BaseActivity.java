@@ -1,4 +1,4 @@
-package jp.co.shiratsuki.walkietalkie.activity;
+package jp.co.shiratsuki.walkietalkie.activity.base;
 
 import android.content.Context;
 import android.content.Intent;

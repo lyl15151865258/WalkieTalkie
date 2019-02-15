@@ -32,7 +32,7 @@ import java.util.ArrayList;
 
 import jp.co.shiratsuki.walkietalkie.R;
 import jp.co.shiratsuki.walkietalkie.activity.MainActivity;
-import jp.co.shiratsuki.walkietalkie.bean.Contact;
+import jp.co.shiratsuki.walkietalkie.bean.User;
 import jp.co.shiratsuki.walkietalkie.broadcast.BaseBroadcastReceiver;
 import jp.co.shiratsuki.walkietalkie.broadcast.MediaButtonReceiver;
 import jp.co.shiratsuki.walkietalkie.broadcast.VolumeChangeObserver;
@@ -216,9 +216,9 @@ public class VoiceService extends Service implements IWebRTCHelper, VolumeChange
                     broadcastCallback(TYPE.StartRecord, null);
                     // 播放提示音
                     try {
-                        Uri setDataSourceuri = Uri.parse("android.resource://jp.co.shiratsuki.walkietalkie/" + R.raw.dingdong);
+                        Uri setDataSourceUri = Uri.parse("android.resource://jp.co.shiratsuki.walkietalkie/" + R.raw.dingdong);
                         mediaPlayer.reset();
-                        mediaPlayer.setDataSource(VoiceService.this, setDataSourceuri);
+                        mediaPlayer.setDataSource(VoiceService.this, setDataSourceUri);
                         mediaPlayer.prepareAsync();
                         mediaPlayer.setOnPreparedListener(mediaPlayer -> mediaPlayer.start());
                         mediaPlayer.setOnCompletionListener(mediaPlayer -> mediaPlayer.reset());
@@ -228,9 +228,9 @@ public class VoiceService extends Service implements IWebRTCHelper, VolumeChange
                     SPHelper.save("KEY_STATUS_UP", false);
                 } else {
                     try {
-                        Uri setDataSourceuri = Uri.parse("android.resource://jp.co.shiratsuki.walkietalkie/" + R.raw.du);
+                        Uri setDataSourceUri = Uri.parse("android.resource://jp.co.shiratsuki.walkietalkie/" + R.raw.du);
                         mediaPlayer.reset();
-                        mediaPlayer.setDataSource(VoiceService.this, setDataSourceuri);
+                        mediaPlayer.setDataSource(VoiceService.this, setDataSourceUri);
                         mediaPlayer.prepareAsync();
                         mediaPlayer.setOnPreparedListener(mediaPlayer -> mediaPlayer.start());
                         mediaPlayer.setOnCompletionListener(mediaPlayer -> mediaPlayer.reset());
@@ -381,12 +381,12 @@ public class VoiceService extends Service implements IWebRTCHelper, VolumeChange
     }
 
     @Override
-    public void updateRoomContacts(ArrayList<Contact> contactList) {
+    public void updateRoomContacts(ArrayList<User> userList) {
         // 调节音量
         int defaultVolume = SPHelper.getInt("defaultVolume", mAudioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC));
         boolean someoneSpeaking = false;
-        for (int i = 0; i < contactList.size(); i++) {
-            if (contactList.get(i).isSpeaking()) {
+        for (int i = 0; i < userList.size(); i++) {
+            if (userList.get(i).isSpeaking()) {
                 someoneSpeaking = true;
                 break;
             }
@@ -409,18 +409,18 @@ public class VoiceService extends Service implements IWebRTCHelper, VolumeChange
             // 通知Activity修改音量键默认调节的音量类型
             intent.putExtra("VolumeControlStream", AudioManager.STREAM_VOICE_CALL);
         }
-        intent.putParcelableArrayListExtra("contactList", contactList);
+        intent.putParcelableArrayListExtra("userList", userList);
         intent.setAction("UPDATE_CONTACTS_ROOM");
-        LogUtils.d(TAG, "房间内联系人数量：" + contactList.size());
+        LogUtils.d(TAG, "房间内联系人数量：" + userList.size());
         sendBroadcast(intent);
     }
 
     @Override
-    public void updateContacts(ArrayList<Contact> contactList) {
+    public void updateContacts(ArrayList<User> userList) {
         Intent intent = new Intent();
-        intent.putParcelableArrayListExtra("contactList", contactList);
+        intent.putParcelableArrayListExtra("userList", userList);
         intent.setAction("UPDATE_CONTACTS");
-        LogUtils.d(TAG, "总联系人数量：" + contactList.size());
+        LogUtils.d(TAG, "总联系人数量：" + userList.size());
         sendBroadcast(intent);
     }
 

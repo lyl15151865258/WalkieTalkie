@@ -20,8 +20,8 @@ import java.util.Map;
 
 import javax.net.ssl.X509TrustManager;
 
-import jp.co.shiratsuki.walkietalkie.activity.P2PRingingActivity;
-import jp.co.shiratsuki.walkietalkie.bean.Contact;
+import jp.co.shiratsuki.walkietalkie.activity.appmain.P2PRingingActivity;
+import jp.co.shiratsuki.walkietalkie.bean.User;
 import jp.co.shiratsuki.walkietalkie.bean.websocket.ContactsList;
 import jp.co.shiratsuki.walkietalkie.bean.websocket.Peers;
 import jp.co.shiratsuki.walkietalkie.bean.websocket.UserInOrOut;
@@ -120,17 +120,14 @@ public class JavaWebSocket implements IWebSocket {
     public void joinRoom(String room, String userIP, String userName) {
         Map<String, Object> map = new HashMap<>();
         map.put("eventName", "__join");
-        Map<String, Object> childMap = new HashMap<>();
-        childMap.put("userId", userIP);
-        childMap.put("userName", userName);
-        childMap.put("company", "");
-        childMap.put("department", "");
-        childMap.put("iconUrl", "");
-        childMap.put("roomId", room);
-        childMap.put("roomName", room);
-        childMap.put("inRoom", false);
-        childMap.put("speaking", false);
-        map.put("data", childMap);
+        User user = new User();
+        user.setUser_id(userIP);
+        user.setUser_name(userName);
+        user.setRoom_id(room);
+        user.setRoom_name(room);
+        user.setInroom(false);
+        user.setSpeaking(false);
+        map.put("data", user);
         sendMessage(GsonUtils.convertJSON(map));
     }
 
@@ -228,8 +225,8 @@ public class JavaWebSocket implements IWebSocket {
     // 新用户连接到服务器
     private void handleNewUser(String message) {
         UserInOrOut userInOrOut = GsonUtils.parseJSON(message, UserInOrOut.class);
-        ArrayList<Contact> contactList = userInOrOut.getData().getContacts();
-        events.onUserInOrOut(contactList);
+        ArrayList<User> userList = userInOrOut.getData().getContacts();
+        events.onUserInOrOut(userList);
     }
 
     // 自己进入房间
@@ -245,11 +242,11 @@ public class JavaWebSocket implements IWebSocket {
         ContactsList contactsList = GsonUtils.parseJSON(message, ContactsList.class);
         String socketId = contactsList.getData().getSocketId();
         String socketName = contactsList.getData().getSocketName();
-        ArrayList<Contact> contactList = contactsList.getData().getContacts();
-        for (int i = 0; i < contactList.size(); i++) {
-            LogUtils.d(TAG, "联系人数量：" + contactList.size() + "," + contactList.get(i).getUserId());
+        ArrayList<User> userList = contactsList.getData().getContacts();
+        for (int i = 0; i < userList.size(); i++) {
+            LogUtils.d(TAG, "联系人数量：" + userList.size() + "," + userList.get(i).getUser_id());
         }
-        events.onRemoteJoinToRoom(socketId, socketName, contactList);
+        events.onRemoteJoinToRoom(socketId, socketName, userList);
     }
 
     // 处理交换信息
@@ -298,8 +295,8 @@ public class JavaWebSocket implements IWebSocket {
     // 处理声音状态位
     private void handleVoice(String message) {
         ContactsList contactsList = GsonUtils.parseJSON(message, ContactsList.class);
-        ArrayList<Contact> contactList = contactsList.getData().getContacts();
-        events.onReceiveSpeakStatus(contactList);
+        ArrayList<User> userList = contactsList.getData().getContacts();
+        events.onReceiveSpeakStatus(userList);
     }
 
     // 收到一对一通话请求

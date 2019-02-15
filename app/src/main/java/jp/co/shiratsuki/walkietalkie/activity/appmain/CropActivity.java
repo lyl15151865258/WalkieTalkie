@@ -1,4 +1,4 @@
-package jp.co.shiratsuki.walkietalkie.activity;
+package jp.co.shiratsuki.walkietalkie.activity.appmain;
 
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -25,6 +25,7 @@ import com.kevin.crop.view.UCropView;
 import java.io.OutputStream;
 
 import jp.co.shiratsuki.walkietalkie.R;
+import jp.co.shiratsuki.walkietalkie.activity.base.BaseActivity;
 import jp.co.shiratsuki.walkietalkie.utils.ActivityController;
 
 /**

@@ -1,4 +1,4 @@
-package jp.co.shiratsuki.walkietalkie.activity;
+package jp.co.shiratsuki.walkietalkie.activity.appmain;
 
 import android.content.Context;
 import android.media.AudioManager;
@@ -20,6 +20,7 @@ import com.bumptech.glide.request.RequestOptions;
 import java.lang.reflect.Field;
 
 import jp.co.shiratsuki.walkietalkie.R;
+import jp.co.shiratsuki.walkietalkie.activity.base.BaseActivity;
 import jp.co.shiratsuki.walkietalkie.utils.ActivityController;
 
 /**

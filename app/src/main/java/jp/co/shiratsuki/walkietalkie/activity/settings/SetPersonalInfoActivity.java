@@ -6,7 +6,7 @@ import android.view.View;
 import android.widget.EditText;
 
 import jp.co.shiratsuki.walkietalkie.R;
-import jp.co.shiratsuki.walkietalkie.activity.SwipeBackActivity;
+import jp.co.shiratsuki.walkietalkie.activity.base.SwipeBackActivity;
 import jp.co.shiratsuki.walkietalkie.contentprovider.SPHelper;
 import jp.co.shiratsuki.walkietalkie.utils.ActivityController;
 import jp.co.shiratsuki.walkietalkie.utils.ViewUtils;

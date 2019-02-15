@@ -1,10 +1,12 @@
 package jp.co.shiratsuki.walkietalkie.network;
 
+import jp.co.shiratsuki.walkietalkie.bean.LoginRegisterResult;
 import jp.co.shiratsuki.walkietalkie.bean.NormalResult;
 
 import java.util.Map;
 
 import okhttp3.MultipartBody;
+import okhttp3.RequestBody;
 import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.http.FieldMap;
@@ -25,6 +27,36 @@ import rx.Observable;
  */
 
 public interface NjMeterApi {
+    /**
+     * 主账号注册的请求
+     *
+     * @param params 参数
+     * @return 返回值
+     */
+    @FormUrlEncoded
+    @POST("user/register.do")
+    Observable<LoginRegisterResult> register(@FieldMap Map<String, String> params);
+
+    /**
+     * 主账号登录的请求
+     *
+     * @param params 参数
+     * @return 返回值
+     */
+    @FormUrlEncoded
+    @POST("user/login.do")
+    Observable<LoginRegisterResult> login(@FieldMap Map<String, String> params);
+
+    /**
+     * 更新用户头像
+     *
+     * @param information 描述信息
+     * @param file        头像文件
+     * @return 更新结果
+     */
+    @Multipart
+    @POST("AndroidController/uploadHeadPortrait.do")
+    Observable<NormalResult> uploadUserIcon(@Part("information") RequestBody information, @Part MultipartBody.Part file);
 
     /**
      * 上传错误日志文件

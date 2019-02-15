@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/ll_register"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/bg_login"
+    android:gravity="center"
+    android:orientation="vertical"
+    android:paddingLeft="@dimen/dp_20"
+    android:paddingRight="@dimen/dp_20">
+
+    <EditText
+        android:id="@+id/et_phoneNumber_register"
+        style="@style/AppTheme.EditText.Big"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/dp_40"
+        android:layout_marginTop="@dimen/dp_20"
+        android:drawableStart="@drawable/selector_ic_person"
+        android:hint="@string/input_phoneNumber"
+        android:inputType="phone"
+        android:maxLength="11"
+        android:textColor="@color/white" />
+
+    <EditText
+        android:id="@+id/et_passWord_register"
+        style="@style/AppTheme.EditText.Big"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/dp_40"
+        android:layout_marginTop="@dimen/dp_10"
+        android:drawableStart="@drawable/selector_ic_lock"
+        android:hint="@string/InputPassword"
+        android:inputType="textPassword"
+        android:maxLength="20"
+        android:textColor="@color/white" />
+
+    <EditText
+        android:id="@+id/et_confirm_register"
+        style="@style/AppTheme.EditText.Big"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/dp_40"
+        android:layout_marginTop="@dimen/dp_10"
+        android:drawableStart="@drawable/selector_ic_lock_outline"
+        android:hint="@string/ConfirmPassword"
+        android:inputType="textPassword"
+        android:maxLength="20"
+        android:textColor="@color/white" />
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/dp_10">
+
+        <TextView
+            android:id="@+id/tv_showLogin"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentStart="true"
+            android:layout_marginEnd="@dimen/dp_55"
+            android:padding="@dimen/dp_5"
+            android:text="@string/HaveAccount"
+            android:textColor="#c1a894"
+            android:textSize="@dimen/sp_16" />
+
+        <TextView
+            android:id="@+id/tv_forgetPassword_register"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_gravity="end"
+            android:padding="@dimen/dp_5"
+            android:text="@string/ForgetPassword"
+            android:textColor="#c1a894"
+            android:textSize="@dimen/sp_16" />
+    </RelativeLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical">
+
+        <jp.co.shiratsuki.walkietalkie.widget.SmoothCheckBox
+            android:id="@+id/checkbox_agree"
+            android:layout_width="@dimen/dp_20"
+            android:layout_height="@dimen/dp_20"
+            android:layout_margin="@dimen/dp_5"
+            app:color_checked="@color/colorBluePrimary" />
+
+        <TextView
+            android:id="@+id/tv_registration_protocol"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:maxLines="2"
+            android:text="@string/ReadRegisterProtocol"
+            android:textSize="@dimen/sp_16" />
+
+    </LinearLayout>
+
+    <Button
+        android:id="@+id/btn_register"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/dp_10"
+        android:background="@drawable/btn_blue_selector"
+        android:enabled="false"
+        android:text="@string/register"
+        android:textAllCaps="false"
+        android:textColor="@color/white"
+        android:textSize="@dimen/sp_18" />
+</LinearLayout>

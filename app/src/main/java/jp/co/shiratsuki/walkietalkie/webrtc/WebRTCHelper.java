@@ -8,7 +8,7 @@ import android.os.Parcelable;
 
 import com.alibaba.fastjson.JSONObject;
 
-import jp.co.shiratsuki.walkietalkie.bean.Contact;
+import jp.co.shiratsuki.walkietalkie.bean.User;
 import jp.co.shiratsuki.walkietalkie.constant.NetWork;
 import jp.co.shiratsuki.walkietalkie.constant.WebRTC;
 import jp.co.shiratsuki.walkietalkie.contentprovider.SPHelper;
@@ -79,8 +79,8 @@ public class WebRTCHelper implements ISignalingEvents {
         this._connectionPeerDic = new HashMap<>();
         this._connectionIdArray = new ArrayList<>();
         this.ICEServers = new ArrayList<>();
-        for (int i = 0; i < servers.length; i++) {
-            MyIceServer myIceServer = (MyIceServer) servers[i];
+        for (Parcelable parcelable : servers) {
+            MyIceServer myIceServer = (MyIceServer) parcelable;
             PeerConnection.IceServer iceServer = new PeerConnection.IceServer(myIceServer.uri, myIceServer.username, myIceServer.password);
             ICEServers.add(iceServer);
         }
@@ -147,10 +147,10 @@ public class WebRTCHelper implements ISignalingEvents {
     };
 
     @Override  // 其他人加入到房间
-    public void onRemoteJoinToRoom(String socketId, String socketName, ArrayList<Contact> contactList) {
+    public void onRemoteJoinToRoom(String socketId, String socketName, ArrayList<User> userList) {
         LogUtils.d(TAG, "有人加入到房间：" + socketId + "," + socketName);
 
-        IHelper.updateRoomContacts(contactList);
+        IHelper.updateRoomContacts(userList);
 
         if (_localStream == null) {
             createLocalStream();
@@ -164,8 +164,10 @@ public class WebRTCHelper implements ISignalingEvents {
 
     @Override
     public void onRemoteIceCandidate(String socketId, IceCandidate iceCandidate) {
-        Peer peer = _connectionPeerDic.get(socketId);
-        peer.pc.addIceCandidate(iceCandidate);
+        Peer mPeer = _connectionPeerDic.get(socketId);
+        if (mPeer != null) {
+            mPeer.pc.addIceCandidate(iceCandidate);
+        }
     }
 
     @Override
@@ -179,24 +181,28 @@ public class WebRTCHelper implements ISignalingEvents {
         _role = Role.Receiver;
         Peer mPeer = _connectionPeerDic.get(socketId);
         SessionDescription sessionDescription = new SessionDescription(SessionDescription.Type.OFFER, sdp);
-        mPeer.pc.setRemoteDescription(mPeer, sessionDescription);
+        if (mPeer != null) {
+            mPeer.pc.setRemoteDescription(mPeer, sessionDescription);
+        }
     }
 
     @Override
     public void onReceiverAnswer(String socketId, String sdp) {
         Peer mPeer = _connectionPeerDic.get(socketId);
         SessionDescription sessionDescription = new SessionDescription(SessionDescription.Type.ANSWER, sdp);
-        mPeer.pc.setRemoteDescription(mPeer, sessionDescription);
+        if (mPeer != null) {
+            mPeer.pc.setRemoteDescription(mPeer, sessionDescription);
+        }
     }
 
     @Override
-    public void onReceiveSpeakStatus(ArrayList<Contact> contactList) {
-        IHelper.updateRoomContacts(contactList);
+    public void onReceiveSpeakStatus(ArrayList<User> userList) {
+        IHelper.updateRoomContacts(userList);
     }
 
     @Override
-    public void onUserInOrOut(ArrayList<Contact> contactList) {
-        IHelper.updateContacts(contactList);
+    public void onUserInOrOut(ArrayList<User> userList) {
+        IHelper.updateContacts(userList);
     }
 
     @Override
@@ -248,14 +254,16 @@ public class WebRTCHelper implements ISignalingEvents {
         String roomId = SPHelper.getString("VoiceRoomId", WebRTC.WEBRTC_SERVER_ROOM);
         Map<String, Object> map = new HashMap<>();
         map.put("eventName", "__speakStatus");
-        Map<String, Object> childMap = new HashMap<>();
-        childMap.put("userId", _myId);
-        childMap.put("userName", userName);
-        childMap.put("roomId", roomId);
-        childMap.put("roomName", roomId);
-        childMap.put("iconUrl", "");
-        childMap.put("speaking", isSpeaking);
-        map.put("data", childMap);
+
+        User user = new User();
+        user.setUser_id(_myId);
+        user.setUser_name(userName);
+        user.setRoom_id(roomId);
+        user.setRoom_name(roomId);
+        user.setInroom(true);
+        user.setSpeaking(isSpeaking);
+        map.put("data", user);
+
         JSONObject object = new JSONObject(map);
         final String jsonString = object.toString();
         sendMessage(jsonString);
@@ -428,10 +436,9 @@ public class WebRTCHelper implements ISignalingEvents {
         private PeerConnection pc;
         private String socketId;
 
-        public Peer(String socketId) {
+        private Peer(String socketId) {
             this.pc = createPeerConnection();
             this.socketId = socketId;
-
         }
 
         //****************************PeerConnection.Observer****************************/

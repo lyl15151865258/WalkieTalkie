@@ -90,5 +90,19 @@
     <string name="StopPlay">演奏を停止する</string>
     <string name="Delete">削除する</string>
     <string name="channel_description">バックグラウンドで実行されているトランシーバー</string>
+    <string name="Search">検索する</string>
+
+
+    <string name="input_phoneNumber">携帯電話番号</string>
+    <string name="input_password">パスワード</string>
+    <string name="InputPassword">パスワード（6&#8211;20桁）</string>
+    <string name="ConfirmPassword">パスワード確認（6&#8211;20桁）</string>
+    <string name="ForgetPassword">パスワードを忘れた</string>
+    <string name="NewUserRegister">新規ユーザー</string>
+    <string name="HaveAccount">既存のアカウント</string>
+    <string name="ReadRegisterProtocol">ユーザー登録契約を読み、同意します</string>
+    <string name="Login">ログイン</string>
+    <string name="register">登録</string>
+    <string name="RegistrationProtocol">ユーザー登録契約</string>
 
 </resources>

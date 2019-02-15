@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/ll_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:orientation="horizontal"
+        android:padding="@dimen/dp_5">
+
+        <EditText
+            android:id="@+id/etContent"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="@drawable/border_white"
+            android:inputType="text"
+            android:maxLines="1"
+            android:padding="@dimen/dp_8"
+            android:textSize="@dimen/sp_16" />
+
+        <Button
+            android:id="@+id/btn_search"
+            android:layout_width="@dimen/dp_60"
+            android:layout_height="@dimen/dp_40"
+            android:layout_marginStart="@dimen/dp_5"
+            android:background="@drawable/blue_button_selector"
+            android:text="@string/Search"
+            android:textAllCaps="false"
+            android:textColor="@color/white"
+            android:textSize="@dimen/sp_18" />
+
+    </LinearLayout>
+
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/rvContacts"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/gray_6"
+        android:overScrollMode="never"
+        android:scrollbars="vertical" />
+
+</LinearLayout>

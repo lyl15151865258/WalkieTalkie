@@ -7,7 +7,11 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
+
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.RequestOptions;
 
 import java.util.List;
 
@@ -15,27 +19,27 @@ import jp.co.shiratsuki.walkietalkie.R;
 import jp.co.shiratsuki.walkietalkie.bean.User;
 
 /**
- * 联系人列表适配器
+ * 房间联系人列表适配器
  * Created at 2019/1/19 13:17
  *
  * @author Li Yuliang
  * @version 1.0
  */
 
-public class ContactAdapter extends RecyclerView.Adapter<ContactAdapter.ContactViewHolder> {
+public class ChatRoomContactAdapter extends RecyclerView.Adapter<ChatRoomContactAdapter.ContactViewHolder> {
 
     private Context mContext;
     private List<User> userList;
     private OnItemClickListener mListener;
 
-    public ContactAdapter(Context mContext, List<User> userList) {
+    public ChatRoomContactAdapter(Context mContext, List<User> userList) {
         this.mContext = mContext;
         this.userList = userList;
     }
 
     @Override
     public ContactViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_list_contact, parent, false);
+        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_list_contact_room, parent, false);
         return new ContactViewHolder(view);
     }
 
@@ -45,10 +49,14 @@ public class ContactAdapter extends RecyclerView.Adapter<ContactAdapter.ContactV
         viewHolder.tvUserIP.setText(con.getUser_id());
         viewHolder.tvUserName.setText(con.getUser_name());
         if (con.isSpeaking()) {
-            viewHolder.ivSpeaking.setVisibility(View.VISIBLE);
+            viewHolder.llRoot.setBackgroundResource(R.drawable.border_gridview_green_gray);
         } else {
-            viewHolder.ivSpeaking.setVisibility(View.INVISIBLE);
+            viewHolder.llRoot.setBackgroundResource(R.drawable.border_gridview_white_gray);
         }
+//        String iconUrl = con.getIconUrl();
+        String iconUrl = "http://cdnimg103.lizhi.fm/audio_cover/2016/08/26/2553324898273063943_320x320.jpg";
+        RequestOptions options = new RequestOptions().error(R.drawable.photo_user).placeholder(R.drawable.photo_user).dontAnimate();
+        Glide.with(mContext).load(iconUrl).apply(options).into(viewHolder.ivUserIcon);
     }
 
     @Override
@@ -57,13 +65,14 @@ public class ContactAdapter extends RecyclerView.Adapter<ContactAdapter.ContactV
     }
 
     public class ContactViewHolder extends RecyclerView.ViewHolder {
+        private LinearLayout llRoot;
         private TextView tvUserName, tvUserIP;
-        private ImageView ivUserIcon, ivSpeaking;
+        private ImageView ivUserIcon;
 
         private ContactViewHolder(View itemView) {
             super(itemView);
+            llRoot = itemView.findViewById(R.id.llRoot);
             ivUserIcon = itemView.findViewById(R.id.ivUserIcon);
-            ivSpeaking = itemView.findViewById(R.id.ivSpeaking);
             tvUserName = itemView.findViewById(R.id.tvUserName);
             tvUserIP = itemView.findViewById(R.id.tvUserIP);
         }

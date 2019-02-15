@@ -25,6 +25,16 @@
         // activity.finish()之后退出效果
     </style>
 
+    <style name="AppTheme.EditText.Big" parent="Widget.AppCompat.EditText">
+        <item name="android:drawablePadding">@dimen/dp_4</item>
+        <item name="android:paddingLeft">@dimen/dp_4</item>
+        <item name="android:paddingRight">@dimen/dp_4</item>
+        <item name="android:textSize">@dimen/sp_16</item>
+        <item name="android:textColorHint">@color/colorTextHint</item>
+        <item name="android:singleLine">true</item>
+        <item name="android:background">@drawable/edit_bg_long</item>
+    </style>
+
     <!--blueTheme-->
     <style name="BlueTheme" parent="AppTheme">
         <item name="colorPrimary">@color/colorBluePrimary</item>

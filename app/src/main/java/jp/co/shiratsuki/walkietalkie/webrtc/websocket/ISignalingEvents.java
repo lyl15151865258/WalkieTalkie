@@ -5,7 +5,7 @@ import org.webrtc.IceCandidate;
 import java.util.ArrayList;
 import java.util.List;
 
-import jp.co.shiratsuki.walkietalkie.bean.Contact;
+import jp.co.shiratsuki.walkietalkie.bean.User;
 
 /**
  * WebSocket回调接口
@@ -21,7 +21,7 @@ public interface ISignalingEvents {
     void onJoinToRoom(List<String> connections, String myId);
 
     // 有新人进入房间
-    void onRemoteJoinToRoom(String socketId, String socketName, ArrayList<Contact> contactList);
+    void onRemoteJoinToRoom(String socketId, String socketName, ArrayList<User> userList);
 
     void onRemoteIceCandidate(String socketId, IceCandidate iceCandidate);
 
@@ -31,9 +31,9 @@ public interface ISignalingEvents {
 
     void onReceiverAnswer(String socketId, String sdp);
 
-    void onReceiveSpeakStatus(ArrayList<Contact> contactList);
+    void onReceiveSpeakStatus(ArrayList<User> userList);
 
-    void onUserInOrOut(ArrayList<Contact> contactList);
+    void onUserInOrOut(ArrayList<User> userList);
 
     // WebSocket断开
     void onWebSocketClosed();

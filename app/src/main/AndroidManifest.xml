@@ -68,7 +68,7 @@
             android:value="2.1" />
 
         <activity
-            android:name=".activity.LogoActivity"
+            android:name=".activity.appmain.LogoActivity"
             android:label="@string/app_name"
             android:screenOrientation="portrait"
             android:theme="@style/SplashTheme">
@@ -79,6 +79,16 @@
             </intent-filter>
         </activity>
 
+        <!-- 登录注册页面 -->
+        <activity
+            android:name=".activity.loginregister.LoginRegisterActivity"
+            android:screenOrientation="portrait" />
+
+        <!-- 设置头像页面 -->
+        <activity
+            android:name=".activity.loginregister.ChooseHeadPortraitActivity"
+            android:screenOrientation="portrait" />
+
         <!-- 主页面 -->
         <activity
             android:name=".activity.MainActivity"
@@ -86,7 +96,7 @@
 
         <!-- 通用Html页面 -->
         <activity
-            android:name=".activity.HtmlActivity"
+            android:name=".activity.appmain.HtmlActivity"
             android:screenOrientation="portrait" />
 
         <!-- 个人信息设置页面 -->
@@ -96,7 +106,7 @@
 
         <!-- 图片裁剪页面 -->
         <activity
-            android:name=".activity.CropActivity"
+            android:name=".activity.appmain.CropActivity"
             android:screenOrientation="portrait" />
 
         <!-- 语言设置页面 -->
@@ -116,7 +126,7 @@
 
         <!-- 一对一通话响铃界面 -->
         <activity
-            android:name=".activity.P2PRingingActivity"
+            android:name=".activity.appmain.P2PRingingActivity"
             android:screenOrientation="portrait" />
 
         <!-- 局域网通信服务-->

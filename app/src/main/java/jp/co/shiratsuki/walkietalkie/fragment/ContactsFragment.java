@@ -14,7 +14,7 @@ import java.util.List;
 
 import jp.co.shiratsuki.walkietalkie.R;
 import jp.co.shiratsuki.walkietalkie.adapter.ContactAdapter;
-import jp.co.shiratsuki.walkietalkie.bean.Contact;
+import jp.co.shiratsuki.walkietalkie.bean.User;
 import jp.co.shiratsuki.walkietalkie.widget.RecyclerViewDivider;
 
 /**
@@ -28,21 +28,21 @@ import jp.co.shiratsuki.walkietalkie.widget.RecyclerViewDivider;
 public class ContactsFragment extends BaseFragment {
 
     private Context mContext;
-    public List<Contact> contactList;
+    public List<User> userList;
     public ContactAdapter contactAdapter;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mContext = getContext();
-        View view = inflater.inflate(R.layout.fragment_chatroom, container, false);
+        View view = inflater.inflate(R.layout.fragment_contacts, container, false);
         RecyclerView rvContacts = view.findViewById(R.id.rvContacts);
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(mContext);
         linearLayoutManager.setOrientation(LinearLayoutManager.VERTICAL);
         rvContacts.setLayoutManager(linearLayoutManager);
         rvContacts.addItemDecoration(new RecyclerViewDivider(mContext, LinearLayoutManager.HORIZONTAL, 1, ContextCompat.getColor(mContext, R.color.gray_slight)));
-        contactList = new ArrayList<>();
-        contactAdapter = new ContactAdapter(mContext, contactList);
+        userList = new ArrayList<>();
+        contactAdapter = new ContactAdapter(mContext, userList);
         rvContacts.setAdapter(contactAdapter);
         return view;
     }

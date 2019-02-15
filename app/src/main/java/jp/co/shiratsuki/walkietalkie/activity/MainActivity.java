@@ -29,7 +29,6 @@ import android.support.v4.view.GravityCompat;
 import android.support.v4.view.ViewPager;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.AlertDialog;
-import android.support.v7.widget.RecyclerView;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -39,7 +38,6 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
 import com.kevin.crop.UCrop;
 
@@ -48,12 +46,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 import jp.co.shiratsuki.walkietalkie.R;
+import jp.co.shiratsuki.walkietalkie.activity.appmain.CropActivity;
+import jp.co.shiratsuki.walkietalkie.activity.appmain.P2PRingingActivity;
+import jp.co.shiratsuki.walkietalkie.activity.base.BaseActivity;
 import jp.co.shiratsuki.walkietalkie.activity.settings.SetLanguageActivity;
 import jp.co.shiratsuki.walkietalkie.activity.settings.SetMessageServerActivity;
 import jp.co.shiratsuki.walkietalkie.activity.settings.SetPersonalInfoActivity;
 import jp.co.shiratsuki.walkietalkie.activity.settings.SetVoiceServerActivity;
-import jp.co.shiratsuki.walkietalkie.adapter.MalfunctionAdapter;
-import jp.co.shiratsuki.walkietalkie.bean.Contact;
+import jp.co.shiratsuki.walkietalkie.bean.User;
 import jp.co.shiratsuki.walkietalkie.bean.WebSocketData;
 import jp.co.shiratsuki.walkietalkie.broadcast.BaseBroadcastReceiver;
 import jp.co.shiratsuki.walkietalkie.contentprovider.SPHelper;
@@ -97,7 +97,6 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
     private ImageView ivIcon, ivUserIcon;
     private TextView tvNotification, tvCompanyName, tvDepartment, tvUserName;
     private MyReceiver myReceiver;
-    private boolean sIsScrolling = false;
     private IVoiceService iVoiceService;
     private WebSocketService webSocketService;
 
@@ -415,10 +414,6 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
         return super.onKeyDown(keyCode, event);
     }
 
-    private MalfunctionAdapter.OnItemClickListener onItemClickListener = (position) -> {
-
-    };
-
     /**
      * onServiceConnected和onServiceDisconnected运行在UI线程中
      */
@@ -490,8 +485,8 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
                 Fragment fragment = getSupportFragmentManager().getFragments().get(1);
                 if (fragment instanceof ChatRoomFragment) {
                     ChatRoomFragment ChatRoomFragment = (ChatRoomFragment) fragment;
-                    ChatRoomFragment.contactList.clear();
-                    ChatRoomFragment.contactAdapter.notifyDataSetChanged();
+                    ChatRoomFragment.userList.clear();
+                    ChatRoomFragment.chatRoomContactAdapter.notifyDataSetChanged();
                 }
 
                 SPHelper.save("KEY_STATUS_UP", true);
@@ -547,20 +542,20 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
 //                    if (fragment instanceof ChatRoomFragment) {
 //                        ChatRoomFragment chatRoomFragment = (ChatRoomFragment) fragment;
 //                        int position = -1;
-//                        for (int i = 0; i < chatRoomFragment.contactList.size(); i++) {
-//                            if (chatRoomFragment.contactList.get(i).getUserId().equals(userId)) {
+//                        for (int i = 0; i < chatRoomFragment.userList.size(); i++) {
+//                            if (chatRoomFragment.userList.get(i).getUserId().equals(userId)) {
 //                                position = i;
 //                                break;
 //                            }
 //                        }
 //                        if (position == -1) {
-//                            chatRoomFragment.contactList.add(chatRoomFragment.contactList.size(), new Contact(userId, userName, company, department, iconUrl, roomId,
+//                            chatRoomFragment.userList.add(chatRoomFragment.userList.size(), new User(userId, userName, company, department, iconUrl, roomId,
 //                                    roomName, inRoom, speaking));
-//                            chatRoomFragment.contactAdapter.notifyItemChanged(chatRoomFragment.contactList.size() - 1);
+//                            chatRoomFragment.chatRoomContactAdapter.notifyItemChanged(chatRoomFragment.userList.size() - 1);
 //                        } else {
-//                            if (!chatRoomFragment.contactList.get(position).getUserName().equals(userName)) {
-//                                chatRoomFragment.contactList.get(position).setUserName(userName);
-//                                chatRoomFragment.contactAdapter.notifyItemChanged(position);
+//                            if (!chatRoomFragment.userList.get(position).getUserName().equals(userName)) {
+//                                chatRoomFragment.userList.get(position).setUserName(userName);
+//                                chatRoomFragment.chatRoomContactAdapter.notifyItemChanged(position);
 //                            }
 //                        }
 //                    }
@@ -578,43 +573,18 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
                 if (fragment instanceof ChatRoomFragment) {
                     ChatRoomFragment chatRoomFragment = (ChatRoomFragment) fragment;
                     int position = -1;
-                    for (int i = 0; i < chatRoomFragment.contactList.size(); i++) {
-                        if (chatRoomFragment.contactList.get(i).getUserId().equals(ipAddress)) {
+                    for (int i = 0; i < chatRoomFragment.userList.size(); i++) {
+                        if (chatRoomFragment.userList.get(i).getUser_id().equals(ipAddress)) {
                             position = i;
                             break;
                         }
                     }
                     if (position != -1) {
-                        chatRoomFragment.contactList.remove(position);
-                        chatRoomFragment.contactAdapter.notifyItemRemoved(position);
+                        chatRoomFragment.userList.remove(position);
+                        chatRoomFragment.chatRoomContactAdapter.notifyItemRemoved(position);
                     }
                 }
             });
-        }
-    };
-
-    private RecyclerView.OnScrollListener onScrollListener = new RecyclerView.OnScrollListener() {
-        @Override
-        public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
-            super.onScrollStateChanged(recyclerView, newState);
-            // 先判断mContext是否为空，防止Activity已经onDestroy导致的java.lang.IllegalArgumentException: You cannot start a load for a destroyed activity
-            if (mContext != null) {
-                // 如果快速滑动，停止Glide的加载，停止滑动后恢复加载
-                if (newState == RecyclerView.SCROLL_STATE_SETTLING) {
-                    sIsScrolling = true;
-                    Glide.with(mContext).pauseRequests();
-                } else if (newState == RecyclerView.SCROLL_STATE_IDLE) {
-                    if (sIsScrolling) {
-                        Glide.with(mContext).resumeRequests();
-                    }
-                    sIsScrolling = false;
-                }
-            }
-        }
-
-        @Override
-        public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
-            super.onScrolled(recyclerView, dx, dy);
         }
     };
 
@@ -882,13 +852,13 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
                         Fragment fragment = getSupportFragmentManager().getFragments().get(1);
                         if (fragment instanceof ChatRoomFragment) {
                             ChatRoomFragment chatRoomFragment = (ChatRoomFragment) fragment;
-                            chatRoomFragment.contactList.clear();
-                            ArrayList<Contact> contacts = intent.getParcelableArrayListExtra("contactList");
-                            for (int i = 0; i < contacts.size(); i++) {
-                                LogUtils.d(TAG, "联系人数量：" + contacts.size() + "," + contacts.get(i).getUserId());
+                            chatRoomFragment.userList.clear();
+                            ArrayList<User> users = intent.getParcelableArrayListExtra("userList");
+                            for (int i = 0; i < users.size(); i++) {
+                                LogUtils.d(TAG, "联系人数量：" + users.size() + "," + users.get(i).getUser_id());
                             }
-                            chatRoomFragment.contactList.addAll(contacts);
-                            chatRoomFragment.contactAdapter.notifyDataSetChanged();
+                            chatRoomFragment.userList.addAll(users);
+                            chatRoomFragment.chatRoomContactAdapter.notifyDataSetChanged();
                         }
                         // 更改手机音量键调节的音量类型
                         int streamType = intent.getIntExtra("VolumeControlStream", AudioManager.STREAM_RING);
@@ -902,12 +872,12 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
                         Fragment fragment = getSupportFragmentManager().getFragments().get(2);
                         if (fragment instanceof ContactsFragment) {
                             ContactsFragment contactsFragment = (ContactsFragment) fragment;
-                            contactsFragment.contactList.clear();
-                            ArrayList<Contact> contacts = intent.getParcelableArrayListExtra("contactList");
-                            for (int i = 0; i < contacts.size(); i++) {
-                                LogUtils.d(TAG, "联系人数量：" + contacts.size() + "," + contacts.get(i).getUserId());
+                            contactsFragment.userList.clear();
+                            ArrayList<User> users = intent.getParcelableArrayListExtra("userList");
+                            for (int i = 0; i < users.size(); i++) {
+                                LogUtils.d(TAG, "联系人数量：" + users.size() + "," + users.get(i).getUser_id());
                             }
-                            contactsFragment.contactList.addAll(contacts);
+                            contactsFragment.userList.addAll(users);
                             contactsFragment.contactAdapter.notifyDataSetChanged();
                         }
                     }
@@ -1128,10 +1098,7 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
     protected void requestPermission(String permission, String rationale, int requestCode) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (shouldShowRequestPermissionRationale(permission)) {
-                showAlertDialog(getString(R.string.permission_title_rationale), rationale,
-                        (dialog, which) -> {
-                            requestPermissions(new String[]{permission}, requestCode);
-                        }, getString(R.string.label_ok));
+                showAlertDialog(getString(R.string.permission_title_rationale), rationale, (dialog, which) -> requestPermissions(new String[]{permission}, requestCode), getString(R.string.label_ok));
             } else {
                 requestPermissions(new String[]{permission}, requestCode);
             }

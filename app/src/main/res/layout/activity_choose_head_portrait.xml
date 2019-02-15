@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <jp.co.shiratsuki.walkietalkie.widget.MyToolbar
+        android:id="@+id/myToolbar"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/dp_50"
+        app:titleText="@string/app_name" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:padding="@dimen/dp_50">
+
+        <de.hdodenhof.circleimageview.CircleImageView
+            android:id="@+id/ivUserIcon"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_margin="@dimen/dp_10"
+            android:layout_weight="1"
+            android:scaleType="centerCrop"
+            android:src="@drawable/photo_user"
+            app:civ_border_color="#16F5F5F5"
+            app:civ_border_width="@dimen/dp_2" />
+
+        <Button
+            android:id="@+id/btnTakePhoto"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/dp_10"
+            android:background="@color/colorBluePrimary"
+            android:text="拍照上传"
+            android:textColor="@color/white" />
+
+        <Button
+            android:id="@+id/btnSelectFromAlbum"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/dp_10"
+            android:background="@color/colorBluePrimary"
+            android:text="从相册中选择"
+            android:textColor="@color/white" />
+    </LinearLayout>
+
+</LinearLayout>

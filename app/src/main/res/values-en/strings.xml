@@ -90,6 +90,20 @@
     <string name="StopPlay">Stop play</string>
     <string name="Delete">Delete</string>
     <string name="channel_description">Walkie-talkie running in the background</string>
+    <string name="Search">Search</string>
 
+
+
+    <string name="input_phoneNumber">Phone Number</string>
+    <string name="input_password">Password</string>
+    <string name="InputPassword">Password（6&#8211;20chars）</string>
+    <string name="ConfirmPassword">Confirm Password（6&#8211;20chars）</string>
+    <string name="ForgetPassword">Forget Password</string>
+    <string name="NewUserRegister">Register</string>
+    <string name="HaveAccount">Login</string>
+    <string name="ReadRegisterProtocol">I have read and agree to the \"Registration Protocol\"</string>
+    <string name="Login">Log In</string>
+    <string name="register">Register</string>
+    <string name="RegistrationProtocol">Registration Protocol</string>
 
 </resources>

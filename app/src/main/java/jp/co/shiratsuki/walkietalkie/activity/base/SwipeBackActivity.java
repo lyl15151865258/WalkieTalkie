@@ -1,4 +1,4 @@
-package jp.co.shiratsuki.walkietalkie.activity;
+package jp.co.shiratsuki.walkietalkie.activity.base;
 
 import android.os.Bundle;
 import android.view.View;

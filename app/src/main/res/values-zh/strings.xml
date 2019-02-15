@@ -90,5 +90,19 @@
     <string name="StopPlay">停止播放</string>
     <string name="Delete">删除</string>
     <string name="channel_description">正在使用对讲机</string>
+    <string name="Search">搜索</string>
+
+
+    <string name="input_phoneNumber">输入手机号</string>
+    <string name="input_password">输入密码</string>
+    <string name="InputPassword">输入密码（6&#8211;20位）</string>
+    <string name="ConfirmPassword">确认密码（6&#8211;20位）</string>
+    <string name="ForgetPassword">忘记密码</string>
+    <string name="NewUserRegister">新用户注册</string>
+    <string name="HaveAccount">已有账号</string>
+    <string name="ReadRegisterProtocol">我已阅读并同意《用户注册协议》</string>
+    <string name="Login">登&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;陆</string>
+    <string name="register">注&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;册</string>
+    <string name="RegistrationProtocol">用户注册协议</string>
 
 </resources>
