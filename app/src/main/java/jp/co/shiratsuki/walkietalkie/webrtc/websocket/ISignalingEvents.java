@@ -21,7 +21,7 @@ public interface ISignalingEvents {
     void onJoinToRoom(List<String> connections, String myId);
 
     // 有新人进入房间
-    void onRemoteJoinToRoom(String socketId, String socketName, List<Contact> contactList);
+    void onRemoteJoinToRoom(String socketId, String socketName, ArrayList<Contact> contactList);
 
     void onRemoteIceCandidate(String socketId, IceCandidate iceCandidate);
 
@@ -31,9 +31,9 @@ public interface ISignalingEvents {
 
     void onReceiverAnswer(String socketId, String sdp);
 
-    void onReceiveSpeakStatus(List<Contact> contactList);
+    void onReceiveSpeakStatus(ArrayList<Contact> contactList);
 
-    void onUserInOrOut(List<Contact> contactList);
+    void onUserInOrOut(ArrayList<Contact> contactList);
 
     // WebSocket断开
     void onWebSocketClosed();

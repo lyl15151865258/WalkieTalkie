@@ -2,7 +2,7 @@ package jp.co.shiratsuki.walkietalkie.webrtc;
 
 import org.webrtc.MediaStream;
 
-import java.util.List;
+import java.util.ArrayList;
 
 import jp.co.shiratsuki.walkietalkie.bean.Contact;
 
@@ -30,9 +30,9 @@ public interface IWebRTCHelper {
     void removeUser(String userIP);
 
     // 更新房间内联系人列表
-    void updateRoomContacts(List<Contact> contactList);
+    void updateRoomContacts(ArrayList<Contact> contactList);
 
     // 更新所有联系人列表
-    void updateContacts(List<Contact> contactList);
+    void updateContacts(ArrayList<Contact> contactList);
 
 }

@@ -13,6 +13,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -227,7 +228,7 @@ public class JavaWebSocket implements IWebSocket {
     // 新用户连接到服务器
     private void handleNewUser(String message) {
         UserInOrOut userInOrOut = GsonUtils.parseJSON(message, UserInOrOut.class);
-        List<Contact> contactList = userInOrOut.getData().getContacts();
+        ArrayList<Contact> contactList = userInOrOut.getData().getContacts();
         events.onUserInOrOut(contactList);
     }
 
@@ -244,7 +245,7 @@ public class JavaWebSocket implements IWebSocket {
         ContactsList contactsList = GsonUtils.parseJSON(message, ContactsList.class);
         String socketId = contactsList.getData().getSocketId();
         String socketName = contactsList.getData().getSocketName();
-        List<Contact> contactList = contactsList.getData().getContacts();
+        ArrayList<Contact> contactList = contactsList.getData().getContacts();
         for (int i = 0; i < contactList.size(); i++) {
             LogUtils.d(TAG, "联系人数量：" + contactList.size() + "," + contactList.get(i).getUserId());
         }
@@ -297,7 +298,7 @@ public class JavaWebSocket implements IWebSocket {
     // 处理声音状态位
     private void handleVoice(String message) {
         ContactsList contactsList = GsonUtils.parseJSON(message, ContactsList.class);
-        List<Contact> contactList = contactsList.getData().getContacts();
+        ArrayList<Contact> contactList = contactsList.getData().getContacts();
         events.onReceiveSpeakStatus(contactList);
     }
 

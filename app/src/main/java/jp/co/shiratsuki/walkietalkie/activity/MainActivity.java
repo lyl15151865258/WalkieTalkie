@@ -463,7 +463,7 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
      */
     private IVoiceCallback iVoiceCallback = new IVoiceCallback.Stub() {
         @Override
-        public void enterRoomSuccess() throws RemoteException {
+        public void enterRoomSuccess() {
             // 加入房间成功
             runOnUiThread(new Thread(() -> {
                 isInRoom = true;
@@ -473,7 +473,7 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
         }
 
         @Override
-        public void leaveGroupSuccess() throws RemoteException {
+        public void leaveGroupSuccess() {
             // 离开房间成功
             runOnUiThread(new Thread(() -> {
                 // 重置房间按钮
@@ -500,7 +500,7 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
         }
 
         @Override
-        public void startRecordSuccess() throws RemoteException {
+        public void startRecordSuccess() {
             // 打开麦克风成功
             runOnUiThread(new Thread(() -> {
                 isSpeaking = true;
@@ -509,7 +509,7 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
         }
 
         @Override
-        public void stopRecordSuccess() throws RemoteException {
+        public void stopRecordSuccess() {
             // 关闭麦克风成功
             runOnUiThread(new Thread(() -> {
                 isSpeaking = false;
@@ -518,7 +518,7 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
         }
 
         @Override
-        public void useSpeakerSuccess() throws RemoteException {
+        public void useSpeakerSuccess() {
             // 使用扬声器成功
             runOnUiThread(new Thread(() -> {
                 isUseSpeaker = true;
@@ -527,7 +527,7 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
         }
 
         @Override
-        public void useEarpieceSuccess() throws RemoteException {
+        public void useEarpieceSuccess() {
             // 使用听筒成功
             runOnUiThread(new Thread(() -> {
                 isUseSpeaker = false;
@@ -572,24 +572,21 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
         @Override
         public void removeUser(String ipAddress, String name) {
             // 发送到主线程更新UI
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    LogUtils.d(TAG, "移除用户，刷新ContactsFragment联系人列表");
-                    Fragment fragment = getSupportFragmentManager().getFragments().get(1);
-                    if (fragment instanceof ChatRoomFragment) {
-                        ChatRoomFragment chatRoomFragment = (ChatRoomFragment) fragment;
-                        int position = -1;
-                        for (int i = 0; i < chatRoomFragment.contactList.size(); i++) {
-                            if (chatRoomFragment.contactList.get(i).getUserId().equals(ipAddress)) {
-                                position = i;
-                                break;
-                            }
+            runOnUiThread(() -> {
+                LogUtils.d(TAG, "移除用户，刷新ContactsFragment联系人列表");
+                Fragment fragment = getSupportFragmentManager().getFragments().get(1);
+                if (fragment instanceof ChatRoomFragment) {
+                    ChatRoomFragment chatRoomFragment = (ChatRoomFragment) fragment;
+                    int position = -1;
+                    for (int i = 0; i < chatRoomFragment.contactList.size(); i++) {
+                        if (chatRoomFragment.contactList.get(i).getUserId().equals(ipAddress)) {
+                            position = i;
+                            break;
                         }
-                        if (position != -1) {
-                            chatRoomFragment.contactList.remove(position);
-                            chatRoomFragment.contactAdapter.notifyItemRemoved(position);
-                        }
+                    }
+                    if (position != -1) {
+                        chatRoomFragment.contactList.remove(position);
+                        chatRoomFragment.contactAdapter.notifyItemRemoved(position);
                     }
                 }
             });
@@ -598,7 +595,7 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
 
     private RecyclerView.OnScrollListener onScrollListener = new RecyclerView.OnScrollListener() {
         @Override
-        public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
+        public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
             super.onScrollStateChanged(recyclerView, newState);
             // 先判断mContext是否为空，防止Activity已经onDestroy导致的java.lang.IllegalArgumentException: You cannot start a load for a destroyed activity
             if (mContext != null) {
@@ -616,7 +613,7 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
         }
 
         @Override
-        public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+        public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
             super.onScrolled(recyclerView, dx, dy);
         }
     };
@@ -886,7 +883,7 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
                         if (fragment instanceof ChatRoomFragment) {
                             ChatRoomFragment chatRoomFragment = (ChatRoomFragment) fragment;
                             chatRoomFragment.contactList.clear();
-                            List<Contact> contacts = (List<Contact>) intent.getSerializableExtra("contactList");
+                            ArrayList<Contact> contacts = intent.getParcelableArrayListExtra("contactList");
                             for (int i = 0; i < contacts.size(); i++) {
                                 LogUtils.d(TAG, "联系人数量：" + contacts.size() + "," + contacts.get(i).getUserId());
                             }
@@ -906,7 +903,7 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
                         if (fragment instanceof ContactsFragment) {
                             ContactsFragment contactsFragment = (ContactsFragment) fragment;
                             contactsFragment.contactList.clear();
-                            List<Contact> contacts = (List<Contact>) intent.getSerializableExtra("contactList");
+                            ArrayList<Contact> contacts = intent.getParcelableArrayListExtra("contactList");
                             for (int i = 0; i < contacts.size(); i++) {
                                 LogUtils.d(TAG, "联系人数量：" + contacts.size() + "," + contacts.get(i).getUserId());
                             }

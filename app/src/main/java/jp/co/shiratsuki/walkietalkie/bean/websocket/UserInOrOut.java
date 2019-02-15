@@ -1,6 +1,6 @@
 package jp.co.shiratsuki.walkietalkie.bean.websocket;
 
-import java.util.List;
+import java.util.ArrayList;
 
 import jp.co.shiratsuki.walkietalkie.bean.Contact;
 
@@ -28,7 +28,7 @@ public class UserInOrOut {
     public class Data {
 
         private String socketId;
-        private List<Contact> contacts;
+        private ArrayList<Contact> contacts;
 
         public void setSocketId(String socketId) {
             this.socketId = socketId;
@@ -38,11 +38,11 @@ public class UserInOrOut {
             return socketId;
         }
 
-        public void setContacts(List<Contact> contacts) {
+        public void setContacts(ArrayList<Contact> contacts) {
             this.contacts = contacts;
         }
 
-        public List<Contact> getContacts() {
+        public ArrayList<Contact> getContacts() {
             return contacts;
         }
 

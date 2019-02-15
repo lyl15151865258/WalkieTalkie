@@ -1,6 +1,7 @@
 package jp.co.shiratsuki.walkietalkie.bean;
 
-import java.io.Serializable;
+import android.os.Parcel;
+import android.os.Parcelable;
 
 /**
  * 联系人实体类
@@ -10,7 +11,7 @@ import java.io.Serializable;
  * @version 1.0
  */
 
-public class Contact implements Serializable {
+public class Contact implements Parcelable {
 
     private String userId;
     private String userName;
@@ -23,7 +24,7 @@ public class Contact implements Serializable {
     private boolean speaking;
 
     public Contact(String userId, String userName, String company, String department, String iconUrl, String roomId,
-                String roomName, boolean inRoom, boolean speaking) {
+                   String roomName, boolean inRoom, boolean speaking) {
         super();
         this.userId = userId;
         this.userName = userName;
@@ -107,4 +108,35 @@ public class Contact implements Serializable {
     public void setSpeaking(boolean speaking) {
         this.speaking = speaking;
     }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(userId);
+        dest.writeString(userName);
+        dest.writeString(company);
+        dest.writeString(department);
+        dest.writeString(iconUrl);
+        dest.writeString(roomId);
+        dest.writeString(roomName);
+        dest.writeByte((byte) (inRoom ? 1 : 0));
+        dest.writeByte((byte) (speaking ? 1 : 0));
+    }
+
+    public static final Parcelable.Creator<Contact> CREATOR = new Parcelable.Creator<Contact>() {
+        @Override
+        public Contact createFromParcel(Parcel source) {
+            return new Contact(source.readString(), source.readString(), source.readString(), source.readString(), source.readString(),
+                    source.readString(), source.readString(), source.readByte() != 0, source.readByte() != 0);
+        }
+
+        @Override
+        public Contact[] newArray(int size) {
+            return new Contact[size];
+        }
+    };
 }

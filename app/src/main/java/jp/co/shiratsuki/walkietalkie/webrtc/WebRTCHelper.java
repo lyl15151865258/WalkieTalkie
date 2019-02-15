@@ -147,7 +147,7 @@ public class WebRTCHelper implements ISignalingEvents {
     };
 
     @Override  // 其他人加入到房间
-    public void onRemoteJoinToRoom(String socketId, String socketName, List<Contact> contactList) {
+    public void onRemoteJoinToRoom(String socketId, String socketName, ArrayList<Contact> contactList) {
         LogUtils.d(TAG, "有人加入到房间：" + socketId + "," + socketName);
 
         IHelper.updateRoomContacts(contactList);
@@ -190,12 +190,12 @@ public class WebRTCHelper implements ISignalingEvents {
     }
 
     @Override
-    public void onReceiveSpeakStatus(List<Contact> contactList) {
+    public void onReceiveSpeakStatus(ArrayList<Contact> contactList) {
         IHelper.updateRoomContacts(contactList);
     }
 
     @Override
-    public void onUserInOrOut(List<Contact> contactList) {
+    public void onUserInOrOut(ArrayList<Contact> contactList) {
         IHelper.updateContacts(contactList);
     }
 

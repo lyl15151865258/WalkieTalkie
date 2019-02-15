@@ -28,8 +28,7 @@ import android.support.v4.app.NotificationCompat;
 import org.webrtc.MediaStream;
 
 import java.io.IOException;
-import java.io.Serializable;
-import java.util.List;
+import java.util.ArrayList;
 
 import jp.co.shiratsuki.walkietalkie.R;
 import jp.co.shiratsuki.walkietalkie.activity.MainActivity;
@@ -382,7 +381,7 @@ public class VoiceService extends Service implements IWebRTCHelper, VolumeChange
     }
 
     @Override
-    public void updateRoomContacts(List<Contact> contactList) {
+    public void updateRoomContacts(ArrayList<Contact> contactList) {
         // 调节音量
         int defaultVolume = SPHelper.getInt("defaultVolume", mAudioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC));
         boolean someoneSpeaking = false;
@@ -410,16 +409,16 @@ public class VoiceService extends Service implements IWebRTCHelper, VolumeChange
             // 通知Activity修改音量键默认调节的音量类型
             intent.putExtra("VolumeControlStream", AudioManager.STREAM_VOICE_CALL);
         }
-        intent.putExtra("contactList", (Serializable) contactList);
+        intent.putParcelableArrayListExtra("contactList", contactList);
         intent.setAction("UPDATE_CONTACTS_ROOM");
         LogUtils.d(TAG, "房间内联系人数量：" + contactList.size());
         sendBroadcast(intent);
     }
 
     @Override
-    public void updateContacts(List<Contact> contactList) {
+    public void updateContacts(ArrayList<Contact> contactList) {
         Intent intent = new Intent();
-        intent.putExtra("contactList", (Serializable) contactList);
+        intent.putParcelableArrayListExtra("contactList", contactList);
         intent.setAction("UPDATE_CONTACTS");
         LogUtils.d(TAG, "总联系人数量：" + contactList.size());
         sendBroadcast(intent);
