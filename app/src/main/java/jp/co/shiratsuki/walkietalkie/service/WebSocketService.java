@@ -8,11 +8,13 @@ import android.os.IBinder;
 
 import jp.co.shiratsuki.walkietalkie.bean.Music;
 import jp.co.shiratsuki.walkietalkie.bean.MusicList;
+import jp.co.shiratsuki.walkietalkie.bean.User;
 import jp.co.shiratsuki.walkietalkie.bean.WebSocketData;
 import jp.co.shiratsuki.walkietalkie.constant.NetWork;
 import jp.co.shiratsuki.walkietalkie.contentprovider.SPHelper;
 import jp.co.shiratsuki.walkietalkie.utils.GsonUtils;
 import jp.co.shiratsuki.walkietalkie.utils.LogUtils;
+import jp.co.shiratsuki.walkietalkie.utils.WifiUtil;
 import jp.co.shiratsuki.walkietalkie.voice.MusicPlay;
 
 import org.java_websocket.client.WebSocketClient;
@@ -22,7 +24,9 @@ import org.java_websocket.handshake.ServerHandshake;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -113,9 +117,21 @@ public class WebSocketService extends Service {
         String webSocketName = String.valueOf(NetWork.WEBSOCKET_NAME);
         return new WebSocketClient(new URI("ws://" + serverHost + ":" + webSocketPort + "/" + webSocketName), new Draft_6455(), null, 5000) {
             @Override
-            public void onOpen(ServerHandshake handshakedata) {
+            public void onOpen(ServerHandshake serverHandshake) {
                 //通道打开
                 LogUtils.d(TAG, "建立连接");
+
+                // 通知异常页面清空数据
+                Intent intent = new Intent();
+                intent.setAction("MESSAGE_WEBSOCKET_CLOSED");
+                sendBroadcast(intent);
+
+                // 告诉服务器本机IP和用户名
+                Map<String, String> map = new HashMap<>();
+                map.put("IPAddress", WifiUtil.getLocalIPAddress());
+                User user = GsonUtils.parseJSON(SPHelper.getString("User", GsonUtils.convertJSON(new User())), User.class);
+                map.put("UserName", user.getUser_id());
+                sendMessage(GsonUtils.convertJSON(map));
             }
 
             @Override
@@ -152,9 +168,9 @@ public class WebSocketService extends Service {
             public void onClose(int code, String reason, boolean remote) {
                 //通道关闭
                 // 通知主页面列表清空
-//                        Intent intent = new Intent();
-//                        intent.setAction("MESSAGE_WEBSOCKET_CLOSED");
-//                        sendBroadcast(intent);
+                Intent intent = new Intent();
+                intent.setAction("MESSAGE_WEBSOCKET_CLOSED");
+                sendBroadcast(intent);
                 // 清空异常信息音乐列表
                 MusicPlay.with(WebSocketService.this).getMusicListList().clear();
             }

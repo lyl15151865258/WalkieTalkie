@@ -68,7 +68,7 @@
             android:value="2.1" />
 
         <activity
-            android:name=".activity.appmain.LogoActivity"
+            android:name=".activity.loginregister.LogoActivity"
             android:label="@string/app_name"
             android:screenOrientation="portrait"
             android:theme="@style/SplashTheme">

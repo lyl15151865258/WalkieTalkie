@@ -1,6 +1,7 @@
 package jp.co.shiratsuki.walkietalkie.network;
 
-import jp.co.shiratsuki.walkietalkie.bean.LoginRegisterResult;
+import jp.co.shiratsuki.walkietalkie.bean.DepartmentResult;
+import jp.co.shiratsuki.walkietalkie.bean.UserOperateResult;
 import jp.co.shiratsuki.walkietalkie.bean.NormalResult;
 
 import java.util.Map;
@@ -35,7 +36,7 @@ public interface NjMeterApi {
      */
     @FormUrlEncoded
     @POST("user/register.do")
-    Observable<LoginRegisterResult> register(@FieldMap Map<String, String> params);
+    Observable<UserOperateResult> register(@FieldMap Map<String, String> params);
 
     /**
      * 主账号登录的请求
@@ -45,7 +46,25 @@ public interface NjMeterApi {
      */
     @FormUrlEncoded
     @POST("user/login.do")
-    Observable<LoginRegisterResult> login(@FieldMap Map<String, String> params);
+    Observable<UserOperateResult> login(@FieldMap Map<String, String> params);
+
+    /**
+     * 更新用户信息
+     *
+     * @param params 参数
+     * @return 返回值
+     */
+    @FormUrlEncoded
+    @POST("user/updateInfo.do")
+    Observable<UserOperateResult> updateInfo(@FieldMap Map<String, Object> params);
+
+    /**
+     * 更新用户信息
+     *
+     * @return 返回值
+     */
+    @POST("user/searchDepartment.do")
+    Observable<DepartmentResult> searchDepartment();
 
     /**
      * 更新用户头像
@@ -55,7 +74,7 @@ public interface NjMeterApi {
      * @return 更新结果
      */
     @Multipart
-    @POST("AndroidController/uploadHeadPortrait.do")
+    @POST("user/uploadHeadPortrait.do")
     Observable<NormalResult> uploadUserIcon(@Part("information") RequestBody information, @Part MultipartBody.Part file);
 
     /**

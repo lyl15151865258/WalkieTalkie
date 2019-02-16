@@ -38,12 +38,16 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
 import com.kevin.crop.UCrop;
 
 import java.io.File;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 import jp.co.shiratsuki.walkietalkie.R;
 import jp.co.shiratsuki.walkietalkie.activity.appmain.CropActivity;
@@ -53,21 +57,30 @@ import jp.co.shiratsuki.walkietalkie.activity.settings.SetLanguageActivity;
 import jp.co.shiratsuki.walkietalkie.activity.settings.SetMessageServerActivity;
 import jp.co.shiratsuki.walkietalkie.activity.settings.SetPersonalInfoActivity;
 import jp.co.shiratsuki.walkietalkie.activity.settings.SetVoiceServerActivity;
+import jp.co.shiratsuki.walkietalkie.bean.NormalResult;
 import jp.co.shiratsuki.walkietalkie.bean.User;
 import jp.co.shiratsuki.walkietalkie.bean.WebSocketData;
 import jp.co.shiratsuki.walkietalkie.broadcast.BaseBroadcastReceiver;
+import jp.co.shiratsuki.walkietalkie.constant.Constants;
+import jp.co.shiratsuki.walkietalkie.constant.NetWork;
 import jp.co.shiratsuki.walkietalkie.contentprovider.SPHelper;
 import jp.co.shiratsuki.walkietalkie.fragment.ChatRoomFragment;
 import jp.co.shiratsuki.walkietalkie.fragment.ContactsFragment;
 import jp.co.shiratsuki.walkietalkie.fragment.MalfunctionFragment;
 import jp.co.shiratsuki.walkietalkie.interfaces.OnPictureSelectedListener;
+import jp.co.shiratsuki.walkietalkie.network.ExceptionHandle;
+import jp.co.shiratsuki.walkietalkie.network.NetClient;
+import jp.co.shiratsuki.walkietalkie.network.NetworkSubscriber;
 import jp.co.shiratsuki.walkietalkie.permission.floatwindow.FloatWindowManager;
 import jp.co.shiratsuki.walkietalkie.service.IVoiceCallback;
 import jp.co.shiratsuki.walkietalkie.service.IVoiceService;
 import jp.co.shiratsuki.walkietalkie.service.VoiceService;
 import jp.co.shiratsuki.walkietalkie.service.WebSocketService;
 import jp.co.shiratsuki.walkietalkie.utils.ActivityController;
+import jp.co.shiratsuki.walkietalkie.utils.BitmapUtils;
+import jp.co.shiratsuki.walkietalkie.utils.GsonUtils;
 import jp.co.shiratsuki.walkietalkie.utils.LogUtils;
+import jp.co.shiratsuki.walkietalkie.utils.NetworkUtil;
 import jp.co.shiratsuki.walkietalkie.utils.NotificationsUtil;
 import jp.co.shiratsuki.walkietalkie.utils.PermissionUtil;
 import jp.co.shiratsuki.walkietalkie.utils.StatusBarUtil;
@@ -76,6 +89,12 @@ import jp.co.shiratsuki.walkietalkie.webrtc.WebRTCHelper;
 import jp.co.shiratsuki.walkietalkie.widget.NoScrollViewPager;
 import jp.co.shiratsuki.walkietalkie.widget.SelectPicturePopupWindow;
 import jp.co.shiratsuki.walkietalkie.widget.dialog.CommonWarningDialog;
+import okhttp3.MediaType;
+import okhttp3.MultipartBody;
+import okhttp3.RequestBody;
+import rx.Observable;
+import rx.android.schedulers.AndroidSchedulers;
+import rx.schedulers.Schedulers;
 
 /**
  * 主页面
@@ -164,14 +183,17 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
             showConnectWifiDialog();
         }
 
-        tvUserName.setText(SPHelper.getString("UserName", "unknown"));
-        tvCompanyName.setText(SPHelper.getString("Company", "unknown"));
-        tvDepartment.setText(SPHelper.getString("Department", "unknown"));
-        String photoPath = SPHelper.getString("UserIconPath", "");
+        User user = GsonUtils.parseJSON(SPHelper.getString("User", GsonUtils.convertJSON(new User())), User.class);
+        tvUserName.setText(user.getUser_name());
+        tvCompanyName.setText(user.getCompany());
+        tvDepartment.setText(user.getDepartment_name());
+
+        String photoPath = ("http://" + NetWork.SERVER_HOST_MAIN + ":" + NetWork.SERVER_PORT_MAIN + user.getIcon_url()).replace("\\", "/");
+        SPHelper.save("userIconPath", photoPath);
         // 加载头像
         RequestOptions options = new RequestOptions().error(R.drawable.photo_user).placeholder(R.drawable.photo_user).dontAnimate();
-//        Glide.with(this).load(photoPath).apply(options).into(ivUserIcon);
-//        Glide.with(this).load(photoPath).apply(options).into(ivIcon);
+        Glide.with(this).load(photoPath).apply(options).into(ivUserIcon);
+        Glide.with(this).load(photoPath).apply(options).into(ivIcon);
 
         Intent intent1 = new Intent(mContext, WebSocketService.class);
         bindService(intent1, serviceConnection1, BIND_AUTO_CREATE);
@@ -184,6 +206,21 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
     protected void setStatusBar() {
         int mColor = getResources().getColor(R.color.colorBluePrimary);
         StatusBarUtil.setColorForDrawerLayout(this, findViewById(R.id.drawer_layout), mColor);
+    }
+
+    /**
+     * 加载头像
+     *
+     * @param photoPath 头像路径
+     */
+    private void showUserIcon(String photoPath) {
+        LogUtils.d(NetClient.TAG_POST, "图片路径：" + photoPath);
+        SPHelper.save("userIconPath", photoPath);
+        if (photoPath != null) {
+            RequestOptions options = new RequestOptions().error(R.drawable.photo_user).placeholder(R.drawable.photo_user).dontAnimate();
+            Glide.with(this).load(photoPath).apply(options).into(ivUserIcon);
+            Glide.with(this).load(photoPath).apply(options).into(ivIcon);
+        }
     }
 
     private void initView() {
@@ -481,12 +518,25 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
                 isUseSpeaker = false;
                 btnSpeaker.setBackgroundResource(R.drawable.icon_speaker_pressed);
 
-                // 清空联系人列表
-                Fragment fragment = getSupportFragmentManager().getFragments().get(1);
-                if (fragment instanceof ChatRoomFragment) {
-                    ChatRoomFragment ChatRoomFragment = (ChatRoomFragment) fragment;
-                    ChatRoomFragment.userList.clear();
-                    ChatRoomFragment.chatRoomContactAdapter.notifyDataSetChanged();
+                // 清空房间联系人列表
+                List<Fragment> fragmentList = getSupportFragmentManager().getFragments();
+                ChatRoomFragment chatRoomFragment;
+                for (Fragment fragment : fragmentList) {
+                    if (fragment instanceof ChatRoomFragment) {
+                        chatRoomFragment = (ChatRoomFragment) fragment;
+                        chatRoomFragment.clearUserList();
+                        break;
+                    }
+                }
+
+                // 清空大厅联系人列表
+                ContactsFragment contactsFragment;
+                for (Fragment fragment : fragmentList) {
+                    if (fragment instanceof ContactsFragment) {
+                        contactsFragment = (ContactsFragment) fragment;
+                        contactsFragment.clearUserList();
+                        break;
+                    }
                 }
 
                 SPHelper.save("KEY_STATUS_UP", true);
@@ -530,58 +580,18 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
             }));
         }
 
-//        @Override
-//        public void findNewUser(String userId, String userName, String company, String department, String iconUrl, String roomId,
-//                                String roomName, boolean inRoom, boolean speaking) {
-//            // 发送到主线程更新UI
-//            runOnUiThread(new Runnable() {
-//                @Override
-//                public void run() {
-//                    LogUtils.d(TAG, "有新用户，刷新ContactsFragment联系人列表");
-//                    Fragment fragment = getSupportFragmentManager().getFragments().get(1);
-//                    if (fragment instanceof ChatRoomFragment) {
-//                        ChatRoomFragment chatRoomFragment = (ChatRoomFragment) fragment;
-//                        int position = -1;
-//                        for (int i = 0; i < chatRoomFragment.userList.size(); i++) {
-//                            if (chatRoomFragment.userList.get(i).getUserId().equals(userId)) {
-//                                position = i;
-//                                break;
-//                            }
-//                        }
-//                        if (position == -1) {
-//                            chatRoomFragment.userList.add(chatRoomFragment.userList.size(), new User(userId, userName, company, department, iconUrl, roomId,
-//                                    roomName, inRoom, speaking));
-//                            chatRoomFragment.chatRoomContactAdapter.notifyItemChanged(chatRoomFragment.userList.size() - 1);
-//                        } else {
-//                            if (!chatRoomFragment.userList.get(position).getUserName().equals(userName)) {
-//                                chatRoomFragment.userList.get(position).setUserName(userName);
-//                                chatRoomFragment.chatRoomContactAdapter.notifyItemChanged(position);
-//                            }
-//                        }
-//                    }
-//
-//                }
-//            });
-//        }
-
         @Override
         public void removeUser(String ipAddress, String name) {
             // 发送到主线程更新UI
             runOnUiThread(() -> {
                 LogUtils.d(TAG, "移除用户，刷新ContactsFragment联系人列表");
-                Fragment fragment = getSupportFragmentManager().getFragments().get(1);
-                if (fragment instanceof ChatRoomFragment) {
-                    ChatRoomFragment chatRoomFragment = (ChatRoomFragment) fragment;
-                    int position = -1;
-                    for (int i = 0; i < chatRoomFragment.userList.size(); i++) {
-                        if (chatRoomFragment.userList.get(i).getUser_id().equals(ipAddress)) {
-                            position = i;
-                            break;
-                        }
-                    }
-                    if (position != -1) {
-                        chatRoomFragment.userList.remove(position);
-                        chatRoomFragment.chatRoomContactAdapter.notifyItemRemoved(position);
+                List<Fragment> fragmentList = getSupportFragmentManager().getFragments();
+                ChatRoomFragment chatRoomFragment;
+                for (Fragment fragment : fragmentList) {
+                    if (fragment instanceof ChatRoomFragment) {
+                        chatRoomFragment = (ChatRoomFragment) fragment;
+                        chatRoomFragment.removeUser(ipAddress);
+                        break;
                     }
                 }
             });
@@ -739,77 +749,43 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
         public void onReceive(Context context, Intent intent) {
             super.onReceive(context, intent);
             if (intent != null && intent.getAction() != null) {
+                List<Fragment> fragmentList = getSupportFragmentManager().getFragments();
                 switch (intent.getAction()) {
                     case "RECEIVE_MALFUNCTION": {
                         WebSocketData webSocketData = (WebSocketData) intent.getSerializableExtra("data");
                         viewPager.setCurrentItem(0, false);
-                        Fragment fragment = getSupportFragmentManager().getFragments().get(0);
-                        if (fragment instanceof MalfunctionFragment) {
-                            MalfunctionFragment malfunctionFragment = (MalfunctionFragment) fragment;
-                            if (webSocketData.isStatus()) {
-                                malfunctionFragment.malfunctionList.add(malfunctionFragment.malfunctionList.size(), webSocketData);
-                                malfunctionFragment.malfunctionAdapter.notifyItemInserted(malfunctionFragment.malfunctionList.size() - 1);
-                            } else {
-                                int position = -1;
-                                for (int i = 0; i < malfunctionFragment.malfunctionList.size(); i++) {
-                                    if (malfunctionFragment.malfunctionList.get(i).getListNo() == webSocketData.getListNo()) {
-                                        position = i;
-                                        break;
-                                    }
-                                }
-                                if (position != -1) {
-                                    malfunctionFragment.malfunctionList.remove(position);
-                                    malfunctionFragment.malfunctionAdapter.notifyItemRemoved(position);
-                                }
+                        MalfunctionFragment malfunctionFragment;
+                        for (Fragment fragment : fragmentList) {
+                            if (fragment instanceof MalfunctionFragment) {
+                                malfunctionFragment = (MalfunctionFragment) fragment;
+                                malfunctionFragment.receiveMalfunction(webSocketData);
+                                break;
                             }
                         }
                     }
                     break;
                     case "CURRENT_PLAYING": {
                         int listNo = intent.getIntExtra("number", -1);
-                        Fragment fragment = getSupportFragmentManager().getFragments().get(0);
-                        if (fragment instanceof MalfunctionFragment) {
-                            MalfunctionFragment malfunctionFragment = (MalfunctionFragment) fragment;
-                            if (listNo == -1) {
-                                for (int i = 0; i < malfunctionFragment.malfunctionList.size(); i++) {
-                                    if (malfunctionFragment.malfunctionList.get(i).isPalying()) {
-                                        malfunctionFragment.malfunctionList.get(i).setPalying(false);
-                                        malfunctionFragment.malfunctionAdapter.notifyItemChanged(i, false);
-                                        break;
-                                    }
-                                }
-                            } else {
-                                for (int i = 0; i < malfunctionFragment.malfunctionList.size(); i++) {
-                                    if (listNo == malfunctionFragment.malfunctionList.get(i).getListNo()) {
-                                        if (!malfunctionFragment.malfunctionList.get(i).isPalying()) {
-                                            malfunctionFragment.malfunctionList.get(i).setPalying(true);
-                                            malfunctionFragment.malfunctionAdapter.notifyItemChanged(i, true);
-                                        }
-                                    } else {
-                                        if (malfunctionFragment.malfunctionList.get(i).isPalying()) {
-                                            malfunctionFragment.malfunctionList.get(i).setPalying(false);
-                                            malfunctionFragment.malfunctionAdapter.notifyItemChanged(i, false);
-                                        }
-                                    }
-                                }
+                        MalfunctionFragment malfunctionFragment;
+                        for (Fragment fragment : fragmentList) {
+                            if (fragment instanceof MalfunctionFragment) {
+                                malfunctionFragment = (MalfunctionFragment) fragment;
+                                malfunctionFragment.setCurrentPlaying(listNo);
+                                break;
                             }
                         }
                     }
                     break;
                     case "NO_LONGER_PLAYING": {
                         int listNo = intent.getIntExtra("number", -1);
-                        Fragment fragment = getSupportFragmentManager().getFragments().get(0);
-                        if (fragment instanceof MalfunctionFragment) {
-                            MalfunctionFragment malfunctionFragment = (MalfunctionFragment) fragment;
-                            if (listNo != -1) {
-                                for (int i = 0; i < malfunctionFragment.malfunctionList.size(); i++) {
-                                    if (listNo == malfunctionFragment.malfunctionList.get(i).getListNo()) {
-                                        malfunctionFragment.malfunctionList.get(i).setPalying(false);
-                                        LogUtils.d(TAG, "Activity中List的长度：" + malfunctionFragment.malfunctionList.size() + "，不再播放位置：" + i);
-                                        malfunctionFragment.malfunctionAdapter.notifyItemChanged(i, i);
-                                        break;
-                                    }
+                        MalfunctionFragment malfunctionFragment;
+                        for (Fragment fragment : fragmentList) {
+                            if (fragment instanceof MalfunctionFragment) {
+                                malfunctionFragment = (MalfunctionFragment) fragment;
+                                if (listNo != -1) {
+                                    malfunctionFragment.refreshMalfunction(listNo, false);
                                 }
+                                break;
                             }
                         }
                     }
@@ -838,27 +814,33 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
                         break;
                     case "MESSAGE_WEBSOCKET_CLOSED": {
                         // 异常信息推送的WebSocket断开了，清空列表
-                        Fragment fragment = getSupportFragmentManager().getFragments().get(0);
-                        if (fragment instanceof MalfunctionFragment) {
-                            MalfunctionFragment malfunctionFragment = (MalfunctionFragment) fragment;
-                            malfunctionFragment.malfunctionList.clear();
-                            malfunctionFragment.malfunctionAdapter.notifyDataSetChanged();
+                        MalfunctionFragment malfunctionFragment;
+                        for (Fragment fragment : fragmentList) {
+                            if (fragment instanceof MalfunctionFragment) {
+                                malfunctionFragment = (MalfunctionFragment) fragment;
+                                malfunctionFragment.clearMalfunctionList();
+                                break;
+                            }
                         }
                     }
                     break;
                     case "UPDATE_CONTACTS_ROOM": {
                         // 刷新联系人列表
                         LogUtils.d(TAG, "刷新ChatRoomFragment联系人列表");
-                        Fragment fragment = getSupportFragmentManager().getFragments().get(1);
-                        if (fragment instanceof ChatRoomFragment) {
-                            ChatRoomFragment chatRoomFragment = (ChatRoomFragment) fragment;
-                            chatRoomFragment.userList.clear();
-                            ArrayList<User> users = intent.getParcelableArrayListExtra("userList");
-                            for (int i = 0; i < users.size(); i++) {
-                                LogUtils.d(TAG, "联系人数量：" + users.size() + "," + users.get(i).getUser_id());
+                        ChatRoomFragment chatRoomFragment;
+                        for (Fragment fragment : fragmentList) {
+                            if (fragment instanceof ChatRoomFragment) {
+                                chatRoomFragment = (ChatRoomFragment) fragment;
+                                LogUtils.d(TAG, "刷新ChatRoomFragment联系人列表111111111");
+                                ArrayList<User> users = intent.getParcelableArrayListExtra("userList");
+                                LogUtils.d(TAG, "刷新ChatRoomFragment联系人列表222222222222");
+                                for (int i = 0; i < users.size(); i++) {
+                                    LogUtils.d(TAG, "联系人数量：" + users.size() + "," + users.get(i).getUser_id());
+                                }
+                                LogUtils.d(TAG, "刷新ChatRoomFragment联系人列表3333333333");
+                                chatRoomFragment.refreshList(users);
+                                break;
                             }
-                            chatRoomFragment.userList.addAll(users);
-                            chatRoomFragment.chatRoomContactAdapter.notifyDataSetChanged();
                         }
                         // 更改手机音量键调节的音量类型
                         int streamType = intent.getIntExtra("VolumeControlStream", AudioManager.STREAM_RING);
@@ -869,16 +851,17 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
                     case "UPDATE_CONTACTS": {
                         // 刷新联系人列表
                         LogUtils.d(TAG, "刷新ContactsFragment联系人列表");
-                        Fragment fragment = getSupportFragmentManager().getFragments().get(2);
-                        if (fragment instanceof ContactsFragment) {
-                            ContactsFragment contactsFragment = (ContactsFragment) fragment;
-                            contactsFragment.userList.clear();
-                            ArrayList<User> users = intent.getParcelableArrayListExtra("userList");
-                            for (int i = 0; i < users.size(); i++) {
-                                LogUtils.d(TAG, "联系人数量：" + users.size() + "," + users.get(i).getUser_id());
+                        ContactsFragment contactsFragment;
+                        for (Fragment fragment : fragmentList) {
+                            if (fragment instanceof ContactsFragment) {
+                                contactsFragment = (ContactsFragment) fragment;
+                                ArrayList<User> users = intent.getParcelableArrayListExtra("userList");
+                                for (int i = 0; i < users.size(); i++) {
+                                    LogUtils.d(TAG, "联系人数量：" + users.size() + "," + users.get(i).getUser_id());
+                                }
+                                contactsFragment.refreshList(users);
+                                break;
                             }
-                            contactsFragment.userList.addAll(users);
-                            contactsFragment.contactAdapter.notifyDataSetChanged();
                         }
                     }
                     break;
@@ -887,6 +870,7 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
                 }
             }
         }
+
     }
 
     protected void showSelectPicturePopupWindow(View parent) {
@@ -972,12 +956,81 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
         String imagePath = Uri.decode(filePath);
         LogUtils.d(TAG, "imagePath:" + imagePath);
         SPHelper.save("UserIconPath", imagePath);
-//        String time = (new SimpleDateFormat("yyyyMMddHHmmss", Locale.CHINA)).format(new Date());
-//        //以“.webp”格式作为图片扩展名
-//        String type = "webp";
-//        //将本软件的包路径+文件名拼接成图片绝对路径
-//        String newFile = getExternalFilesDir("Icons") + "/" + time + "." + type;
+        String time = (new SimpleDateFormat("yyyyMMddHHmmss", Locale.CHINA)).format(new Date());
+        // 以“.webp”格式作为图片扩展名
+        String type = "webp";
+        // 将本软件的包路径 + 文件名拼接成图片绝对路径
+        User user = GsonUtils.parseJSON(SPHelper.getString("User", GsonUtils.convertJSON(new User())), User.class);
+        String newFile = getExternalFilesDir("Icons") + "/" + time + "_" + user.getUser_id() + "." + type;
+        BitmapUtils.compressPicture(imagePath, newFile);
+        uploadUserIcon(new File(newFile));
     };
+
+    /**
+     * 上传或更新头像
+     *
+     * @param file 头像文件
+     */
+    private void uploadUserIcon(File file) {
+        User user = GsonUtils.parseJSON(SPHelper.getString("User", GsonUtils.convertJSON(new User())), User.class);
+        RequestBody description = RequestBody.create(MediaType.parse("text/plain"), user.getUser_id());
+        // 创建 RequestBody，用于封装构建RequestBody
+        RequestBody requestFile = RequestBody.create(MediaType.parse("multipart/form-data"), file);
+        // MultipartBody.Part  和后端约定好Key，这里的partName是用image
+        MultipartBody.Part body = MultipartBody.Part.createFormData("uploadfile", file.getName(), requestFile);
+        // 执行请求
+        Observable<NormalResult> normalResultObservable = NetClient.getInstances(NetClient.BASE_URL_PROJECT).getNjMeterApi().uploadUserIcon(description, body);
+        normalResultObservable.subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread()).subscribe(new NetworkSubscriber<NormalResult>(mContext, getClass().getSimpleName()) {
+
+            @Override
+            public void onStart() {
+                super.onStart();
+                //接下来可以检查网络连接等操作
+                if (!NetworkUtil.isNetworkAvailable(mContext)) {
+                    showToast("当前网络不可用，请检查网络");
+                    if (!isUnsubscribed()) {
+                        unsubscribe();
+                    }
+                } else {
+                    showLoadingDialog(mContext, "更新中", true);
+                }
+            }
+
+            @Override
+            public void onError(ExceptionHandle.ResponseThrowable responseThrowable) {
+                cancelDialog();
+                showToast(responseThrowable.message);
+            }
+
+            @Override
+            public void onNext(NormalResult normalResult) {
+                cancelDialog();
+                if (normalResult == null) {
+                    showToast("头像更新失败");
+                } else {
+                    String result = normalResult.getResult();
+                    String photoPath = ("http://" + NetWork.SERVER_HOST_MAIN + ":" + NetWork.SERVER_PORT_MAIN + "/" + normalResult.getMessage()).replace("\\", "/");
+                    // 更新存储的User对象
+                    User user = GsonUtils.parseJSON(SPHelper.getString("User", GsonUtils.convertJSON(new User())), User.class);
+                    user.setIcon_url(normalResult.getMessage());
+                    SPHelper.save("User", GsonUtils.convertJSON(user));
+                    switch (result) {
+                        case Constants.SUCCESS:
+                            showToast("头像更新成功");
+                            showUserIcon(photoPath);
+                            break;
+                        case Constants.FAIL:
+                            showToast("服务器保存异常，更新失败");
+                            break;
+                        default:
+                            showToast("未知错误，头像更新失败");
+                            break;
+                    }
+                }
+            }
+        });
+    }
+
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {

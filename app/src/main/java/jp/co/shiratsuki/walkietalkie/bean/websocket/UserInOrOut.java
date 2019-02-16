@@ -27,15 +27,15 @@ public class UserInOrOut {
 
     public class Data {
 
-        private String socketId;
+        private String userId;
         private ArrayList<User> contacts;
 
-        public void setSocketId(String socketId) {
-            this.socketId = socketId;
+        public String getUserId() {
+            return userId;
         }
 
-        public String getSocketId() {
-            return socketId;
+        public void setUserId(String userId) {
+            this.userId = userId;
         }
 
         public ArrayList<User> getContacts() {

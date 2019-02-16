@@ -4,41 +4,44 @@
     android:layout_height="wrap_content"
     android:background="@color/bg_popupwindow"
     android:orientation="vertical"
-    android:padding="10dp">
+    android:padding="@dimen/dp_5">
 
     <jp.co.shiratsuki.walkietalkie.widget.MyButton
         android:id="@+id/btn_camera_pop_camera"
         style="?android:attr/borderlessButtonStyle"
         android:layout_width="match_parent"
-        android:layout_height="45dp"
+        android:layout_height="wrap_content"
         android:background="@drawable/pop_first_selector"
+        android:padding="@dimen/dp_15"
         android:text="@string/camera_pop_camera"
         android:textAllCaps="false"
-        android:textColor="@color/blue_sky"
+        android:textColor="@color/black"
         android:textSize="18sp" />
 
     <jp.co.shiratsuki.walkietalkie.widget.MyButton
         android:id="@+id/btn_camera_pop_album"
         style="?android:attr/borderlessButtonStyle"
         android:layout_width="match_parent"
-        android:layout_height="45dp"
+        android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/dp_1"
         android:background="@drawable/pop_last_selector"
+        android:padding="@dimen/dp_15"
         android:text="@string/camera_pop_album"
         android:textAllCaps="false"
-        android:textColor="@color/blue_sky"
+        android:textColor="@color/black"
         android:textSize="18sp" />
 
     <jp.co.shiratsuki.walkietalkie.widget.MyButton
         android:id="@+id/btn_camera_pop_cancel"
         style="?android:attr/borderlessButtonStyle"
         android:layout_width="match_parent"
-        android:layout_height="45dp"
-        android:layout_marginTop="10dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/dp_8"
         android:background="@drawable/pop_single_selector"
+        android:padding="@dimen/dp_15"
         android:text="@string/camera_pop_cancel"
         android:textAllCaps="false"
-        android:textColor="@color/blue_sky"
+        android:textColor="@color/black"
         android:textSize="18sp" />
 
 </LinearLayout>

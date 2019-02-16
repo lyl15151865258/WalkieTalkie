@@ -9,10 +9,14 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.RequestOptions;
+
 import java.util.List;
 
 import jp.co.shiratsuki.walkietalkie.R;
 import jp.co.shiratsuki.walkietalkie.bean.User;
+import jp.co.shiratsuki.walkietalkie.constant.NetWork;
 
 /**
  * 联系人列表适配器
@@ -41,14 +45,12 @@ public class ContactAdapter extends RecyclerView.Adapter<ContactAdapter.ContactV
 
     @Override
     public void onBindViewHolder(@NonNull ContactViewHolder viewHolder, int position) {
-        User con = userList.get(position);
-        viewHolder.tvUserIP.setText(con.getUser_id());
-        viewHolder.tvUserName.setText(con.getUser_name());
-        if (con.isSpeaking()) {
-            viewHolder.ivSpeaking.setVisibility(View.VISIBLE);
-        } else {
-            viewHolder.ivSpeaking.setVisibility(View.INVISIBLE);
-        }
+        User user = userList.get(position);
+        viewHolder.tvUserInfo.setText(user.getUser_name() + "（" + user.getDepartment_name() + "）");
+        viewHolder.tvMessage.setText("");
+        String iconUrl = ("http://" + NetWork.SERVER_HOST_MAIN + ":" + NetWork.SERVER_PORT_MAIN + user.getIcon_url()).replace("\\", "/");
+        RequestOptions options = new RequestOptions().error(R.drawable.photo_user).placeholder(R.drawable.photo_user).dontAnimate();
+        Glide.with(mContext).load(iconUrl).apply(options).into(viewHolder.ivUserIcon);
     }
 
     @Override
@@ -57,15 +59,14 @@ public class ContactAdapter extends RecyclerView.Adapter<ContactAdapter.ContactV
     }
 
     public class ContactViewHolder extends RecyclerView.ViewHolder {
-        private TextView tvUserName, tvUserIP;
-        private ImageView ivUserIcon, ivSpeaking;
+        private TextView tvUserInfo, tvMessage;
+        private ImageView ivUserIcon;
 
         private ContactViewHolder(View itemView) {
             super(itemView);
             ivUserIcon = itemView.findViewById(R.id.ivUserIcon);
-            ivSpeaking = itemView.findViewById(R.id.ivSpeaking);
-            tvUserName = itemView.findViewById(R.id.tvUserName);
-            tvUserIP = itemView.findViewById(R.id.tvUserIP);
+            tvUserInfo = itemView.findViewById(R.id.tvUserInfo);
+            tvMessage = itemView.findViewById(R.id.tvMessage);
         }
     }
 

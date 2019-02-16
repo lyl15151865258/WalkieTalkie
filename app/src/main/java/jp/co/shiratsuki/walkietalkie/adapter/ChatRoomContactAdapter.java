@@ -17,6 +17,7 @@ import java.util.List;
 
 import jp.co.shiratsuki.walkietalkie.R;
 import jp.co.shiratsuki.walkietalkie.bean.User;
+import jp.co.shiratsuki.walkietalkie.constant.NetWork;
 
 /**
  * 房间联系人列表适配器
@@ -45,16 +46,15 @@ public class ChatRoomContactAdapter extends RecyclerView.Adapter<ChatRoomContact
 
     @Override
     public void onBindViewHolder(@NonNull ContactViewHolder viewHolder, int position) {
-        User con = userList.get(position);
-        viewHolder.tvUserIP.setText(con.getUser_id());
-        viewHolder.tvUserName.setText(con.getUser_name());
-        if (con.isSpeaking()) {
+        User user = userList.get(position);
+        viewHolder.tvUserName.setText(user.getUser_name());
+        viewHolder.tvDepartment.setText(user.getDepartment_name());
+        if (user.isSpeaking()) {
             viewHolder.llRoot.setBackgroundResource(R.drawable.border_gridview_green_gray);
         } else {
             viewHolder.llRoot.setBackgroundResource(R.drawable.border_gridview_white_gray);
         }
-//        String iconUrl = con.getIconUrl();
-        String iconUrl = "http://cdnimg103.lizhi.fm/audio_cover/2016/08/26/2553324898273063943_320x320.jpg";
+        String iconUrl = ("http://" + NetWork.SERVER_HOST_MAIN + ":" + NetWork.SERVER_PORT_MAIN + user.getIcon_url()).replace("\\", "/");
         RequestOptions options = new RequestOptions().error(R.drawable.photo_user).placeholder(R.drawable.photo_user).dontAnimate();
         Glide.with(mContext).load(iconUrl).apply(options).into(viewHolder.ivUserIcon);
     }
@@ -66,7 +66,7 @@ public class ChatRoomContactAdapter extends RecyclerView.Adapter<ChatRoomContact
 
     public class ContactViewHolder extends RecyclerView.ViewHolder {
         private LinearLayout llRoot;
-        private TextView tvUserName, tvUserIP;
+        private TextView tvUserName, tvDepartment;
         private ImageView ivUserIcon;
 
         private ContactViewHolder(View itemView) {
@@ -74,7 +74,7 @@ public class ChatRoomContactAdapter extends RecyclerView.Adapter<ChatRoomContact
             llRoot = itemView.findViewById(R.id.llRoot);
             ivUserIcon = itemView.findViewById(R.id.ivUserIcon);
             tvUserName = itemView.findViewById(R.id.tvUserName);
-            tvUserIP = itemView.findViewById(R.id.tvUserIP);
+            tvDepartment = itemView.findViewById(R.id.tvDepartment);
         }
     }
 

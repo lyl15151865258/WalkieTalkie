@@ -15,6 +15,7 @@ import java.util.List;
 import jp.co.shiratsuki.walkietalkie.R;
 import jp.co.shiratsuki.walkietalkie.adapter.ContactAdapter;
 import jp.co.shiratsuki.walkietalkie.bean.User;
+import jp.co.shiratsuki.walkietalkie.utils.LogUtils;
 import jp.co.shiratsuki.walkietalkie.widget.RecyclerViewDivider;
 
 /**
@@ -27,9 +28,10 @@ import jp.co.shiratsuki.walkietalkie.widget.RecyclerViewDivider;
 
 public class ContactsFragment extends BaseFragment {
 
+    private String TAG = "ContactsFragment";
     private Context mContext;
-    public List<User> userList;
-    public ContactAdapter contactAdapter;
+    private List<User> userList;
+    private ContactAdapter contactAdapter;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -50,6 +52,47 @@ public class ContactsFragment extends BaseFragment {
     @Override
     public void lazyLoad() {
 
+    }
+
+    /**
+     * 刷新所有联系人列表
+     *
+     * @param userList 房间内联系人列表
+     */
+    public void refreshList(List<User> userList) {
+        LogUtils.d(TAG, "刷新联系人列表");
+        this.userList.clear();
+        this.userList.addAll(userList);
+        contactAdapter.notifyDataSetChanged();
+    }
+
+    /**
+     * 移除用户
+     *
+     * @param userId 用户ID
+     */
+    public void removeUser(String userId) {
+        LogUtils.d(TAG, "移除用户：" + userId);
+        int position = -1;
+        for (int i = 0; i < userList.size(); i++) {
+            if (userList.get(i).getUser_id().equals(userId)) {
+                position = i;
+                break;
+            }
+        }
+        if (position != -1) {
+            userList.remove(position);
+            contactAdapter.notifyItemRemoved(position);
+        }
+    }
+
+    /**
+     * 清空所有联系人
+     */
+    public void clearUserList() {
+        LogUtils.d(TAG, "清空联系人列表");
+        userList.clear();
+        contactAdapter.notifyDataSetChanged();
     }
 
     @Override

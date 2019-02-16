@@ -32,17 +32,19 @@
             android:marqueeRepeatLimit="marquee_forever"
             android:padding="@dimen/dp_2"
             android:singleLine="true"
+            android:textColor="@color/black"
             android:textSize="@dimen/sp_16" />
 
         <jp.co.shiratsuki.walkietalkie.widget.MarqueeTextView
-            android:id="@+id/tvUserIP"
+            android:id="@+id/tvDepartment"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:ellipsize="marquee"
             android:gravity="center"
             android:marqueeRepeatLimit="marquee_forever"
             android:singleLine="true"
-            android:textSize="@dimen/sp_14" />
+            android:textSize="@dimen/sp_14"
+            android:textStyle="bold" />
 
     </LinearLayout>
 

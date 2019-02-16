@@ -30,6 +30,7 @@ import jp.co.shiratsuki.walkietalkie.R;
 import jp.co.shiratsuki.walkietalkie.activity.appmain.CropActivity;
 import jp.co.shiratsuki.walkietalkie.activity.base.BaseActivity;
 import jp.co.shiratsuki.walkietalkie.bean.NormalResult;
+import jp.co.shiratsuki.walkietalkie.bean.User;
 import jp.co.shiratsuki.walkietalkie.constant.Constants;
 import jp.co.shiratsuki.walkietalkie.constant.NetWork;
 import jp.co.shiratsuki.walkietalkie.contentprovider.SPHelper;
@@ -39,6 +40,7 @@ import jp.co.shiratsuki.walkietalkie.network.NetClient;
 import jp.co.shiratsuki.walkietalkie.network.NetworkSubscriber;
 import jp.co.shiratsuki.walkietalkie.utils.ActivityController;
 import jp.co.shiratsuki.walkietalkie.utils.BitmapUtils;
+import jp.co.shiratsuki.walkietalkie.utils.GsonUtils;
 import jp.co.shiratsuki.walkietalkie.utils.LogUtils;
 import jp.co.shiratsuki.walkietalkie.utils.NetworkUtil;
 import jp.co.shiratsuki.walkietalkie.widget.MyToolbar;
@@ -93,7 +95,8 @@ public class ChooseHeadPortraitActivity extends BaseActivity {
         mContext = this;
         MyToolbar toolbar = findViewById(R.id.myToolbar);
         toolbar.initToolBar(this, toolbar, "设置头像", R.drawable.back_white, R.drawable.icon_finish, onClickListener);
-//        userId = NjMeterApplication.getInstance().getAccount().getLoginId();
+        User user = GsonUtils.parseJSON(SPHelper.getString("User", GsonUtils.convertJSON(new User())), User.class);
+        userId = user.getUser_id();
         ivUserIcon = findViewById(R.id.ivUserIcon);
         findViewById(R.id.btnTakePhoto).setOnClickListener(onClickListener);
         findViewById(R.id.btnSelectFromAlbum).setOnClickListener(onClickListener);
@@ -139,7 +142,8 @@ public class ChooseHeadPortraitActivity extends BaseActivity {
         //以“.webp”格式作为图片扩展名
         String type = "webp";
         //将本软件的包路径+文件名拼接成图片绝对路径
-        String newFile = getExternalFilesDir("Icons") + "/" + time + "-" + userId + "." + type;
+        User user = GsonUtils.parseJSON(SPHelper.getString("User", GsonUtils.convertJSON(new User())), User.class);
+        String newFile = getExternalFilesDir("Icons") + "/" + time + "_" + user.getUser_id() + "." + type;
         BitmapUtils.compressPicture(imagePath, newFile);
         uploadUserIcon(new File(newFile));
     };
@@ -187,8 +191,10 @@ public class ChooseHeadPortraitActivity extends BaseActivity {
                 } else {
                     String result = normalResult.getResult();
                     String photoPath = ("http://" + NetWork.SERVER_HOST_MAIN + ":" + NetWork.SERVER_PORT_MAIN + "/" + normalResult.getMessage()).replace("\\", "/");
-//                    NjMeterApplication.getInstance().getAccount().setHead_Portrait_URL(normalResult.getMessage());
-//                    NjMeterApplication.getInstance().getAccount().setHead_Portrait_Name(photoPath.split("/")[photoPath.split("/").length - 1]);
+                    // 更新存储的User对象
+                    User user = GsonUtils.parseJSON(SPHelper.getString("User", GsonUtils.convertJSON(new User())), User.class);
+                    user.setIcon_url(normalResult.getMessage());
+                    SPHelper.save("User", GsonUtils.convertJSON(user));
                     switch (result) {
                         case Constants.SUCCESS:
                             showToast("头像更新成功");

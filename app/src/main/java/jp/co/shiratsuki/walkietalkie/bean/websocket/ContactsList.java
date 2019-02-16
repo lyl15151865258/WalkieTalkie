@@ -27,24 +27,15 @@ public class ContactsList {
 
     public class Data {
 
-        private String socketId;
-        private String socketName;
+        private String userId;
         private ArrayList<User> contacts;
 
-        public void setSocketId(String socketId) {
-            this.socketId = socketId;
+        public String getUserId() {
+            return userId;
         }
 
-        public String getSocketId() {
-            return socketId;
-        }
-
-        public void setSocketName(String socketName) {
-            this.socketName = socketName;
-        }
-
-        public String getSocketName() {
-            return socketName;
+        public void setUserId(String userId) {
+            this.userId = userId;
         }
 
         public ArrayList<User> getContacts() {

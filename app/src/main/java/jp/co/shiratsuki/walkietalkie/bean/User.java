@@ -19,7 +19,7 @@ public class User implements Parcelable {
     private String user_pwd = "";
     private String user_name = "";
     private String company = "";
-    private String department_id = "";
+    private int department_id = 0;
     private String department_name = "";
     private String icon_url = "";
     private String room_id = "";
@@ -29,7 +29,7 @@ public class User implements Parcelable {
     private String register_time = "";
     private String login_time = (new Date()).toString();
 
-    public User(String user_id, String user_pwd, String user_name, String company, String department_id, String department_name,
+    public User(String user_id, String user_pwd, String user_name, String company, int department_id, String department_name,
                 String icon_url, String room_id, String room_name, boolean inroom, boolean speaking, String register_time, String login_time) {
         super();
         this.user_id = user_id;
@@ -83,11 +83,11 @@ public class User implements Parcelable {
         this.company = company;
     }
 
-    public String getDepartment_id() {
+    public int getDepartment_id() {
         return department_id;
     }
 
-    public void setDepartment_id(String department_id) {
+    public void setDepartment_id(int department_id) {
         this.department_id = department_id;
     }
 
@@ -174,7 +174,7 @@ public class User implements Parcelable {
         dest.writeString(user_pwd);
         dest.writeString(user_name);
         dest.writeString(company);
-        dest.writeString(department_id);
+        dest.writeInt(department_id);
         dest.writeString(department_name);
         dest.writeString(icon_url);
         dest.writeString(room_id);
@@ -188,7 +188,7 @@ public class User implements Parcelable {
     public static final Parcelable.Creator<User> CREATOR = new Parcelable.Creator<User>() {
         @Override
         public User createFromParcel(Parcel source) {
-            return new User(source.readString(), source.readString(), source.readString(), source.readString(), source.readString(), source.readString(),
+            return new User(source.readString(), source.readString(), source.readString(), source.readString(), source.readInt(), source.readString(),
                     source.readString(), source.readString(), source.readString(), source.readByte() != 0, source.readByte() != 0, source.readString(), source.readString());
         }
 

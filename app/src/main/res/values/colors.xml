@@ -350,7 +350,7 @@
     <color name="colorBluePrimaryDark">#1976D2</color>
     <color name="colorBluePrimaryCenter">#062748</color>
 
-    <color name="bg_popupwindow">#30000000</color>
+    <color name="bg_popupwindow">#505050</color>
 
     <color name="ssxinhongse1">#fff85959</color>
     <color name="ssxinjiangexian1">#ffe8e8e8</color>

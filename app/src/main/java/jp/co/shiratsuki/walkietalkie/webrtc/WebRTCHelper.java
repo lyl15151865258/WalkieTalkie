@@ -10,8 +10,8 @@ import com.alibaba.fastjson.JSONObject;
 
 import jp.co.shiratsuki.walkietalkie.bean.User;
 import jp.co.shiratsuki.walkietalkie.constant.NetWork;
-import jp.co.shiratsuki.walkietalkie.constant.WebRTC;
 import jp.co.shiratsuki.walkietalkie.contentprovider.SPHelper;
+import jp.co.shiratsuki.walkietalkie.utils.GsonUtils;
 import jp.co.shiratsuki.walkietalkie.utils.LogUtils;
 import jp.co.shiratsuki.walkietalkie.webrtc.websocket.ISignalingEvents;
 import jp.co.shiratsuki.walkietalkie.webrtc.websocket.IWebSocket;
@@ -90,10 +90,10 @@ public class WebRTCHelper implements ISignalingEvents {
         _factory = new PeerConnectionFactory();
     }
 
-    public void initSocket(String ws, final String room, final String userIP, final String userName, boolean videoEnable) {
+    public void initSocket(String ws, final String room, boolean videoEnable) {
         this.videoEnable = videoEnable;
         webSocket = new JavaWebSocket(this);
-        webSocket.connect(ws, room, userIP, userName);
+        webSocket.connect(ws, room);
     }
 
 
@@ -130,7 +130,7 @@ public class WebRTCHelper implements ISignalingEvents {
                 try {
                     LogUtils.d(TAG, "WebSocket发送心跳包");
                     HashMap<String, Object> childMap = new HashMap<>();
-                    childMap.put("socketId", _myId);
+                    childMap.put("userId", _myId);
                     HashMap<String, Object> map = new HashMap<>();
                     map.put("eventName", "__ping");
                     map.put("data", childMap);
@@ -147,39 +147,39 @@ public class WebRTCHelper implements ISignalingEvents {
     };
 
     @Override  // 其他人加入到房间
-    public void onRemoteJoinToRoom(String socketId, String socketName, ArrayList<User> userList) {
-        LogUtils.d(TAG, "有人加入到房间：" + socketId + "," + socketName);
+    public void onRemoteJoinToRoom(String userId, ArrayList<User> userList) {
+        LogUtils.d(TAG, "有人加入到房间：" + userId);
 
         IHelper.updateRoomContacts(userList);
 
         if (_localStream == null) {
             createLocalStream();
         }
-        Peer mPeer = new Peer(socketId);
+        Peer mPeer = new Peer(userId);
         mPeer.pc.addStream(_localStream);
 
-        _connectionIdArray.add(socketId);
-        _connectionPeerDic.put(socketId, mPeer);
+        _connectionIdArray.add(userId);
+        _connectionPeerDic.put(userId, mPeer);
     }
 
     @Override
-    public void onRemoteIceCandidate(String socketId, IceCandidate iceCandidate) {
-        Peer mPeer = _connectionPeerDic.get(socketId);
+    public void onRemoteIceCandidate(String userId, IceCandidate iceCandidate) {
+        Peer mPeer = _connectionPeerDic.get(userId);
         if (mPeer != null) {
             mPeer.pc.addIceCandidate(iceCandidate);
         }
     }
 
     @Override
-    public void onRemoteOutRoom(String socketId) {
-        LogUtils.d(TAG, "有人离开房间，ID为：" + socketId);
-        closePeerConnection(socketId);
+    public void onRemoteOutRoom(String userId) {
+        LogUtils.d(TAG, "有人离开房间，ID为：" + userId);
+        closePeerConnection(userId);
     }
 
     @Override
-    public void onReceiveOffer(String socketId, String sdp) {
+    public void onReceiveOffer(String userId, String sdp) {
         _role = Role.Receiver;
-        Peer mPeer = _connectionPeerDic.get(socketId);
+        Peer mPeer = _connectionPeerDic.get(userId);
         SessionDescription sessionDescription = new SessionDescription(SessionDescription.Type.OFFER, sdp);
         if (mPeer != null) {
             mPeer.pc.setRemoteDescription(mPeer, sessionDescription);
@@ -187,8 +187,8 @@ public class WebRTCHelper implements ISignalingEvents {
     }
 
     @Override
-    public void onReceiverAnswer(String socketId, String sdp) {
-        Peer mPeer = _connectionPeerDic.get(socketId);
+    public void onReceiverAnswer(String userId, String sdp) {
+        Peer mPeer = _connectionPeerDic.get(userId);
         SessionDescription sessionDescription = new SessionDescription(SessionDescription.Type.ANSWER, sdp);
         if (mPeer != null) {
             mPeer.pc.setRemoteDescription(mPeer, sessionDescription);
@@ -250,14 +250,11 @@ public class WebRTCHelper implements ISignalingEvents {
 
     // 给服务器发送当前是否在讲话的标记
     public void sendSpeakStatus(boolean isSpeaking) {
-        String userName = SPHelper.getString("UserName", "UnDefined");
-        String roomId = SPHelper.getString("VoiceRoomId", WebRTC.WEBRTC_SERVER_ROOM);
+        String roomId = SPHelper.getString("VoiceRoomId", NetWork.WEBRTC_SERVER_ROOM);
         Map<String, Object> map = new HashMap<>();
         map.put("eventName", "__speakStatus");
 
-        User user = new User();
-        user.setUser_id(_myId);
-        user.setUser_name(userName);
+        User user = GsonUtils.parseJSON(SPHelper.getString("User", GsonUtils.convertJSON(new User())), User.class);
         user.setRoom_id(roomId);
         user.setRoom_name(roomId);
         user.setInroom(true);
@@ -434,11 +431,11 @@ public class WebRTCHelper implements ISignalingEvents {
     //**************************************内部类******************************************/
     private class Peer implements SdpObserver, PeerConnection.Observer {
         private PeerConnection pc;
-        private String socketId;
+        private String userId;
 
-        private Peer(String socketId) {
+        private Peer(String userId) {
             this.pc = createPeerConnection();
-            this.socketId = socketId;
+            this.userId = userId;
         }
 
         //****************************PeerConnection.Observer****************************/
@@ -464,20 +461,20 @@ public class WebRTCHelper implements ISignalingEvents {
         @Override
         public void onIceCandidate(IceCandidate iceCandidate) {
             // 发送IceCandidate
-            webSocket.sendIceCandidate(socketId, iceCandidate);
+            webSocket.sendIceCandidate(userId, iceCandidate);
         }
 
         @Override
         public void onAddStream(MediaStream mediaStream) {
             if (IHelper != null) {
-                IHelper.onAddRemoteStream(mediaStream, socketId);
+                IHelper.onAddRemoteStream(mediaStream, userId);
             }
         }
 
         @Override
         public void onRemoveStream(MediaStream mediaStream) {
             if (IHelper != null) {
-                IHelper.onCloseWithId(socketId);
+                IHelper.onCloseWithId(userId);
             }
         }
 
@@ -510,17 +507,17 @@ public class WebRTCHelper implements ISignalingEvents {
                 //判断连接状态为本地发送offer
                 if (_role == Role.Receiver) {
                     //接收者，发送Answer
-                    webSocket.sendAnswer(socketId, pc.getLocalDescription().description);
+                    webSocket.sendAnswer(userId, pc.getLocalDescription().description);
 
                 } else if (_role == Role.Caller) {
                     //发送者,发送自己的offer
-                    webSocket.sendOffer(socketId, pc.getLocalDescription().description);
+                    webSocket.sendOffer(userId, pc.getLocalDescription().description);
                 }
 
             } else if (pc.signalingState() == PeerConnection.SignalingState.STABLE) {
                 // Stable 稳定的
                 if (_role == Role.Receiver) {
-                    webSocket.sendAnswer(socketId, pc.getLocalDescription().description);
+                    webSocket.sendAnswer(userId, pc.getLocalDescription().description);
                 }
             }
         }

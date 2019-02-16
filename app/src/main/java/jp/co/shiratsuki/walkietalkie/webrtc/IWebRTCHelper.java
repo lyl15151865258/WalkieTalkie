@@ -16,15 +16,15 @@ import jp.co.shiratsuki.walkietalkie.bean.User;
 
 public interface IWebRTCHelper {
 
-    void onSetLocalStream(MediaStream stream, String socketId);
+    void onSetLocalStream(MediaStream stream, String userId);
 
-    void onAddRemoteStream(MediaStream stream, String socketId);
+    void onAddRemoteStream(MediaStream stream, String userId);
 
     void onEnterRoom();
 
     void onLeaveRoom();
 
-    void onCloseWithId(String socketId);
+    void onCloseWithId(String userId);
 
     // 有人离开房间
     void removeUser(String userIP);

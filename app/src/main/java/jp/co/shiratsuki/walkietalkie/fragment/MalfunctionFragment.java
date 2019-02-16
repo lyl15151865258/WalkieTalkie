@@ -17,6 +17,7 @@ import java.util.List;
 import jp.co.shiratsuki.walkietalkie.R;
 import jp.co.shiratsuki.walkietalkie.adapter.MalfunctionAdapter;
 import jp.co.shiratsuki.walkietalkie.bean.WebSocketData;
+import jp.co.shiratsuki.walkietalkie.utils.LogUtils;
 import jp.co.shiratsuki.walkietalkie.widget.RecyclerViewDivider;
 import jp.co.shiratsuki.walkietalkie.widget.SwipeItemLayout;
 
@@ -30,9 +31,10 @@ import jp.co.shiratsuki.walkietalkie.widget.SwipeItemLayout;
 
 public class MalfunctionFragment extends BaseFragment {
 
+    private String TAG = "MalfunctionFragment";
     private Context mContext;
-    public List<WebSocketData> malfunctionList;
-    public MalfunctionAdapter malfunctionAdapter;
+    private List<WebSocketData> malfunctionList;
+    private MalfunctionAdapter malfunctionAdapter;
     private boolean sIsScrolling = false;
 
     @Override
@@ -89,6 +91,97 @@ public class MalfunctionFragment extends BaseFragment {
             super.onScrolled(recyclerView, dx, dy);
         }
     };
+
+    /**
+     * 刷新某一条异常信息
+     *
+     * @param listNo 异常信息的序号
+     */
+    public void refreshMalfunction(int listNo, boolean isPlaying) {
+        for (int i = 0; i < malfunctionList.size(); i++) {
+            if (listNo == malfunctionList.get(i).getListNo()) {
+                malfunctionList.get(i).setPalying(isPlaying);
+                malfunctionAdapter.notifyItemChanged(i, i);
+                break;
+            }
+        }
+    }
+
+    /**
+     * 改变某一条异常信息的播放状态
+     *
+     * @param listNo 异常信息的序号
+     */
+    public void setCurrentPlaying(int listNo) {
+        if (listNo == -1) {
+            for (int i = 0; i < malfunctionList.size(); i++) {
+                if (malfunctionList.get(i).isPalying()) {
+                    malfunctionList.get(i).setPalying(false);
+                    malfunctionAdapter.notifyItemChanged(i, false);
+                    break;
+                }
+            }
+        } else {
+            for (int i = 0; i < malfunctionList.size(); i++) {
+                if (listNo == malfunctionList.get(i).getListNo()) {
+                    if (!malfunctionList.get(i).isPalying()) {
+                        malfunctionList.get(i).setPalying(true);
+                        malfunctionAdapter.notifyItemChanged(i, true);
+                    }
+                } else {
+                    if (malfunctionList.get(i).isPalying()) {
+                        malfunctionList.get(i).setPalying(false);
+                        malfunctionAdapter.notifyItemChanged(i, false);
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * 刷新异常信息列表
+     *
+     * @param malfunctionList 异常信息列表
+     */
+    public void refreshList(List<WebSocketData> malfunctionList) {
+        LogUtils.d(TAG, "刷新异常信息列表");
+        this.malfunctionList.clear();
+        this.malfunctionList.addAll(malfunctionList);
+        malfunctionAdapter.notifyDataSetChanged();
+    }
+
+    /**
+     * 收到异常
+     *
+     * @param webSocketData 异常信息实体
+     */
+    public void receiveMalfunction(WebSocketData webSocketData) {
+        if (webSocketData.isStatus()) {
+            malfunctionList.add(malfunctionList.size(), webSocketData);
+            malfunctionAdapter.notifyItemInserted(malfunctionList.size() - 1);
+        } else {
+            int position = -1;
+            for (int i = 0; i < malfunctionList.size(); i++) {
+                if (malfunctionList.get(i).getListNo() == webSocketData.getListNo()) {
+                    position = i;
+                    break;
+                }
+            }
+            if (position != -1) {
+                malfunctionList.remove(position);
+                malfunctionAdapter.notifyItemRemoved(position);
+            }
+        }
+    }
+
+    /**
+     * 清空异常信息
+     */
+    public void clearMalfunctionList() {
+        LogUtils.d(TAG, "清空异常信息列表");
+        malfunctionList.clear();
+        malfunctionAdapter.notifyDataSetChanged();
+    }
 
     @Override
     public void onDestroyView() {

@@ -38,11 +38,12 @@ import jp.co.shiratsuki.walkietalkie.broadcast.MediaButtonReceiver;
 import jp.co.shiratsuki.walkietalkie.broadcast.VolumeChangeObserver;
 import jp.co.shiratsuki.walkietalkie.contentprovider.SPHelper;
 import jp.co.shiratsuki.walkietalkie.utils.DbcSbcUtils;
+import jp.co.shiratsuki.walkietalkie.utils.GsonUtils;
 import jp.co.shiratsuki.walkietalkie.utils.LogUtils;
 import jp.co.shiratsuki.walkietalkie.utils.WifiUtil;
 import jp.co.shiratsuki.walkietalkie.webrtc.IWebRTCHelper;
 import jp.co.shiratsuki.walkietalkie.webrtc.WebRTCHelper;
-import jp.co.shiratsuki.walkietalkie.constant.WebRTC;
+import jp.co.shiratsuki.walkietalkie.constant.NetWork;
 
 /**
  * 局域网通信服务
@@ -89,7 +90,7 @@ public class VoiceService extends Service implements IWebRTCHelper, VolumeChange
         registerReceiver(headsetPlugReceiver, filter3);
 
 //        showNotification();
-        helper = new WebRTCHelper(this, this, WebRTC.iceServers);
+        helper = new WebRTCHelper(this, this, NetWork.iceServers);
 
         mAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
 
@@ -177,15 +178,13 @@ public class VoiceService extends Service implements IWebRTCHelper, VolumeChange
         public void enterGroup() {
             // 进入房间
             try {
-                String ip = SPHelper.getString("VoiceServerIP", WebRTC.WEBRTC_SERVER_IP);
-                String port = SPHelper.getString("VoiceServerPort", WebRTC.WEBRTC_SERVER_PORT);
-                String roomId = SPHelper.getString("VoiceRoomId", WebRTC.WEBRTC_SERVER_ROOM);
-                String userIp = WifiUtil.getLocalIPAddress();
+                String ip = SPHelper.getString("VoiceServerIP", NetWork.WEBRTC_SERVER_IP);
+                String port = SPHelper.getString("VoiceServerPort", NetWork.WEBRTC_SERVER_PORT);
+                String roomId = SPHelper.getString("VoiceRoomId", NetWork.WEBRTC_SERVER_ROOM);
+                User user = GsonUtils.parseJSON(SPHelper.getString("User", GsonUtils.convertJSON(new User())), User.class);
 
-                String userIP = WifiUtil.getLocalIPAddress();
-                String userName = SPHelper.getString("UserName", "UnDefined");
-                String signal = DbcSbcUtils.getPatStr("ws://" + ip + ":" + port + "/WalkieTalkieServer/" + userIp + "/" + userName);
-                helper.initSocket(signal, roomId, userIP, userName, false);
+                String signal = DbcSbcUtils.getPatStr("ws://" + ip + ":" + port + "/WalkieTalkieServer/" + user.getUser_id());
+                helper.initSocket(signal, roomId, false);
             } catch (Exception e) {
                 e.printStackTrace();
             }

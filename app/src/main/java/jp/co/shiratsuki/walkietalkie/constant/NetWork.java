@@ -1,5 +1,7 @@
 package jp.co.shiratsuki.walkietalkie.constant;
 
+import jp.co.shiratsuki.walkietalkie.webrtc.MyIceServer;
+
 /**
  * 网络常量值
  * Created at 2018/11/28 13:42
@@ -16,20 +18,20 @@ public class NetWork {
     /**
      * 主账号IP地址
      */
-    public static final String SERVER_HOST_MAIN = "www.metter.com.cn";
+    public static final String SERVER_HOST_MAIN = "192.168.1.109";
     /**
      * 主账号端口号
      */
-    public static final String SERVER_PORT_MAIN = "8073";
+    public static final String SERVER_PORT_MAIN = "8080";
     /**
      * 主账号项目名
      */
-    public static final String PROJECT_MAIN = "AndroidManager";
+    public static final String PROJECT_MAIN = "WalkieTalkieServer";
 
     /**
      * WebSocket地址
      */
-    public static final String WEBSOCKET_IP = "192.168.1.134";
+    public static final String WEBSOCKET_IP = "192.168.1.109";
     /**
      * WebSocket端口号
      */
@@ -51,4 +53,15 @@ public class NetWork {
      * 心跳包发送间隔（30秒）
      */
     public static final int HEART_BEAT_RATE = 30 * 1000;
+
+    public static MyIceServer[] iceServers = {
+            new MyIceServer("stun:47.254.34.146"),
+            new MyIceServer("turn:47.254.34.146?transport=udp", "dds", "123456"),
+            new MyIceServer("turn:47.254.34.146?transport=tcp", "dds", "123456")
+    };
+    //    private static String signal = "wss://47.254.34.146/wss";
+
+    public static final String WEBRTC_SERVER_IP = "192.168.1.109";
+    public static final String WEBRTC_SERVER_PORT = "8080";
+    public static final String WEBRTC_SERVER_ROOM = "jss";
 }

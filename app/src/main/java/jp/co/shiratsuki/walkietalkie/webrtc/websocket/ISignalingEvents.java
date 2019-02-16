@@ -21,15 +21,15 @@ public interface ISignalingEvents {
     void onJoinToRoom(List<String> connections, String myId);
 
     // 有新人进入房间
-    void onRemoteJoinToRoom(String socketId, String socketName, ArrayList<User> userList);
+    void onRemoteJoinToRoom(String userId, ArrayList<User> userList);
 
-    void onRemoteIceCandidate(String socketId, IceCandidate iceCandidate);
+    void onRemoteIceCandidate(String userId, IceCandidate iceCandidate);
 
-    void onRemoteOutRoom(String socketId);
+    void onRemoteOutRoom(String userId);
 
-    void onReceiveOffer(String socketId, String sdp);
+    void onReceiveOffer(String userId, String sdp);
 
-    void onReceiverAnswer(String socketId, String sdp);
+    void onReceiverAnswer(String userId, String sdp);
 
     void onReceiveSpeakStatus(ArrayList<User> userList);
 

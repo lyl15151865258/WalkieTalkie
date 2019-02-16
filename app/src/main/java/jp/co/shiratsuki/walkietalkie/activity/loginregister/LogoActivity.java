@@ -1,4 +1,4 @@
-package jp.co.shiratsuki.walkietalkie.activity.appmain;
+package jp.co.shiratsuki.walkietalkie.activity.loginregister;
 
 import android.os.Bundle;
 
@@ -22,11 +22,11 @@ public class LogoActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_logo);
         try {
-            Thread.sleep(800);
+            Thread.sleep(300);
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
-            openActivity(MainActivity.class);
+            openActivity(LoginRegisterActivity.class);
             ActivityController.finishActivity(this);
         }
     }

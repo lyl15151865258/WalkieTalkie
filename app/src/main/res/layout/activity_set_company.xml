@@ -46,19 +46,14 @@
         android:padding="@dimen/dp_10"
         android:textSize="@dimen/sp_18" />
 
-    <EditText
-        android:id="@+id/etDepartment"
+    <jp.co.shiratsuki.walkietalkie.widget.spinner.NiceSpinner
+        android:id="@+id/spinnerDepartment"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="center"
         android:layout_marginLeft="@dimen/dp_10"
         android:layout_marginTop="@dimen/dp_10"
         android:layout_marginRight="@dimen/dp_10"
         android:background="@drawable/textfield_normal"
-        android:hint="@string/Department"
-        android:imeOptions="actionDone"
-        android:inputType="text"
-        android:maxLines="1"
         android:padding="@dimen/dp_10"
         android:textSize="@dimen/sp_18" />
 

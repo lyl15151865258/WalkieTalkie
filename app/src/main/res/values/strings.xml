@@ -1,6 +1,6 @@
 <resources>
 
-    <string name="app_name">局域网对讲机</string>
+    <string name="app_name">对讲机</string>
     <string name="loading">加载中…</string>
     <string name="ssid">WIFi名称：</string>
     <string name="room">群组名称：</string>

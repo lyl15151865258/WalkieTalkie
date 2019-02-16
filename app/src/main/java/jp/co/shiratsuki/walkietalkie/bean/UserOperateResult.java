@@ -1,6 +1,14 @@
 package jp.co.shiratsuki.walkietalkie.bean;
 
-public class LoginRegisterResult {
+/**
+ * 用户操作返回的实体类
+ * Created at 2019/2/16 11:40
+ *
+ * @author Li Yuliang
+ * @version 1.0
+ */
+
+public class UserOperateResult {
 
     private String result;
 

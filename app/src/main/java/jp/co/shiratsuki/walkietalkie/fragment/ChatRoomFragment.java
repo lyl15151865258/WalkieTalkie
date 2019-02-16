@@ -17,6 +17,7 @@ import java.util.List;
 import jp.co.shiratsuki.walkietalkie.R;
 import jp.co.shiratsuki.walkietalkie.adapter.ChatRoomContactAdapter;
 import jp.co.shiratsuki.walkietalkie.bean.User;
+import jp.co.shiratsuki.walkietalkie.utils.LogUtils;
 
 /**
  * 聊天室页面
@@ -28,9 +29,10 @@ import jp.co.shiratsuki.walkietalkie.bean.User;
 
 public class ChatRoomFragment extends BaseFragment {
 
+    private String TAG = "ChatRoomFragment";
     private Context mContext;
-    public List<User> userList;
-    public ChatRoomContactAdapter chatRoomContactAdapter;
+    private List<User> userList;
+    private ChatRoomContactAdapter chatRoomContactAdapter;
     private boolean sIsScrolling = false;
 
     @Override
@@ -82,6 +84,47 @@ public class ChatRoomFragment extends BaseFragment {
     @Override
     public void lazyLoad() {
 
+    }
+
+    /**
+     * 刷新房间内联系人列表
+     *
+     * @param userList 房间内联系人列表
+     */
+    public void refreshList(List<User> userList) {
+        LogUtils.d(TAG, "刷新联系人列表");
+        this.userList.clear();
+        this.userList.addAll(userList);
+        chatRoomContactAdapter.notifyDataSetChanged();
+    }
+
+    /**
+     * 移除用户
+     *
+     * @param userId 用户ID
+     */
+    public void removeUser(String userId) {
+        LogUtils.d(TAG, "移除用户：" + userId);
+        int position = -1;
+        for (int i = 0; i < userList.size(); i++) {
+            if (userList.get(i).getUser_id().equals(userId)) {
+                position = i;
+                break;
+            }
+        }
+        if (position != -1) {
+            userList.remove(position);
+            chatRoomContactAdapter.notifyItemRemoved(position);
+        }
+    }
+
+    /**
+     * 清空房间联系人
+     */
+    public void clearUserList() {
+        LogUtils.d(TAG, "清空联系人列表");
+        userList.clear();
+        chatRoomContactAdapter.notifyDataSetChanged();
     }
 
     @Override

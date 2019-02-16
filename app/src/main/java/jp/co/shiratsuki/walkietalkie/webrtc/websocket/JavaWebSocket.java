@@ -25,6 +25,7 @@ import jp.co.shiratsuki.walkietalkie.bean.User;
 import jp.co.shiratsuki.walkietalkie.bean.websocket.ContactsList;
 import jp.co.shiratsuki.walkietalkie.bean.websocket.Peers;
 import jp.co.shiratsuki.walkietalkie.bean.websocket.UserInOrOut;
+import jp.co.shiratsuki.walkietalkie.contentprovider.SPHelper;
 import jp.co.shiratsuki.walkietalkie.utils.ActivityController;
 import jp.co.shiratsuki.walkietalkie.utils.GsonUtils;
 import jp.co.shiratsuki.walkietalkie.utils.LogUtils;
@@ -49,7 +50,7 @@ public class JavaWebSocket implements IWebSocket {
         this.events = events;
     }
 
-    public void connect(String wss, final String room, final String userIP, final String userName) {
+    public void connect(String wss, String room) {
         LogUtils.d(TAG, "WebRTC服务器地址：" + wss);
         URI uri;
         try {
@@ -62,7 +63,7 @@ public class JavaWebSocket implements IWebSocket {
             mWebSocketClient = new WebSocketClient(uri) {
                 @Override
                 public void onOpen(ServerHandshake handshake) {
-                    joinRoom(room, userIP, userName);
+                    joinRoom(room);
                 }
 
                 @Override
@@ -117,12 +118,10 @@ public class JavaWebSocket implements IWebSocket {
 
     //============================需要发送的=====================================
     @Override
-    public void joinRoom(String room, String userIP, String userName) {
+    public void joinRoom(String room) {
         Map<String, Object> map = new HashMap<>();
         map.put("eventName", "__join");
-        User user = new User();
-        user.setUser_id(userIP);
-        user.setUser_name(userName);
+        User user = GsonUtils.parseJSON(SPHelper.getString("User", GsonUtils.convertJSON(new User())), User.class);
         user.setRoom_id(room);
         user.setRoom_name(room);
         user.setInroom(false);
@@ -131,13 +130,13 @@ public class JavaWebSocket implements IWebSocket {
         sendMessage(GsonUtils.convertJSON(map));
     }
 
-    public void sendAnswer(String socketId, String sdp) {
+    public void sendAnswer(String userId, String sdp) {
 
         Map<String, Object> childMap1 = new HashMap<>();
         childMap1.put("type", "answer");
         childMap1.put("sdp", sdp);
         HashMap<String, Object> childMap2 = new HashMap<>();
-        childMap2.put("socketId", socketId);
+        childMap2.put("userId", userId);
         childMap2.put("sdp", childMap1);
         HashMap<String, Object> map = new HashMap<>();
         map.put("eventName", "__answer");
@@ -146,13 +145,13 @@ public class JavaWebSocket implements IWebSocket {
     }
 
 
-    public void sendOffer(String socketId, String sdp) {
+    public void sendOffer(String userId, String sdp) {
         HashMap<String, Object> childMap1 = new HashMap<>();
         childMap1.put("type", "offer");
         childMap1.put("sdp", sdp);
 
         HashMap<String, Object> childMap2 = new HashMap<>();
-        childMap2.put("socketId", socketId);
+        childMap2.put("userId", userId);
         childMap2.put("sdp", childMap1);
 
         HashMap<String, Object> map = new HashMap<>();
@@ -163,12 +162,12 @@ public class JavaWebSocket implements IWebSocket {
 
     }
 
-    public void sendIceCandidate(String socketId, IceCandidate iceCandidate) {
+    public void sendIceCandidate(String userId, IceCandidate iceCandidate) {
         HashMap<String, Object> childMap = new HashMap<>();
         childMap.put("id", iceCandidate.sdpMid);
         childMap.put("label", iceCandidate.sdpMLineIndex);
         childMap.put("candidate", iceCandidate.sdp);
-        childMap.put("socketId", socketId);
+        childMap.put("userId", userId);
         HashMap<String, Object> map = new HashMap<>();
         map.put("eventName", "__ice_candidate");
         map.put("data", childMap);
@@ -240,51 +239,50 @@ public class JavaWebSocket implements IWebSocket {
     // 自己已经在房间，有人进来
     private void handleRemoteInRoom(String message) {
         ContactsList contactsList = GsonUtils.parseJSON(message, ContactsList.class);
-        String socketId = contactsList.getData().getSocketId();
-        String socketName = contactsList.getData().getSocketName();
+        String userId = contactsList.getData().getUserId();
         ArrayList<User> userList = contactsList.getData().getContacts();
         for (int i = 0; i < userList.size(); i++) {
             LogUtils.d(TAG, "联系人数量：" + userList.size() + "," + userList.get(i).getUser_id());
         }
-        events.onRemoteJoinToRoom(socketId, socketName, userList);
+        events.onRemoteJoinToRoom(userId, userList);
     }
 
     // 处理交换信息
     private void handleRemoteCandidate(Map map) {
         Map data = (Map) map.get("data");
-        String socketId = (String) data.get("socketId");
+        String userId = (String) data.get("userId");
         String sdpMid = (String) data.get("id");
         sdpMid = (null == sdpMid) ? "video" : sdpMid;
         Integer sdpMLineIndex = (Integer) data.get("label");
         String candidate = (String) data.get("candidate");
         IceCandidate iceCandidate = new IceCandidate(sdpMid, sdpMLineIndex, candidate);
-        events.onRemoteIceCandidate(socketId, iceCandidate);
+        events.onRemoteIceCandidate(userId, iceCandidate);
     }
 
     // 有人离开了房间
     private void handleRemoteOutRoom(Map map) {
         LogUtils.d(TAG, "有人离开房间");
         Map data = (Map) map.get("data");
-        String socketId = (String) data.get("socketId");
-        events.onRemoteOutRoom(socketId);
+        String userId = (String) data.get("userId");
+        events.onRemoteOutRoom(userId);
     }
 
     // 处理Offer
     private void handleOffer(Map map) {
         Map data = (Map) map.get("data");
         Map sdpDic = (Map) data.get("sdp");
-        String socketId = (String) data.get("socketId");
+        String userId = (String) data.get("userId");
         String sdp = (String) sdpDic.get("sdp");
-        events.onReceiveOffer(socketId, sdp);
+        events.onReceiveOffer(userId, sdp);
     }
 
     // 处理Answer
     private void handleAnswer(Map map) {
         Map data = (Map) map.get("data");
         Map sdpDic = (Map) data.get("sdp");
-        String socketId = (String) data.get("socketId");
+        String userId = (String) data.get("userId");
         String sdp = (String) sdpDic.get("sdp");
-        events.onReceiverAnswer(socketId, sdp);
+        events.onReceiverAnswer(userId, sdp);
     }
 
     // 处理服务器传回的心跳
