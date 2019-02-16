@@ -26,7 +26,7 @@ public interface IWebSocket {
 
     void sendAnswer(String userId, String sdp);
 
-    void sendOffer(String socketId, String sdp);
+    void sendOffer(String userId, String sdp);
 
     // 发送消息
     void sendMessage(String msg);

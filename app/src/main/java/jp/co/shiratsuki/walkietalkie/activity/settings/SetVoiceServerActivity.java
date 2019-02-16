@@ -12,6 +12,7 @@ import android.widget.EditText;
 
 import jp.co.shiratsuki.walkietalkie.R;
 import jp.co.shiratsuki.walkietalkie.activity.base.SwipeBackActivity;
+import jp.co.shiratsuki.walkietalkie.constant.NetWork;
 import jp.co.shiratsuki.walkietalkie.contentprovider.SPHelper;
 import jp.co.shiratsuki.walkietalkie.utils.ActivityController;
 import jp.co.shiratsuki.walkietalkie.utils.RegexUtils;
@@ -47,9 +48,9 @@ public class SetVoiceServerActivity extends SwipeBackActivity {
         etVoiceServerIP.addTextChangedListener(textWatcher);
         etVoiceServerPort.addTextChangedListener(textWatcher);
         etVoiceRoomId.addTextChangedListener(textWatcher);
-        etVoiceServerIP.setText(SPHelper.getString("VoiceServerIP", ""));
-        etVoiceServerPort.setText(SPHelper.getString("VoiceServerPort", ""));
-        etVoiceRoomId.setText(SPHelper.getString("VoiceRoomId", ""));
+        etVoiceServerIP.setText(SPHelper.getString("VoiceServerIP", NetWork.WEBRTC_SERVER_IP));
+        etVoiceServerPort.setText(SPHelper.getString("VoiceServerPort", NetWork.WEBRTC_SERVER_PORT));
+        etVoiceRoomId.setText(SPHelper.getString("VoiceRoomId", NetWork.WEBRTC_SERVER_ROOM));
         ViewUtils.setCharSequence(etVoiceServerIP);
         ViewUtils.setCharSequence(etVoiceServerPort);
         ViewUtils.setCharSequence(etVoiceRoomId);

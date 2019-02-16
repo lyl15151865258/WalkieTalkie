@@ -12,6 +12,7 @@ import android.widget.EditText;
 
 import jp.co.shiratsuki.walkietalkie.R;
 import jp.co.shiratsuki.walkietalkie.activity.base.SwipeBackActivity;
+import jp.co.shiratsuki.walkietalkie.constant.NetWork;
 import jp.co.shiratsuki.walkietalkie.contentprovider.SPHelper;
 import jp.co.shiratsuki.walkietalkie.utils.ActivityController;
 import jp.co.shiratsuki.walkietalkie.utils.RegexUtils;
@@ -45,8 +46,8 @@ public class SetMessageServerActivity extends SwipeBackActivity {
         etMessageServerPort = findViewById(R.id.etMessageServerPort);
         etMessageServerIP.addTextChangedListener(textWatcher);
         etMessageServerPort.addTextChangedListener(textWatcher);
-        etMessageServerIP.setText(SPHelper.getString("MessageServerIP", ""));
-        etMessageServerPort.setText(SPHelper.getString("MessageServerPort", ""));
+        etMessageServerIP.setText(SPHelper.getString("MessageServerIP", NetWork.WEBSOCKET_IP));
+        etMessageServerPort.setText(SPHelper.getString("MessageServerPort", NetWork.WEBSOCKET_PORT));
         ViewUtils.setCharSequence(etMessageServerIP);
         ViewUtils.setCharSequence(etMessageServerPort);
     }
