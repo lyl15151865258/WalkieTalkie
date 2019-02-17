@@ -1,5 +1,7 @@
 package jp.co.shiratsuki.walkietalkie.bean;
 
+import android.support.annotation.Nullable;
+
 import java.io.Serializable;
 import java.util.List;
 
@@ -26,7 +28,13 @@ public class WebSocketData implements Serializable {
     private int VoiceInterval1;
     private int VoiceInterval2;
 
-    private boolean isPalying = false;
+    private String Japanese;
+    private String Chinese;
+    private String English;
+    private String Melody;
+
+    private boolean isPlaying = false;
+    private boolean finishPlay = false;
 
     public int getBackColor() {
         return BackColor;
@@ -124,11 +132,70 @@ public class WebSocketData implements Serializable {
         VoiceInterval2 = voiceInterval2;
     }
 
-    public boolean isPalying() {
-        return isPalying;
+
+    public String getJapanese() {
+        return Japanese;
     }
 
-    public void setPalying(boolean palying) {
-        isPalying = palying;
+    public void setJapanese(String japanese) {
+        Japanese = japanese;
+    }
+
+    public String getChinese() {
+        return Chinese;
+    }
+
+    public void setChinese(String chinese) {
+        Chinese = chinese;
+    }
+
+    public String getEnglish() {
+        return English;
+    }
+
+    public void setEnglish(String english) {
+        English = english;
+    }
+
+    public String getMelody() {
+        return Melody;
+    }
+
+    public void setMelody(String melody) {
+        Melody = melody;
+    }
+
+    public boolean isPlaying() {
+        return isPlaying;
+    }
+
+    public void setPlaying(boolean playing) {
+        isPlaying = playing;
+    }
+
+    public boolean isFinishPlay() {
+        return finishPlay;
+    }
+
+    public void setFinishPlay(boolean finishPlay) {
+        this.finishPlay = finishPlay;
+    }
+
+    @Override
+    public boolean equals(@Nullable Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (!(obj instanceof WebSocketData)) {
+            return false;
+        } else {
+            try {
+                WebSocketData that = (WebSocketData) obj;
+                return ListNo == that.ListNo;
+            } catch (Exception e) {
+                e.printStackTrace();
+                return false;
+            }
+        }
     }
 }

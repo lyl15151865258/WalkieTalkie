@@ -18,7 +18,7 @@ public class NetWork {
     /**
      * 主账号IP地址
      */
-    public static final String SERVER_HOST_MAIN = "192.168.1.109";
+    public static final String SERVER_HOST_MAIN = "192.168.1.139";
     /**
      * 主账号端口号
      */
@@ -31,7 +31,7 @@ public class NetWork {
     /**
      * WebSocket地址
      */
-    public static final String WEBSOCKET_IP = "192.168.1.109";
+    public static final String WEBSOCKET_IP = "192.168.1.139";
     /**
      * WebSocket端口号
      */
@@ -61,7 +61,7 @@ public class NetWork {
     };
     //    private static String signal = "wss://47.254.34.146/wss";
 
-    public static final String WEBRTC_SERVER_IP = "192.168.1.109";
+    public static final String WEBRTC_SERVER_IP = "192.168.1.139";
     public static final String WEBRTC_SERVER_PORT = "8080";
     public static final String WEBRTC_SERVER_ROOM = "jss";
 }

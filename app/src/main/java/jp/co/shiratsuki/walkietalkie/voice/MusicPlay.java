@@ -43,17 +43,13 @@ public class MusicPlay {
     }
 
     /**
-     * 单例
+     * 单例模式（懒汉式）
      *
-     * @return
+     * @return MusicPlay对象
      */
     public static MusicPlay with(Context context) {
         if (mVoicePlay == null) {
-            synchronized (MusicPlay.class) {
-                if (mVoicePlay == null) {
-                    mVoicePlay = new MusicPlay(context);
-                }
-            }
+            mVoicePlay = new MusicPlay(context);
         }
         return mVoicePlay;
     }
@@ -79,9 +75,12 @@ public class MusicPlay {
      */
     public void addMusic(MusicList musicList, int interval1, int interval2) {
         LogUtils.d(TAG, "添加音乐，编号：" + musicList.getListNo());
-        musicListList.add(musicList);
-        this.interval1 = interval1;
-        this.interval2 = interval2;
+        if (!musicListList.contains(musicList)) {
+            // 不包含了这条异常信息
+            musicListList.add(musicList);
+            this.interval1 = interval1;
+            this.interval2 = interval2;
+        }
     }
 
     /**
@@ -119,11 +118,20 @@ public class MusicPlay {
                         if (musicListList.get(i).getAlreadyPlayCount() < musicListList.get(i).getPlayCount()) {
                             playOneList(i);
                             LogUtils.d(TAG, "播放ID：" + musicListList.get(i).getListNo() + ",已经播放次数：" + musicListList.get(i).getAlreadyPlayCount());
-                            int alreadyPlayCount = musicListList.get(i).getAlreadyPlayCount() + 1;
+                            int alreadyPlayCount = musicListList.get(i).getAlreadyPlayCount();
+                            // 如果播放次数不为0（为0的话需要无限循环播放），播放次数加1
+                            if (musicListList.get(i).getPlayCount() != 0) {
+                                alreadyPlayCount = musicListList.get(i).getAlreadyPlayCount() + 1;
+                            }
                             musicListList.get(i).setAlreadyPlayCount(alreadyPlayCount);
                             LogUtils.d(TAG, "播放ID：" + musicListList.get(i).getListNo() + ",已经播放次数：" + alreadyPlayCount);
-                            if (alreadyPlayCount == musicListList.get(i).getPlayCount()) {
+                            if (alreadyPlayCount >= musicListList.get(i).getPlayCount()) {
                                 delList.add(musicListList.get(i));
+                                // 通知页面布局更新
+                                Intent intent1 = new Intent();
+                                intent1.setAction("NO_LONGER_PLAYING");
+                                intent1.putExtra("number", musicListList.get(i).getListNo());
+                                mContext.sendBroadcast(intent1);
                             }
                             // 如果是列表末尾位置,等待interval2
                             if (i >= musicListList.size() - 1) {
@@ -145,6 +153,11 @@ public class MusicPlay {
                             }
                         } else {
                             delList.add(musicListList.get(i));
+                            // 通知页面布局更新
+                            Intent intent1 = new Intent();
+                            intent1.setAction("NO_LONGER_PLAYING");
+                            intent1.putExtra("number", musicListList.get(i).getListNo());
+                            mContext.sendBroadcast(intent1);
                         }
                     }
                     musicListList.removeAll(delList);
@@ -171,7 +184,6 @@ public class MusicPlay {
                     return;
                 }
                 List<Music> musicList = musicListList.get(position).getMusicList();
-                // 如果播放次数没有达到上限，则开始播放
 //                if (musicList.get(0).getPlayCount() != musicList.get(0).getAlreadyPlayCount()) {
                 // 通知主页面刷新布局
                 Intent intent = new Intent();
@@ -188,22 +200,27 @@ public class MusicPlay {
                     e.printStackTrace();
                 }
                 mMediaPlayer.setOnPreparedListener(mediaPlayer -> mMediaPlayer.start());
-                mMediaPlayer.setOnErrorListener(new MediaPlayer.OnErrorListener() {
-                    @Override
-                    public boolean onError(MediaPlayer mp, int what, int extra) {
-                        // 遇到错误就重置MediaPlayer
-                        LogUtils.d(TAG, "媒体文件获取异常，播放失败");
-                        mp.reset();
-                        return false;
-                    }
+                mMediaPlayer.setOnErrorListener((mediaPlayer, what, extra) -> {
+                    // 遇到错误就重置MediaPlayer
+                    LogUtils.d(TAG, "媒体文件获取异常，播放失败");
+                    mediaPlayer.reset();
+                    return false;
                 });
                 mMediaPlayer.setOnCompletionListener(mediaPlayer -> {
+                    // 如果播放次数达到上限，则通知页面布局更新
+                    if (musicList.get(counter[0]).getAlreadyPlayCount() >= musicList.get(counter[0]).getPlayCount()) {
+                        Intent intent1 = new Intent();
+                        intent1.setAction("NO_LONGER_PLAYING");
+                        intent1.putExtra("number", musicListList.get(counter[0]).getListNo());
+                        mContext.sendBroadcast(intent1);
+                    }
                     mediaPlayer.reset();
                     counter[0]++;
                     if (musicListList.size() == 0) {
                         return;
                     }
                     List<Music> musicList1 = musicListList.get(position).getMusicList();
+
 //                    if (counter[0] < musicList1.size() && musicList.get(0).getPlayCount() != musicList.get(0).getAlreadyPlayCount()) {
                     if (counter[0] < musicList1.size()) {
                         try {

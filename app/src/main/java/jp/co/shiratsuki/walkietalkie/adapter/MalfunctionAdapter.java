@@ -1,6 +1,7 @@
 package jp.co.shiratsuki.walkietalkie.adapter;
 
 import android.content.Context;
+import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -44,21 +45,21 @@ public class MalfunctionAdapter extends RecyclerView.Adapter<MalfunctionAdapter.
         return new NewsViewHolder(view);
     }
 
-    @Override
-    public void onBindViewHolder(@NonNull NewsViewHolder viewHolder, int position, @NonNull List<Object> payloads) {
-        if (payloads.isEmpty()) {
-            onBindViewHolder(viewHolder, position);
-        } else if (payloads.get(0) instanceof Boolean) {
-            if ((boolean) payloads.get(0)) {
-                viewHolder.ivSpeaker.setVisibility(View.VISIBLE);
-            } else {
-                viewHolder.ivSpeaker.setVisibility(View.GONE);
-            }
-        } else if (payloads.get(0) instanceof Integer) {
-            LogUtils.d("MainActivity", "Adapter中List的长度：" + malfunctionList.size() + "，不再播放位置：" + payloads.get(0));
-            viewHolder.llMain.setBackgroundColor(mContext.getResources().getColor(R.color.gray_6));
-        }
-    }
+//    @Override
+//    public void onBindViewHolder(@NonNull NewsViewHolder viewHolder, int position, @NonNull List<Object> payloads) {
+//        if (payloads.isEmpty()) {
+//            onBindViewHolder(viewHolder, position);
+//        } else if (payloads.get(0) instanceof Boolean) {
+//            if ((boolean) payloads.get(0)) {
+//                viewHolder.ivSpeaker.setVisibility(View.VISIBLE);
+//            } else {
+//                viewHolder.ivSpeaker.setVisibility(View.GONE);
+//            }
+//        } else if (payloads.get(0) instanceof Integer) {
+//            LogUtils.d("MainActivity", "Adapter中List的长度：" + malfunctionList.size() + "，不再播放位置：" + payloads.get(0));
+//            viewHolder.llMain.setBackgroundColor(mContext.getResources().getColor(R.color.gray_6));
+//        }
+//    }
 
     @Override
     public void onBindViewHolder(@NonNull NewsViewHolder viewHolder, int position) {
@@ -67,13 +68,19 @@ public class MalfunctionAdapter extends RecyclerView.Adapter<MalfunctionAdapter.
         viewHolder.tvMalfunctionTime.setText(malfunction.getTime());
 
         viewHolder.ivBack.setColorFilter(malfunction.getBackColor());
-        if (malfunction.isPalying()) {
+        if (malfunction.isPlaying()) {
             viewHolder.ivSpeaker.setVisibility(View.VISIBLE);
         } else {
             viewHolder.ivSpeaker.setVisibility(View.GONE);
         }
 
-        viewHolder.llMain.setBackgroundColor(mContext.getResources().getColor(R.color.gray_7));
+        if (malfunction.isFinishPlay()) {
+            viewHolder.tvConfirm.setVisibility(View.GONE);
+            viewHolder.llMain.setBackgroundColor(mContext.getResources().getColor(R.color.gray_6));
+        } else {
+            viewHolder.tvConfirm.setVisibility(View.VISIBLE);
+            viewHolder.llMain.setBackgroundColor(mContext.getResources().getColor(R.color.gray_7));
+        }
 
         viewHolder.itemView.setOnClickListener((v) -> {
             if (mListener != null) {
@@ -83,26 +90,35 @@ public class MalfunctionAdapter extends RecyclerView.Adapter<MalfunctionAdapter.
 
         //标记已读，不再播放音乐
         viewHolder.tvConfirm.setOnClickListener((view) -> {
-            List<MusicList> musicLists = MusicPlay.with(mContext).getMusicListList();
+            List<MusicList> musicLists = MusicPlay.with(mContext.getApplicationContext()).getMusicListList();
             for (int i = 0; i < musicLists.size(); i++) {
                 if (musicLists.get(i).getListNo() == malfunctionList.get(viewHolder.getAdapterPosition()).getListNo()) {
                     musicLists.get(i).setAlreadyPlayCount(musicLists.get(i).getPlayCount());
+                    malfunctionList.get(viewHolder.getAdapterPosition()).setFinishPlay(true);
                     break;
                 }
             }
             viewHolder.llMain.setBackgroundColor(mContext.getResources().getColor(R.color.gray_6));
+            viewHolder.tvConfirm.setVisibility(View.GONE);
             viewHolder.slRootView.close();
+            notifyItemChanged(position);
         });
 
         //删除Item
         viewHolder.tvDelete.setOnClickListener((view) -> {
-            List<MusicList> musicLists = MusicPlay.with(mContext).getMusicListList();
+            List<MusicList> musicLists = MusicPlay.with(mContext.getApplicationContext()).getMusicListList();
             for (int i = 0; i < musicLists.size(); i++) {
                 if (musicLists.get(i).getListNo() == malfunctionList.get(viewHolder.getAdapterPosition()).getListNo()) {
                     musicLists.get(i).setAlreadyPlayCount(musicLists.get(i).getPlayCount());
                     break;
                 }
             }
+
+            Intent intent = new Intent();
+            intent.setAction("USER_DELETE_MALFUNCTION");
+            intent.putExtra("ListNo", malfunctionList.get(viewHolder.getAdapterPosition()).getListNo());
+            mContext.sendBroadcast(intent);
+
             removeData(viewHolder.getAdapterPosition());
         });
     }

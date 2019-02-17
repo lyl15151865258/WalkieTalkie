@@ -1,18 +1,24 @@
 package jp.co.shiratsuki.walkietalkie.service;
 
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Binder;
+import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
+import android.os.LocaleList;
 
 import jp.co.shiratsuki.walkietalkie.bean.Music;
 import jp.co.shiratsuki.walkietalkie.bean.MusicList;
 import jp.co.shiratsuki.walkietalkie.bean.User;
 import jp.co.shiratsuki.walkietalkie.bean.WebSocketData;
+import jp.co.shiratsuki.walkietalkie.broadcast.BaseBroadcastReceiver;
 import jp.co.shiratsuki.walkietalkie.constant.NetWork;
 import jp.co.shiratsuki.walkietalkie.contentprovider.SPHelper;
 import jp.co.shiratsuki.walkietalkie.utils.GsonUtils;
+import jp.co.shiratsuki.walkietalkie.utils.LanguageUtil;
 import jp.co.shiratsuki.walkietalkie.utils.LogUtils;
 import jp.co.shiratsuki.walkietalkie.utils.WifiUtil;
 import jp.co.shiratsuki.walkietalkie.voice.MusicPlay;
@@ -26,6 +32,7 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.SynchronousQueue;
@@ -45,12 +52,15 @@ public class WebSocketService extends Service {
     private final static String TAG = "WebSocketService";
     private WebSocketServiceBinder webSocketServiceBinder;
 
+    private List<WebSocketData> malfunctionList;
     private WebSocketClient mSocketClient;
     private String serverHost;
 
     private ExecutorService threadPool;
 
     private Handler mHandler = new Handler();
+
+    private MyReceiver myReceiver;
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -77,10 +87,15 @@ public class WebSocketService extends Service {
             thread.setDaemon(true);
             return thread;
         });
+        malfunctionList = new ArrayList<>();
         webSocketServiceBinder = new WebSocketServiceBinder();
-        MusicPlay.with(WebSocketService.this).play();
+        MusicPlay.with(getApplicationContext()).play();
         initWebSocket();
         threadPool.submit(heartBeatRunnable);
+        myReceiver = new MyReceiver();
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction("USER_DELETE_MALFUNCTION");
+        registerReceiver(myReceiver, intentFilter);
     }
 
     @Override
@@ -108,7 +123,7 @@ public class WebSocketService extends Service {
      * 获取WebSocketClient对象
      *
      * @return WebSocketClient对象
-     * @throws URISyntaxException
+     * @throws URISyntaxException URI异常
      */
     public WebSocketClient getWebSocketClient() throws URISyntaxException {
         // 获取最新的WebSocket参数
@@ -147,21 +162,58 @@ public class WebSocketService extends Service {
                 List<String> voiceList = webSocketData.getFileName();
                 if (voiceList != null && voiceList.size() > 0) {
                     if (webSocketData.isStatus()) {
-                        if (webSocketData.getPlayCount() > 0) {
+                        if (!malfunctionList.contains(webSocketData)) {
                             List<Music> musicList = new ArrayList<>();
                             for (String voiceName : voiceList) {
-                                String musicPath = "http://" + serverHost + "/andonvoicedata/01_Japanese/" + voiceName;
+                                String directory = "";
+                                switch (LanguageUtil.getLanguageLocal(WebSocketService.this)) {
+                                    case "":
+                                        // 手机设置的语言是跟随系统
+                                        Locale locale;
+                                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                                            locale = LocaleList.getDefault().get(0);
+                                        } else {
+                                            locale = Locale.getDefault();
+                                        }
+                                        String language = locale.getLanguage();
+                                        switch (language) {
+                                            case "zh":
+                                                directory = webSocketData.getChinese();
+                                                break;
+                                            case "ja":
+                                                directory = webSocketData.getJapanese();
+                                                break;
+                                            default:
+                                                directory = webSocketData.getEnglish();
+                                                break;
+                                        }
+                                        break;
+                                    case "zh":
+                                        directory = webSocketData.getChinese();
+                                        break;
+                                    case "ja":
+                                        directory = webSocketData.getJapanese();
+                                        break;
+                                    case "en":
+                                        directory = webSocketData.getEnglish();
+                                        break;
+                                    default:
+                                        break;
+                                }
+                                String musicPath = "http://" + serverHost + "/" + directory + "/" + voiceName;
                                 LogUtils.d(TAG, "音乐文件路径：" + musicPath);
                                 musicList.add(new Music(webSocketData.getListNo(), musicPath, webSocketData.getPlayCount(), 0));
                             }
                             int interval1 = webSocketData.getVoiceInterval1();
                             int interval2 = webSocketData.getVoiceInterval2();
-                            MusicPlay.with(WebSocketService.this).addMusic(new MusicList(webSocketData.getListNo(), musicList, webSocketData.getPlayCount(), 0), interval1, interval2);
+                            MusicPlay.with(WebSocketService.this.getApplicationContext()).addMusic(new MusicList(webSocketData.getListNo(), musicList, webSocketData.getPlayCount(), 0), interval1, interval2);
                         }
                     } else {
-                        MusicPlay.with(WebSocketService.this).removeMusic(webSocketData.getListNo());
+                        MusicPlay.with(WebSocketService.this.getApplicationContext()).removeMusic(webSocketData.getListNo());
                     }
                 }
+
+                receiveMalfunction(webSocketData);
             }
 
             @Override
@@ -181,6 +233,32 @@ public class WebSocketService extends Service {
                 LogUtils.d(TAG, "发生错误：" + ex.getMessage());
             }
         };
+    }
+
+
+    /**
+     * 收到异常
+     *
+     * @param webSocketData 异常信息实体
+     */
+    public void receiveMalfunction(WebSocketData webSocketData) {
+        if (webSocketData.isStatus()) {
+            // 遍历对比是否包含了这个ListNo
+            if (!malfunctionList.contains(webSocketData)) {
+                malfunctionList.add(malfunctionList.size(), webSocketData);
+            }
+        } else {
+            int position = -1;
+            for (int i = 0; i < malfunctionList.size(); i++) {
+                if (malfunctionList.get(i).getListNo() == webSocketData.getListNo()) {
+                    position = i;
+                    break;
+                }
+            }
+            if (position != -1) {
+                malfunctionList.remove(position);
+            }
+        }
     }
 
     /**
@@ -233,7 +311,7 @@ public class WebSocketService extends Service {
     /**
      * WebSocket是否已连接
      *
-     * @return
+     * @return 是否连接
      */
     public boolean isOpen() {
         return mSocketClient != null && mSocketClient.isOpen();
@@ -252,11 +330,42 @@ public class WebSocketService extends Service {
         }
     }
 
+    private class MyReceiver extends BaseBroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            super.onReceive(context, intent);
+            if (intent != null && intent.getAction() != null) {
+                switch (intent.getAction()) {
+                    case "USER_DELETE_MALFUNCTION":
+                        int ListNo = intent.getIntExtra("ListNo", -1);
+                        if (ListNo != -1) {
+                            int position = -1;
+                            for (int i = 0; i < malfunctionList.size(); i++) {
+                                if (malfunctionList.get(i).getListNo() == ListNo) {
+                                    position = i;
+                                    break;
+                                }
+                            }
+                            if (position != -1) {
+                                malfunctionList.remove(position);
+                            }
+                        }
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
+    }
+
     @Override
     public void onDestroy() {
         super.onDestroy();
-        MusicPlay.with(WebSocketService.this).release();
+        MusicPlay.with(WebSocketService.this.getApplicationContext()).release();
         closeWebSocket();
+        if (myReceiver != null) {
+            unregisterReceiver(myReceiver);
+        }
     }
 
 }

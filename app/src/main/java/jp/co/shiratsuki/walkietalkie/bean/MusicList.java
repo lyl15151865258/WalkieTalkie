@@ -50,4 +50,22 @@ public class MusicList {
     public void setAlreadyPlayCount(int alreadyPlayCount) {
         this.alreadyPlayCount = alreadyPlayCount;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof MusicList)) {
+            return false;
+        } else {
+            try {
+                MusicList that = (MusicList) o;
+                return listNo == that.listNo;
+            } catch (Exception e) {
+                e.printStackTrace();
+                return false;
+            }
+        }
+    }
 }

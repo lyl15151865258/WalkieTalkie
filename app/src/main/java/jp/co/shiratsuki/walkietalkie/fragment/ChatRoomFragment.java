@@ -3,11 +3,14 @@ package jp.co.shiratsuki.walkietalkie.fragment;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.v4.app.FragmentActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.EditText;
 
 import com.bumptech.glide.Glide;
 
@@ -15,6 +18,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import jp.co.shiratsuki.walkietalkie.R;
+import jp.co.shiratsuki.walkietalkie.activity.MainActivity;
 import jp.co.shiratsuki.walkietalkie.adapter.ChatRoomContactAdapter;
 import jp.co.shiratsuki.walkietalkie.bean.User;
 import jp.co.shiratsuki.walkietalkie.utils.LogUtils;
@@ -34,6 +38,9 @@ public class ChatRoomFragment extends BaseFragment {
     private List<User> userList;
     private ChatRoomContactAdapter chatRoomContactAdapter;
     private boolean sIsScrolling = false;
+    private EditText etRoomId;
+    private Button btnEnterExitRoom;
+
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -49,8 +56,25 @@ public class ChatRoomFragment extends BaseFragment {
         chatRoomContactAdapter.setOnItemClickListener(onItemClickListener);
         rvContacts.setAdapter(chatRoomContactAdapter);
         rvContacts.addOnScrollListener(onScrollListener);
+        etRoomId = view.findViewById(R.id.etRoomId);
+        btnEnterExitRoom = view.findViewById(R.id.btnEnterExitRoom);
+        btnEnterExitRoom.setOnClickListener(onClickListener);
         return view;
     }
+
+    private View.OnClickListener onClickListener = (v) -> {
+        switch (v.getId()) {
+            case R.id.btnEnterExitRoom:
+                FragmentActivity activity = getActivity();
+                if (activity instanceof MainActivity) {
+                    MainActivity mainActivity = (MainActivity) activity;
+                    mainActivity.clickEnterExitBtn();
+                }
+                break;
+            default:
+                break;
+        }
+    };
 
     private ChatRoomContactAdapter.OnItemClickListener onItemClickListener = (position) -> {
 
@@ -127,9 +151,22 @@ public class ChatRoomFragment extends BaseFragment {
         chatRoomContactAdapter.notifyDataSetChanged();
     }
 
-    @Override
-    public void onDestroyView() {
-        super.onDestroyView();
+    /**
+     * 加入了房间后
+     */
+    public void enterRoom() {
+        btnEnterExitRoom.setText(getString(R.string.releaseToExitChat));
+        etRoomId.setFocusable(false);
+        etRoomId.setFocusableInTouchMode(false);
+    }
+
+    /**
+     * 离开了房间后
+     */
+    public void exitRoom() {
+        btnEnterExitRoom.setText(getString(R.string.pressToJoinChat));
+        etRoomId.setFocusable(true);
+        etRoomId.setFocusableInTouchMode(true);
     }
 
 }

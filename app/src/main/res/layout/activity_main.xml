@@ -54,14 +54,6 @@
             </LinearLayout>
 
             <Button
-                android:id="@+id/btnEnterRoom"
-                android:layout_width="@dimen/dp_40"
-                android:layout_height="@dimen/dp_40"
-                android:layout_marginStart="@dimen/dp_5"
-                android:background="@drawable/icon_chat_pressed"
-                android:textColor="#fff" />
-
-            <Button
                 android:id="@+id/btnSpeak"
                 android:layout_width="@dimen/dp_40"
                 android:layout_height="@dimen/dp_40"

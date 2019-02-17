@@ -36,7 +36,6 @@ public class MalfunctionFragment extends BaseFragment {
     private List<WebSocketData> malfunctionList;
     private MalfunctionAdapter malfunctionAdapter;
     private boolean sIsScrolling = false;
-
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -55,6 +54,7 @@ public class MalfunctionFragment extends BaseFragment {
         malfunctionAdapter.setOnItemClickListener(onItemClickListener);
         rvMalfunction.setAdapter(malfunctionAdapter);
         rvMalfunction.addOnScrollListener(onScrollListener);
+
         return view;
     }
 
@@ -97,11 +97,13 @@ public class MalfunctionFragment extends BaseFragment {
      *
      * @param listNo 异常信息的序号
      */
-    public void refreshMalfunction(int listNo, boolean isPlaying) {
+    public void refreshMalfunction(int listNo, boolean playing, boolean noLongerPlay) {
         for (int i = 0; i < malfunctionList.size(); i++) {
             if (listNo == malfunctionList.get(i).getListNo()) {
-                malfunctionList.get(i).setPalying(isPlaying);
-                malfunctionAdapter.notifyItemChanged(i, i);
+                malfunctionList.get(i).setPlaying(playing);
+                LogUtils.d(TAG, "不再播放：" + listNo);
+                malfunctionList.get(i).setFinishPlay(noLongerPlay);
+                malfunctionAdapter.notifyItemChanged(i);
                 break;
             }
         }
@@ -115,8 +117,8 @@ public class MalfunctionFragment extends BaseFragment {
     public void setCurrentPlaying(int listNo) {
         if (listNo == -1) {
             for (int i = 0; i < malfunctionList.size(); i++) {
-                if (malfunctionList.get(i).isPalying()) {
-                    malfunctionList.get(i).setPalying(false);
+                if (malfunctionList.get(i).isPlaying()) {
+                    malfunctionList.get(i).setPlaying(false);
                     malfunctionAdapter.notifyItemChanged(i, false);
                     break;
                 }
@@ -124,13 +126,13 @@ public class MalfunctionFragment extends BaseFragment {
         } else {
             for (int i = 0; i < malfunctionList.size(); i++) {
                 if (listNo == malfunctionList.get(i).getListNo()) {
-                    if (!malfunctionList.get(i).isPalying()) {
-                        malfunctionList.get(i).setPalying(true);
+                    if (!malfunctionList.get(i).isPlaying()) {
+                        malfunctionList.get(i).setPlaying(true);
                         malfunctionAdapter.notifyItemChanged(i, true);
                     }
                 } else {
-                    if (malfunctionList.get(i).isPalying()) {
-                        malfunctionList.get(i).setPalying(false);
+                    if (malfunctionList.get(i).isPlaying()) {
+                        malfunctionList.get(i).setPlaying(false);
                         malfunctionAdapter.notifyItemChanged(i, false);
                     }
                 }
@@ -157,8 +159,11 @@ public class MalfunctionFragment extends BaseFragment {
      */
     public void receiveMalfunction(WebSocketData webSocketData) {
         if (webSocketData.isStatus()) {
-            malfunctionList.add(malfunctionList.size(), webSocketData);
-            malfunctionAdapter.notifyItemInserted(malfunctionList.size() - 1);
+            // 遍历对比是否包含了这个ListNo
+            if (!malfunctionList.contains(webSocketData)) {
+                malfunctionList.add(malfunctionList.size(), webSocketData);
+                malfunctionAdapter.notifyItemInserted(malfunctionList.size() - 1);
+            }
         } else {
             int position = -1;
             for (int i = 0; i < malfunctionList.size(); i++) {

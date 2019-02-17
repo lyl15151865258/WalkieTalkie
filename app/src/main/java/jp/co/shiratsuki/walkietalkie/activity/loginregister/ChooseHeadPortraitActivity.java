@@ -143,7 +143,7 @@ public class ChooseHeadPortraitActivity extends BaseActivity {
         String type = "webp";
         //将本软件的包路径+文件名拼接成图片绝对路径
         User user = GsonUtils.parseJSON(SPHelper.getString("User", GsonUtils.convertJSON(new User())), User.class);
-        String newFile = getExternalFilesDir("Icons") + "/" + time + "_" + user.getUser_id() + "." + type;
+        String newFile = getExternalFilesDir("Icons") + "/" + "_" + user.getUser_id() + time + "." + type;
         BitmapUtils.compressPicture(imagePath, newFile);
         uploadUserIcon(new File(newFile));
     };

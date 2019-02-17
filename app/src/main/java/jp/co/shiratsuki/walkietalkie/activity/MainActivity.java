@@ -123,7 +123,7 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
 
     private boolean isInRoom = false, isSpeaking = false, isUseSpeaker = false;
     private TextView tvSSID, tvIp;
-    private Button btnEnterRoom, btnSpeak, btnSpeaker;
+    private Button btnSpeak, btnSpeaker;
 
     // 振动电机
     private Vibrator vibrator;
@@ -285,15 +285,10 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
         tvDepartment = findViewById(R.id.tvDepartment);
         tvUserName = findViewById(R.id.tvUserName);
 
-        btnEnterRoom = findViewById(R.id.btnEnterRoom);
-        btnEnterRoom.setOnClickListener(onClickListener);
-
         tvSSID = findViewById(R.id.tvSSID);
         tvIp = findViewById(R.id.tvIp);
-        btnEnterRoom = findViewById(R.id.btnEnterRoom);
         btnSpeak = findViewById(R.id.btnSpeak);
         btnSpeaker = findViewById(R.id.btnSpeaker);
-        btnEnterRoom.setOnClickListener(onClickListener);
         btnSpeak.setOnClickListener(onClickListener);
         btnSpeaker.setOnClickListener(onClickListener);
 
@@ -500,7 +495,15 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
             runOnUiThread(new Thread(() -> {
                 isInRoom = true;
                 showToast(getString(R.string.InChatRoom));
-                btnEnterRoom.setBackgroundResource(R.drawable.icon_chat_normal);
+                List<Fragment> fragmentList = getSupportFragmentManager().getFragments();
+                ChatRoomFragment chatRoomFragment;
+                for (Fragment fragment : fragmentList) {
+                    if (fragment instanceof ChatRoomFragment) {
+                        chatRoomFragment = (ChatRoomFragment) fragment;
+                        chatRoomFragment.enterRoom();
+                        break;
+                    }
+                }
             }));
         }
 
@@ -510,7 +513,6 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
             runOnUiThread(new Thread(() -> {
                 // 重置房间按钮
                 isInRoom = false;
-                btnEnterRoom.setBackgroundResource(R.drawable.icon_chat_pressed);
                 // 重置说话按钮
                 isSpeaking = false;
                 btnSpeak.setBackgroundResource(R.drawable.icon_speak_pressed);
@@ -525,6 +527,7 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
                     if (fragment instanceof ChatRoomFragment) {
                         chatRoomFragment = (ChatRoomFragment) fragment;
                         chatRoomFragment.clearUserList();
+                        chatRoomFragment.exitRoom();
                         break;
                     }
                 }
@@ -624,31 +627,6 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
                 //参数false代表瞬间切换，true表示平滑过渡
                 viewPager.setCurrentItem((Integer) view.getTag(), false);
                 break;
-            case R.id.btnEnterRoom:
-                vibrator.vibrate(50);
-                // 进入/退出聊天
-                if (isInRoom) {
-                    if (iVoiceService != null) {
-                        try {
-                            iVoiceService.leaveGroup();
-                        } catch (RemoteException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                } else {
-                    if (!WifiUtil.WifiConnected(mContext)) {
-                        showToast(getString(R.string.please_connect_wifi));
-                    } else {
-                        if (iVoiceService != null) {
-                            try {
-                                iVoiceService.enterGroup();
-                            } catch (RemoteException e) {
-                                e.printStackTrace();
-                            }
-                        }
-                    }
-                }
-                break;
             case R.id.btnSpeak:
                 vibrator.vibrate(50);
                 // 打开/关闭麦克风
@@ -744,6 +722,35 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
         }
     };
 
+    /**
+     * 聊天页面按钮点击事件
+     */
+    public void clickEnterExitBtn() {
+        vibrator.vibrate(50);
+        // 进入/退出聊天
+        if (isInRoom) {
+            if (iVoiceService != null) {
+                try {
+                    iVoiceService.leaveGroup();
+                } catch (RemoteException e) {
+                    e.printStackTrace();
+                }
+            }
+        } else {
+            if (!WifiUtil.WifiConnected(mContext)) {
+                showToast(getString(R.string.please_connect_wifi));
+            } else {
+                if (iVoiceService != null) {
+                    try {
+                        iVoiceService.enterGroup();
+                    } catch (RemoteException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }
+    }
+
     private class MyReceiver extends BaseBroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -783,7 +790,8 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
                             if (fragment instanceof MalfunctionFragment) {
                                 malfunctionFragment = (MalfunctionFragment) fragment;
                                 if (listNo != -1) {
-                                    malfunctionFragment.refreshMalfunction(listNo, false);
+                                    // 不再播放某一条异常信息
+                                    malfunctionFragment.refreshMalfunction(listNo, false, true);
                                 }
                                 break;
                             }
@@ -961,7 +969,7 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
         String type = "webp";
         // 将本软件的包路径 + 文件名拼接成图片绝对路径
         User user = GsonUtils.parseJSON(SPHelper.getString("User", GsonUtils.convertJSON(new User())), User.class);
-        String newFile = getExternalFilesDir("Icons") + "/" + time + "_" + user.getUser_id() + "." + type;
+        String newFile = getExternalFilesDir("Icons") + "/" + "_" + user.getUser_id() + time + "." + type;
         BitmapUtils.compressPicture(imagePath, newFile);
         uploadUserIcon(new File(newFile));
     };
