@@ -15,6 +15,7 @@
     <string name="releaseToUseEarpiece">听筒</string>
     <string name="InChatRoom">您已加入了聊天室</string>
     <string name="ExitChatRoom">您已离开了聊天室</string>
+    <string name="DisconnectServer">您已与服务器断开连接</string>
     <string name="OutChatRoom">您还没有进入聊天室</string>
     <string name="microphonePermission">请授予麦克风权限</string>
     <string name="NoMoreData">没有更多的数据</string>

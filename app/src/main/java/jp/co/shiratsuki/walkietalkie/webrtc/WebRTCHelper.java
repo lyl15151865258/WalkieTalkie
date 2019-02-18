@@ -90,10 +90,18 @@ public class WebRTCHelper implements ISignalingEvents {
         _factory = new PeerConnectionFactory();
     }
 
-    public void initSocket(String ws, final String room, boolean videoEnable) {
+    public void initSocket(String ws, boolean videoEnable) {
         this.videoEnable = videoEnable;
         webSocket = new JavaWebSocket(this);
-        webSocket.connect(ws, room);
+        webSocket.connect(ws);
+    }
+
+    public boolean socketIsOpen() {
+        return webSocket.socketIsOpen();
+    }
+
+    public void joinRoom(String roomId) {
+        webSocket.joinRoom(roomId);
     }
 
 
@@ -197,7 +205,13 @@ public class WebRTCHelper implements ISignalingEvents {
 
     @Override
     public void onReceiveSpeakStatus(ArrayList<User> userList) {
+        IHelper.updateRoomSpeakStatus(userList);
+    }
+
+    @Override
+    public void onReceiveSomeoneLeave(String userId, ArrayList<User> userList) {
         IHelper.updateRoomContacts(userList);
+        closePeerConnection(userId);
     }
 
     @Override
@@ -207,7 +221,7 @@ public class WebRTCHelper implements ISignalingEvents {
 
     @Override
     public void onWebSocketClosed() {
-        exitRoom();
+        leaveGroup();
     }
 
 
@@ -270,17 +284,18 @@ public class WebRTCHelper implements ISignalingEvents {
      * 退出房间
      */
     public void exitRoom() {
+        User user = GsonUtils.parseJSON(SPHelper.getString("User", GsonUtils.convertJSON(new User())), User.class);
+        HashMap<String, Object> map = new HashMap<>();
+        map.put("eventName", "__leave_room");
+        map.put("data", user);
+        sendMessage(GsonUtils.convertJSON(map));
+
         if (videoSource != null) {
             videoSource.stop();
         }
-        ArrayList myCopy;
-        myCopy = (ArrayList) _connectionIdArray.clone();
+        ArrayList myCopy = (ArrayList) _connectionIdArray.clone();
         for (Object Id : myCopy) {
             closePeerConnection((String) Id);
-        }
-        if (webSocket != null) {
-            webSocket.close();
-            webSocket = null;
         }
         if (_connectionIdArray != null) {
             _connectionIdArray.clear();
@@ -291,8 +306,35 @@ public class WebRTCHelper implements ISignalingEvents {
             IHelper.onLeaveRoom();
             SPHelper.save("KEY_STATUS_UP", true);
         }
+    }
 
-        mHandler.removeCallbacks(heartBeatRunnable);
+    public void leaveGroup() {
+        User user = GsonUtils.parseJSON(SPHelper.getString("User", GsonUtils.convertJSON(new User())), User.class);
+        HashMap<String, Object> map = new HashMap<>();
+        map.put("eventName", "__leave_room");
+        map.put("data", user);
+        sendMessage(GsonUtils.convertJSON(map));
+
+        if (videoSource != null) {
+            videoSource.stop();
+        }
+        ArrayList myCopy = (ArrayList) _connectionIdArray.clone();
+        for (Object Id : myCopy) {
+            closePeerConnection((String) Id);
+        }
+
+        if (webSocket != null) {
+            webSocket.close();
+        }
+        if (_connectionIdArray != null) {
+            _connectionIdArray.clear();
+        }
+        _localStream = null;
+
+        if (IHelper != null) {
+            IHelper.onLeaveGroup();
+            SPHelper.save("KEY_STATUS_UP", true);
+        }
     }
 
     // 创建本地流
@@ -383,7 +425,7 @@ public class WebRTCHelper implements ISignalingEvents {
         if (IHelper != null) {
             IHelper.removeUser(connectionId);
         }
-        LogUtils.d(TAG, "关闭通道流");
+        LogUtils.d(TAG, "关闭" + connectionId + "通道流");
         Peer mPeer = _connectionPeerDic.get(connectionId);
         if (mPeer != null) {
             mPeer.pc.close();

@@ -146,8 +146,8 @@ public class ChatRoomFragment extends BaseFragment {
      * 清空房间联系人
      */
     public void clearUserList() {
-        LogUtils.d(TAG, "清空联系人列表");
         userList.clear();
+        LogUtils.d(TAG, "走了这里，清空房间联系人，联系人数量：" + userList.size());
         chatRoomContactAdapter.notifyDataSetChanged();
     }
 

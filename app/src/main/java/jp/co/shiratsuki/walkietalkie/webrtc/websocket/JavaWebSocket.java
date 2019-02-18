@@ -50,7 +50,7 @@ public class JavaWebSocket implements IWebSocket {
         this.events = events;
     }
 
-    public void connect(String wss, String room) {
+    public void connect(String wss) {
         LogUtils.d(TAG, "WebRTC服务器地址：" + wss);
         URI uri;
         try {
@@ -63,7 +63,7 @@ public class JavaWebSocket implements IWebSocket {
             mWebSocketClient = new WebSocketClient(uri) {
                 @Override
                 public void onOpen(ServerHandshake handshake) {
-                    joinRoom(room);
+
                 }
 
                 @Override
@@ -116,6 +116,11 @@ public class JavaWebSocket implements IWebSocket {
         }
     }
 
+    @Override
+    public boolean socketIsOpen() {
+        return mWebSocketClient.isOpen();
+    }
+
     //============================需要发送的=====================================
     @Override
     public void joinRoom(String room) {
@@ -126,12 +131,12 @@ public class JavaWebSocket implements IWebSocket {
         user.setRoom_name(room);
         user.setInroom(false);
         user.setSpeaking(false);
+        SPHelper.save("User", GsonUtils.convertJSON(user));
         map.put("data", user);
         sendMessage(GsonUtils.convertJSON(map));
     }
 
     public void sendAnswer(String userId, String sdp) {
-
         Map<String, Object> childMap1 = new HashMap<>();
         childMap1.put("type", "answer");
         childMap1.put("sdp", sdp);
@@ -214,6 +219,9 @@ public class JavaWebSocket implements IWebSocket {
                     break;
                 case "_p2p_request":
                     handleP2PVoice(message);
+                    break;
+                case "_someone_leave":
+                    handleLeaveRoom(message);
                     break;
                 default:
                     break;
@@ -304,6 +312,14 @@ public class JavaWebSocket implements IWebSocket {
         intent.putExtra("Inviter", "张三");
         intent.putExtra("IconUrl", "https://ss1.bdstatic.com/70cFuXSh_Q1YnxGkpoWK1HF6hhy/it/u=1565946200,1651212411&fm=26&gp=0.jpg");
         currentActivity.startActivity(intent);
+    }
+
+    // 处理有人离开房间
+    private void handleLeaveRoom(String message) {
+        ContactsList contactsList = GsonUtils.parseJSON(message, ContactsList.class);
+        ArrayList<User> userList = contactsList.getData().getContacts();
+        String userId = contactsList.getData().getUserId();
+        events.onReceiveSomeoneLeave(userId, userList);
     }
 
     // 发送消息的方法

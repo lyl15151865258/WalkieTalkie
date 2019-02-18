@@ -40,7 +40,6 @@ import jp.co.shiratsuki.walkietalkie.contentprovider.SPHelper;
 import jp.co.shiratsuki.walkietalkie.utils.DbcSbcUtils;
 import jp.co.shiratsuki.walkietalkie.utils.GsonUtils;
 import jp.co.shiratsuki.walkietalkie.utils.LogUtils;
-import jp.co.shiratsuki.walkietalkie.utils.WifiUtil;
 import jp.co.shiratsuki.walkietalkie.webrtc.IWebRTCHelper;
 import jp.co.shiratsuki.walkietalkie.webrtc.WebRTCHelper;
 import jp.co.shiratsuki.walkietalkie.constant.NetWork;
@@ -58,7 +57,7 @@ public class VoiceService extends Service implements IWebRTCHelper, VolumeChange
     private boolean isInRoom = false;
 
     enum TYPE {
-        EnterGroup, LeaveGroup, StartRecord, StopRecord, UseSpeaker, UseEarpiece, DeleteUser
+        EnterRoom, LeaveRoom, LeaveGroup, StartRecord, StopRecord, UseSpeaker, UseEarpiece, DeleteUser
     }
 
     private final static String TAG = "VoiceService";
@@ -106,6 +105,13 @@ public class VoiceService extends Service implements IWebRTCHelper, VolumeChange
         mVolumeChangeObserver = new VolumeChangeObserver(this);
         mVolumeChangeObserver.setVolumeChangeListener(this);
         mVolumeChangeObserver.registerReceiver();
+
+        String ip = SPHelper.getString("VoiceServerIP", NetWork.WEBRTC_SERVER_IP);
+        String port = SPHelper.getString("VoiceServerPort", NetWork.WEBRTC_SERVER_PORT);
+        User user = GsonUtils.parseJSON(SPHelper.getString("User", GsonUtils.convertJSON(new User())), User.class);
+
+        String signal = DbcSbcUtils.getPatStr("ws://" + ip + ":" + port + "/WalkieTalkieServer/" + user.getUser_id());
+        helper.initSocket(signal, false);
     }
 
     // 注册耳机按钮事件
@@ -175,27 +181,39 @@ public class VoiceService extends Service implements IWebRTCHelper, VolumeChange
     public IVoiceService.Stub mBinder = new IVoiceService.Stub() {
 
         @Override
-        public void enterGroup() {
+        public void enterRoom() {
             // 进入房间
-            try {
-                String ip = SPHelper.getString("VoiceServerIP", NetWork.WEBRTC_SERVER_IP);
-                String port = SPHelper.getString("VoiceServerPort", NetWork.WEBRTC_SERVER_PORT);
-                String roomId = SPHelper.getString("VoiceRoomId", NetWork.WEBRTC_SERVER_ROOM);
-                User user = GsonUtils.parseJSON(SPHelper.getString("User", GsonUtils.convertJSON(new User())), User.class);
+            if (helper.socketIsOpen()) {
+                try {
+                    String roomId = SPHelper.getString("VoiceRoomId", NetWork.WEBRTC_SERVER_ROOM);
+                    helper.joinRoom(roomId);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }
 
-                String signal = DbcSbcUtils.getPatStr("ws://" + ip + ":" + port + "/WalkieTalkieServer/" + user.getUser_id());
-                helper.initSocket(signal, roomId, false);
-            } catch (Exception e) {
+        @Override
+        public void leaveRoom() {
+            // 离开房间
+            try {
+                mBinder.stopRecord();
+                helper.exitRoom();
+                broadcastCallback(TYPE.LeaveRoom, null);
+                SPHelper.save("KEY_STATUS_UP", true);
+                isInRoom = false;
+                LogUtils.d(TAG, "离开房间");
+            } catch (RemoteException e) {
                 e.printStackTrace();
             }
         }
 
         @Override
         public void leaveGroup() {
-            // 离开房间
+            // 与服务器断开连接
             try {
                 mBinder.stopRecord();
-                helper.exitRoom();
+                helper.leaveGroup();
                 broadcastCallback(TYPE.LeaveGroup, null);
                 SPHelper.save("KEY_STATUS_UP", true);
                 isInRoom = false;
@@ -356,13 +374,19 @@ public class VoiceService extends Service implements IWebRTCHelper, VolumeChange
     @Override
     public void onEnterRoom() {
         isInRoom = true;
-        broadcastCallback(TYPE.EnterGroup, null);
+        broadcastCallback(TYPE.EnterRoom, null);
         helper.toggleMute(false);
         helper.toggleSpeaker(false);
     }
 
     @Override
     public void onLeaveRoom() {
+        broadcastCallback(TYPE.LeaveRoom, null);
+        isInRoom = false;
+    }
+
+    @Override
+    public void onLeaveGroup() {
         broadcastCallback(TYPE.LeaveGroup, null);
         isInRoom = false;
     }
@@ -373,9 +397,9 @@ public class VoiceService extends Service implements IWebRTCHelper, VolumeChange
     }
 
     @Override
-    public void removeUser(String userIP) {
+    public void removeUser(String userId) {
         Intent intent = new Intent();
-        intent.putExtra("userIP", userIP);
+        intent.putExtra("userId", userId);
         broadcastCallback(TYPE.DeleteUser, intent);
     }
 
@@ -415,6 +439,42 @@ public class VoiceService extends Service implements IWebRTCHelper, VolumeChange
     }
 
     @Override
+    public void updateRoomSpeakStatus(ArrayList<User> userList) {
+
+        // 调节音量
+        int defaultVolume = SPHelper.getInt("defaultVolume", mAudioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC));
+        boolean someoneSpeaking = false;
+        for (int i = 0; i < userList.size(); i++) {
+            if (userList.get(i).isSpeaking()) {
+                someoneSpeaking = true;
+                break;
+            }
+        }
+
+        Intent intent = new Intent();
+        // 如果所有人都不讲话了
+        if (!someoneSpeaking) {
+            SPHelper.save("SomeoneSpeaking", false);
+            LogUtils.d(TAG, "所有人都不讲话了，当前音量为：" + defaultVolume);
+            mAudioManager.setStreamVolume(AudioManager.STREAM_MUSIC, defaultVolume, AudioManager.FLAG_VIBRATE);
+
+            // 通知Activity修改音量键默认调节的音量类型
+            intent.putExtra("VolumeControlStream", AudioManager.STREAM_MUSIC);
+        } else {
+            SPHelper.save("SomeoneSpeaking", true);
+            LogUtils.d(TAG, "当前有人在讲话，当前音量为：" + defaultVolume / 2);
+            mAudioManager.setStreamVolume(AudioManager.STREAM_MUSIC, defaultVolume / 2, AudioManager.FLAG_VIBRATE);
+
+            // 通知Activity修改音量键默认调节的音量类型
+            intent.putExtra("VolumeControlStream", AudioManager.STREAM_VOICE_CALL);
+        }
+        intent.putParcelableArrayListExtra("userList", userList);
+        intent.setAction("UPDATE_SPEAK_STATUS");
+        LogUtils.d(TAG, "房间内联系人数量：" + userList.size());
+        sendBroadcast(intent);
+    }
+
+    @Override
     public void updateContacts(ArrayList<User> userList) {
         Intent intent = new Intent();
         intent.putParcelableArrayListExtra("userList", userList);
@@ -431,23 +491,33 @@ public class VoiceService extends Service implements IWebRTCHelper, VolumeChange
                 LogUtils.d(TAG, "走回调方法broadcastCallback");
                 IVoiceCallback callback = mCallbackList.getBroadcastItem(i);
                 if (callback != null) {
-                    if (type == TYPE.EnterGroup) {
+                    if (type == TYPE.EnterRoom) {
                         callback.enterRoomSuccess();
+                        LogUtils.d(TAG, "走回调方法broadcastCallback，EnterRoom");
+                    } else if (type == TYPE.LeaveRoom) {
+                        callback.leaveRoomSuccess();
+                        LogUtils.d(TAG, "走回调方法broadcastCallback，LeaveRoom");
                     } else if (type == TYPE.LeaveGroup) {
                         callback.leaveGroupSuccess();
+                        LogUtils.d(TAG, "走回调方法broadcastCallback，LeaveGroup");
                     } else if (type == TYPE.StartRecord) {
                         callback.startRecordSuccess();
+                        LogUtils.d(TAG, "走回调方法broadcastCallback，StartRecord");
                     } else if (type == TYPE.StopRecord) {
                         callback.stopRecordSuccess();
+                        LogUtils.d(TAG, "走回调方法broadcastCallback，StopRecord");
                     } else if (type == TYPE.UseSpeaker) {
                         callback.useSpeakerSuccess();
+                        LogUtils.d(TAG, "走回调方法broadcastCallback，UseSpeaker");
                     } else if (type == TYPE.UseEarpiece) {
                         callback.useEarpieceSuccess();
+                        LogUtils.d(TAG, "走回调方法broadcastCallback，UseEarpiece");
                     } else if (type == TYPE.DeleteUser) {
                         if (intent != null) {
-                            String userIP = intent.getStringExtra("userIP");
-                            callback.removeUser(userIP, "");
+                            String userId = intent.getStringExtra("userId");
+                            callback.removeUser(userId, "");
                         }
+                        LogUtils.d(TAG, "走回调方法broadcastCallback，DeleteUser");
                     }
                 }
             }

@@ -18,6 +18,7 @@ import java.util.List;
 import jp.co.shiratsuki.walkietalkie.R;
 import jp.co.shiratsuki.walkietalkie.bean.User;
 import jp.co.shiratsuki.walkietalkie.constant.NetWork;
+import jp.co.shiratsuki.walkietalkie.utils.LogUtils;
 
 /**
  * 房间联系人列表适配器
@@ -29,6 +30,7 @@ import jp.co.shiratsuki.walkietalkie.constant.NetWork;
 
 public class ChatRoomContactAdapter extends RecyclerView.Adapter<ChatRoomContactAdapter.ContactViewHolder> {
 
+    private String TAG = "ChatRoomContactAdapter";
     private Context mContext;
     private List<User> userList;
     private OnItemClickListener mListener;
@@ -46,6 +48,7 @@ public class ChatRoomContactAdapter extends RecyclerView.Adapter<ChatRoomContact
 
     @Override
     public void onBindViewHolder(@NonNull ContactViewHolder viewHolder, int position) {
+        LogUtils.d(TAG, "走了onBindViewHolder");
         User user = userList.get(position);
         viewHolder.tvUserName.setText(user.getUser_name());
         viewHolder.tvDepartment.setText(user.getDepartment_name());

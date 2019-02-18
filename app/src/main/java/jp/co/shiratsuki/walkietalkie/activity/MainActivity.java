@@ -406,6 +406,7 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
         intentFilter.addAction("MESSAGE_WEBSOCKET_CLOSED");
         intentFilter.addAction("UPDATE_CONTACTS");
         intentFilter.addAction("UPDATE_CONTACTS_ROOM");
+        intentFilter.addAction("UPDATE_SPEAK_STATUS");
         mContext.registerReceiver(myReceiver, intentFilter);
     }
 
@@ -472,7 +473,7 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
             iVoiceService = IVoiceService.Stub.asInterface(service);
             try {
                 iVoiceService.registerCallback(iVoiceCallback);
-                iVoiceService.enterGroup();
+                iVoiceService.enterRoom();
             } catch (RemoteException e) {
                 e.printStackTrace();
             }
@@ -486,7 +487,7 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
     };
 
     /**
-     * 被调用的方法运行在Binder线程池中，不能更新UI
+     * 被调用的方法运行在Binder线程池中，需要在主线程中更新UI
      */
     private IVoiceCallback iVoiceCallback = new IVoiceCallback.Stub() {
         @Override
@@ -508,7 +509,8 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
         }
 
         @Override
-        public void leaveGroupSuccess() {
+        public void leaveRoomSuccess() {
+            LogUtils.d("这里走了两遍吗");
             // 离开房间成功
             runOnUiThread(new Thread(() -> {
                 // 重置房间按钮
@@ -532,6 +534,34 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
                     }
                 }
 
+                SPHelper.save("KEY_STATUS_UP", true);
+                showToast(getString(R.string.ExitChatRoom));
+            }));
+        }
+
+        @Override
+        public void leaveGroupSuccess() {
+            // 离开房间成功
+            runOnUiThread(new Thread(() -> {
+                // 重置房间按钮
+                isInRoom = false;
+                // 重置说话按钮
+                isSpeaking = false;
+                btnSpeak.setBackgroundResource(R.drawable.icon_speak_pressed);
+                // 重置扬声器按钮
+                isUseSpeaker = false;
+                btnSpeaker.setBackgroundResource(R.drawable.icon_speaker_pressed);
+                List<Fragment> fragmentList = getSupportFragmentManager().getFragments();
+                // 清空房间联系人列表
+                ChatRoomFragment chatRoomFragment;
+                for (Fragment fragment : fragmentList) {
+                    if (fragment instanceof ChatRoomFragment) {
+                        chatRoomFragment = (ChatRoomFragment) fragment;
+                        chatRoomFragment.clearUserList();
+                        chatRoomFragment.exitRoom();
+                        break;
+                    }
+                }
                 // 清空大厅联系人列表
                 ContactsFragment contactsFragment;
                 for (Fragment fragment : fragmentList) {
@@ -543,7 +573,7 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
                 }
 
                 SPHelper.save("KEY_STATUS_UP", true);
-                showToast(getString(R.string.ExitChatRoom));
+                showToast(getString(R.string.DisconnectServer));
             }));
         }
 
@@ -731,7 +761,7 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
         if (isInRoom) {
             if (iVoiceService != null) {
                 try {
-                    iVoiceService.leaveGroup();
+                    iVoiceService.leaveRoom();
                 } catch (RemoteException e) {
                     e.printStackTrace();
                 }
@@ -742,7 +772,7 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
             } else {
                 if (iVoiceService != null) {
                     try {
-                        iVoiceService.enterGroup();
+                        iVoiceService.enterRoom();
                     } catch (RemoteException e) {
                         e.printStackTrace();
                     }
@@ -839,13 +869,10 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
                         for (Fragment fragment : fragmentList) {
                             if (fragment instanceof ChatRoomFragment) {
                                 chatRoomFragment = (ChatRoomFragment) fragment;
-                                LogUtils.d(TAG, "刷新ChatRoomFragment联系人列表111111111");
                                 ArrayList<User> users = intent.getParcelableArrayListExtra("userList");
-                                LogUtils.d(TAG, "刷新ChatRoomFragment联系人列表222222222222");
                                 for (int i = 0; i < users.size(); i++) {
                                     LogUtils.d(TAG, "联系人数量：" + users.size() + "," + users.get(i).getUser_id());
                                 }
-                                LogUtils.d(TAG, "刷新ChatRoomFragment联系人列表3333333333");
                                 chatRoomFragment.refreshList(users);
                                 break;
                             }
@@ -854,6 +881,29 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
                         int streamType = intent.getIntExtra("VolumeControlStream", AudioManager.STREAM_RING);
                         LogUtils.d(TAG, "修改当前调节的音量类型为：" + streamType);
                         setVolumeControlStream(streamType);
+                    }
+                    break;
+                    case "UPDATE_SPEAK_STATUS": {
+                        // 刷新联系人列表
+                        if (isInRoom) {
+                            LogUtils.d(TAG, "刷新ChatRoomFragment联系人列表");
+                            ChatRoomFragment chatRoomFragment;
+                            for (Fragment fragment : fragmentList) {
+                                if (fragment instanceof ChatRoomFragment) {
+                                    chatRoomFragment = (ChatRoomFragment) fragment;
+                                    ArrayList<User> users = intent.getParcelableArrayListExtra("userList");
+                                    for (int i = 0; i < users.size(); i++) {
+                                        LogUtils.d(TAG, "联系人数量：" + users.size() + "," + users.get(i).getUser_id());
+                                    }
+                                    chatRoomFragment.refreshList(users);
+                                    break;
+                                }
+                            }
+                            // 更改手机音量键调节的音量类型
+                            int streamType = intent.getIntExtra("VolumeControlStream", AudioManager.STREAM_RING);
+                            LogUtils.d(TAG, "修改当前调节的音量类型为：" + streamType);
+                            setVolumeControlStream(streamType);
+                        }
                     }
                     break;
                     case "UPDATE_CONTACTS": {

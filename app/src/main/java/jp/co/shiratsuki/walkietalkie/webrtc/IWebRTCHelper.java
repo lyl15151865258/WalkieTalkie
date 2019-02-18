@@ -24,6 +24,8 @@ public interface IWebRTCHelper {
 
     void onLeaveRoom();
 
+    void onLeaveGroup();
+
     void onCloseWithId(String userId);
 
     // 有人离开房间
@@ -31,6 +33,9 @@ public interface IWebRTCHelper {
 
     // 更新房间内联系人列表
     void updateRoomContacts(ArrayList<User> userList);
+
+    // 更新房间内说话状态
+    void updateRoomSpeakStatus(ArrayList<User> userList);
 
     // 更新所有联系人列表
     void updateContacts(ArrayList<User> userList);

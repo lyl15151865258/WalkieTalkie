@@ -15,6 +15,7 @@
     <string name="releaseToUseEarpiece">Earpiece</string>
     <string name="InChatRoom">You have joined the chat room</string>
     <string name="ExitChatRoom">You have left the chat room</string>
+    <string name="DisconnectServer">You have been disconnected from the server</string>
     <string name="OutChatRoom">You have not entered the chat room yet</string>
     <string name="microphonePermission">Please grant microphone permission</string>
     <string name="NoMoreData">No more data.</string>

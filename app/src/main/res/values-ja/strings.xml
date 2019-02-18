@@ -15,6 +15,7 @@
     <string name="releaseToUseEarpiece">イヤホン</string>
     <string name="InChatRoom">あなたはチャットルームに参加しました</string>
     <string name="ExitChatRoom">チャットルームを離れました</string>
+    <string name="DisconnectServer">サーバーから切断されました</string>
     <string name="OutChatRoom">あなたはまだチャットルームに入っていません</string>
     <string name="microphonePermission">マイクの許可を与えてください</string>
     <string name="NoMoreData">データはこれ以上ありません</string>
