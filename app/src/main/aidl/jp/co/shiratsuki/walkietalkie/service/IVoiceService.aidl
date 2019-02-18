@@ -3,7 +3,7 @@ package jp.co.shiratsuki.walkietalkie.service;
 import jp.co.shiratsuki.walkietalkie.service.IVoiceCallback;
 
 interface IVoiceService {
-    void enterRoom();
+    void enterRoom(String roomId);
     void leaveRoom();
     void leaveGroup();
     void startRecord();

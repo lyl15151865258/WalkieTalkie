@@ -146,18 +146,13 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
         mContext = this;
         vibrator = (Vibrator) getSystemService(VIBRATOR_SERVICE);
         initView();
-        initWebSocket();
         initBroadcastReceiver();
 
         //权限检查
         PermissionUtil.isNeedRequestPermission(this);
 
-        Intent intent = new Intent(mContext, VoiceService.class);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            startForegroundService(intent);
-        } else {
-            startService(intent);
-        }
+        initWebSocketService();
+        initVoiceService();
 
         // 初始化耳机按键标记
         SPHelper.save("KEY_STATUS_UP", true);
@@ -168,6 +163,32 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
         mTempPhotoPath = Environment.getExternalStorageDirectory() + File.separator + "photo.jpeg";
         mSelectPicturePopupWindow = new SelectPicturePopupWindow(mContext, (findViewById(android.R.id.content)));
         mSelectPicturePopupWindow.setOnSelectedListener(this);
+    }
+
+    /**
+     * 初始化并绑定WebSocketService
+     */
+    private void initWebSocketService() {
+        Intent intent = new Intent(mContext, WebSocketService.class);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            startForegroundService(intent);
+        } else {
+            startService(intent);
+        }
+        bindService(intent, serviceConnection1, BIND_AUTO_CREATE);
+    }
+
+    /**
+     * 初始化并绑定VoiceService
+     */
+    private void initVoiceService() {
+        Intent intent = new Intent(mContext, VoiceService.class);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            startForegroundService(intent);
+        } else {
+            startService(intent);
+        }
+        bindService(intent, serviceConnection2, BIND_AUTO_CREATE);
     }
 
     @Override
@@ -194,12 +215,6 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
         RequestOptions options = new RequestOptions().error(R.drawable.photo_user).placeholder(R.drawable.photo_user).dontAnimate();
         Glide.with(this).load(photoPath).apply(options).into(ivUserIcon);
         Glide.with(this).load(photoPath).apply(options).into(ivIcon);
-
-        Intent intent1 = new Intent(mContext, WebSocketService.class);
-        bindService(intent1, serviceConnection1, BIND_AUTO_CREATE);
-
-        Intent intent2 = new Intent(mContext, VoiceService.class);
-        bindService(intent2, serviceConnection2, BIND_AUTO_CREATE);
     }
 
     @Override
@@ -388,11 +403,6 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
         }
     };
 
-    private void initWebSocket() {
-        Intent intent = new Intent(mContext, WebSocketService.class);
-        mContext.startService(intent);
-    }
-
     private void initBroadcastReceiver() {
         myReceiver = new MyReceiver();
         IntentFilter intentFilter = new IntentFilter();
@@ -473,7 +483,6 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
             iVoiceService = IVoiceService.Stub.asInterface(service);
             try {
                 iVoiceService.registerCallback(iVoiceCallback);
-                iVoiceService.enterRoom();
             } catch (RemoteException e) {
                 e.printStackTrace();
             }
@@ -772,7 +781,9 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
             } else {
                 if (iVoiceService != null) {
                     try {
-                        iVoiceService.enterRoom();
+                        User user = GsonUtils.parseJSON(SPHelper.getString("User", GsonUtils.convertJSON(new User())), User.class);
+                        String roomId = user.getRoom_id();
+                        iVoiceService.enterRoom(roomId);
                     } catch (RemoteException e) {
                         e.printStackTrace();
                     }
@@ -1126,10 +1137,12 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
                     }
                     break;
                 case REQUEST_CODE_SET_MESSAGE_SERVER:
-                    // 设置消息服务器地址后返回
+                    // 设置消息服务器地址后返回,子线程执行，否则会阻塞卡顿
                     if (webSocketService != null) {
-                        webSocketService.closeWebSocket();
-                        webSocketService.reConnect();
+                        new Thread(() -> {
+                            webSocketService.closeWebSocket();
+                            webSocketService.reConnect();
+                        }).start();
                     }
                     break;
                 default:

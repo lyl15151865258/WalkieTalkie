@@ -102,8 +102,11 @@
     <string name="NewUserRegister">新用户注册</string>
     <string name="HaveAccount">已有账号</string>
     <string name="ReadRegisterProtocol">我已阅读并同意《用户注册协议》</string>
-    <string name="Login">登&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;陆</string>
-    <string name="register">注&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;册</string>
+    <string name="Login">登录</string>
+    <string name="register">注册</string>
     <string name="RegistrationProtocol">用户注册协议</string>
+    <string name="ChatRoomId">聊天室编号</string>
+    <string name="ContactNameOrDepartment">联系人姓名或部门</string>
+    <string name="EffectiveAfterRestart">重启后生效</string>
 
 </resources>

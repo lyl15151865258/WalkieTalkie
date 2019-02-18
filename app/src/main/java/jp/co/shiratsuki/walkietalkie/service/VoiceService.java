@@ -1,7 +1,8 @@
 package jp.co.shiratsuki.walkietalkie.service;
 
 import android.app.Notification;
-import android.app.PendingIntent;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothHeadset;
@@ -11,14 +12,15 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
 import android.net.wifi.WifiManager;
+import android.os.Build;
 import android.os.IBinder;
 import android.os.Parcelable;
 import android.os.RemoteCallbackList;
@@ -31,7 +33,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 import jp.co.shiratsuki.walkietalkie.R;
-import jp.co.shiratsuki.walkietalkie.activity.MainActivity;
 import jp.co.shiratsuki.walkietalkie.bean.User;
 import jp.co.shiratsuki.walkietalkie.broadcast.BaseBroadcastReceiver;
 import jp.co.shiratsuki.walkietalkie.broadcast.MediaButtonReceiver;
@@ -88,7 +89,8 @@ public class VoiceService extends Service implements IWebRTCHelper, VolumeChange
         filter3.addAction(AudioManager.ACTION_AUDIO_BECOMING_NOISY);
         registerReceiver(headsetPlugReceiver, filter3);
 
-//        showNotification();
+        showNotification();
+
         helper = new WebRTCHelper(this, this, NetWork.iceServers);
 
         mAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
@@ -153,6 +155,7 @@ public class VoiceService extends Service implements IWebRTCHelper, VolumeChange
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        LogUtils.d(TAG, "VoiceService——————生命周期——————:onStartCommand");
         return super.onStartCommand(intent, flags, startId);
     }
 
@@ -181,11 +184,10 @@ public class VoiceService extends Service implements IWebRTCHelper, VolumeChange
     public IVoiceService.Stub mBinder = new IVoiceService.Stub() {
 
         @Override
-        public void enterRoom() {
+        public void enterRoom(String roomId) {
             // 进入房间
             if (helper.socketIsOpen()) {
                 try {
-                    String roomId = SPHelper.getString("VoiceRoomId", NetWork.WEBRTC_SERVER_ROOM);
                     helper.joinRoom(roomId);
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -322,20 +324,33 @@ public class VoiceService extends Service implements IWebRTCHelper, VolumeChange
      * 前台Service
      */
     private void showNotification() {
-        Intent notificationIntent = new Intent(this, MainActivity.class);
-        notificationIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0);
-        Bitmap icon = BitmapFactory.decodeResource(getResources(), R.mipmap.ic_launcher);
-        Notification notification = new NotificationCompat.Builder(getApplicationContext())
-                .setContentTitle("对讲机")
-                .setTicker("对讲机")
-                .setContentText("正在使用对讲机")
-                .setSmallIcon(R.mipmap.ic_launcher)
-                .setLargeIcon(Bitmap.createScaledBitmap(icon, 128, 128, false))
-                .setContentIntent(pendingIntent)
-                .setOngoing(true).build();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationManager manager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+            NotificationChannel Channel = new NotificationChannel("123", "对讲机语音服务", NotificationManager.IMPORTANCE_HIGH);
+            Channel.enableLights(true);                                             //设置提示灯
+            Channel.setLightColor(Color.RED);                                       //设置提示灯颜色
+            Channel.setShowBadge(true);                                             //显示logo
+            Channel.setDescription("正在使用对讲机");                               //设置描述
+            Channel.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);        //设置锁屏可见 VISIBILITY_PUBLIC=可见
+            manager.createNotificationChannel(Channel);
 
-        startForeground(101, notification);
+            NotificationCompat.Builder notification = new NotificationCompat.Builder(this, "123");
+            notification.setContentTitle(getString(R.string.app_name));
+            notification.setContentText("对讲机语音服务运行中...");
+            notification.setWhen(System.currentTimeMillis());
+            notification.setSmallIcon(R.mipmap.ic_launcher);
+            notification.setLargeIcon(BitmapFactory.decodeResource(getResources(), R.mipmap.ic_launcher));
+            startForeground(123, notification.build());
+        } else {
+            Notification notification = new Notification.Builder(this)
+                    .setContentTitle(getString(R.string.app_name))                                      //设置标题
+                    .setContentText("对讲机语音服务运行中...")                                          //设置内容
+                    .setWhen(System.currentTimeMillis())                                                //设置创建时间
+                    .setSmallIcon(R.mipmap.ic_launcher)                                                 //设置状态栏图标
+                    .setLargeIcon(BitmapFactory.decodeResource(getResources(), R.mipmap.ic_launcher))   //设置通知栏图标
+                    .build();
+            startForeground(123, notification);
+        }
     }
 
     // 按键事件广播
@@ -629,6 +644,7 @@ public class VoiceService extends Service implements IWebRTCHelper, VolumeChange
     @Override
     public void onDestroy() {
         super.onDestroy();
+        LogUtils.d(TAG, "VoiceService——————生命周期——————:onDestroy");
         helper.exitRoom();
         helper = null;
         if (keyEventBroadcastReceiver != null) {

@@ -12,9 +12,11 @@ import android.widget.EditText;
 
 import jp.co.shiratsuki.walkietalkie.R;
 import jp.co.shiratsuki.walkietalkie.activity.base.SwipeBackActivity;
+import jp.co.shiratsuki.walkietalkie.bean.User;
 import jp.co.shiratsuki.walkietalkie.constant.NetWork;
 import jp.co.shiratsuki.walkietalkie.contentprovider.SPHelper;
 import jp.co.shiratsuki.walkietalkie.utils.ActivityController;
+import jp.co.shiratsuki.walkietalkie.utils.GsonUtils;
 import jp.co.shiratsuki.walkietalkie.utils.RegexUtils;
 import jp.co.shiratsuki.walkietalkie.utils.ViewUtils;
 import jp.co.shiratsuki.walkietalkie.widget.MyToolbar;
@@ -50,7 +52,9 @@ public class SetVoiceServerActivity extends SwipeBackActivity {
         etVoiceRoomId.addTextChangedListener(textWatcher);
         etVoiceServerIP.setText(SPHelper.getString("VoiceServerIP", NetWork.WEBRTC_SERVER_IP));
         etVoiceServerPort.setText(SPHelper.getString("VoiceServerPort", NetWork.WEBRTC_SERVER_PORT));
-        etVoiceRoomId.setText(SPHelper.getString("VoiceRoomId", NetWork.WEBRTC_SERVER_ROOM));
+        User user = GsonUtils.parseJSON(SPHelper.getString("User", GsonUtils.convertJSON(new User())), User.class);
+        String roomId = user.getRoom_id();
+        etVoiceRoomId.setText(roomId);
         ViewUtils.setCharSequence(etVoiceServerIP);
         ViewUtils.setCharSequence(etVoiceServerPort);
         ViewUtils.setCharSequence(etVoiceRoomId);

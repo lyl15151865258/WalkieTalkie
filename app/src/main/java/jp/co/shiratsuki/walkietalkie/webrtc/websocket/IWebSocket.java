@@ -21,9 +21,6 @@ public interface IWebSocket {
     // 加入房间
     void joinRoom(String room);
 
-    //处理回调消息
-    void handleMessage(String message);
-
     void sendIceCandidate(String userId, IceCandidate iceCandidate);
 
     void sendAnswer(String userId, String sdp);

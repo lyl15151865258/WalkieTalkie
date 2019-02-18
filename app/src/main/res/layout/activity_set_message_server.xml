@@ -48,12 +48,20 @@
         android:padding="@dimen/dp_10"
         android:textSize="@dimen/sp_18" />
 
+    <jp.co.shiratsuki.walkietalkie.widget.MyTextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/dp_10"
+        android:text="@string/EffectiveAfterRestart"
+        android:textSize="@dimen/sp_16" />
+
     <jp.co.shiratsuki.walkietalkie.widget.MyButton
         android:id="@+id/btn_modify"
         style="@style/button_common_blue"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="@dimen/dp_10"
+        android:layout_marginLeft="@dimen/dp_10"
+        android:layout_marginRight="@dimen/dp_10"
         android:text="@string/ConfirmModification"
         android:textAllCaps="false"
         android:textColor="@color/white_alpha"

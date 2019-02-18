@@ -7,8 +7,8 @@
     <string name="contact">連絡先</string>
     <string name="malfunction">アラーム情報</string>
     <string name="chatroom">チャットルーム</string>
-    <string name="pressToJoinChat">チャットに参加</string>
-    <string name="releaseToExitChat">チャットを終了</string>
+    <string name="pressToJoinChat">参加</string>
+    <string name="releaseToExitChat">終了</string>
     <string name="pressToSpeak">プレスアンドトーク</string>
     <string name="releaseFinish">プレス終了</string>
     <string name="pressToUseSpeaker">スピーカー</string>
@@ -30,7 +30,7 @@
     <string name="SetName">私の名前</string>
     <string name="ModifyName">名前を変更する</string>
     <string name="TypeInName">名前を入力してください</string>
-    <string name="ConfirmModification">修正を確認する</string>
+    <string name="ConfirmModification">修正を確認</string>
     <string name="SetSpeakTime">シングルトーク時間</string>
     <string name="TypeInTime">入力時間</string>
     <string name="ModifySpeakTime">変更時刻</string>
@@ -38,7 +38,7 @@
     <string name="working">ウォーキートーキーサービス業務</string>
 
     <string name="listview_header_hint_normal">プルダウンリフレッシュ</string>
-    <string name="listview_header_hint_release">即時リフレッシュを解放する</string>
+    <string name="listview_header_hint_release">即時リフレッシュを解放</string>
     <string name="listview_loading">読み込み中&#8230;</string>
     <string name="nomore_loading">もはや</string>
     <string name="refreshing">リフレッシュ&#8230;</string>
@@ -47,7 +47,7 @@
     <string name="listview_header_last_time">最終更新時間：</string>
 
     <string name="ChooseLanguage">言語の選択</string>
-    <string name="Save">保存する</string>
+    <string name="Save">保存</string>
     <string name="lan_default">システムに従う</string>
 
     <string name="accessibility_description">キーキャプチャ</string>
@@ -74,7 +74,7 @@
     <string name="VersionAndShare">バージョンと共有</string>
     <string name="Version">バージョンビュー</string>
     <string name="VersionUpdate">バージョン更新</string>
-    <string name="Share">友達にシェアする</string>
+    <string name="Share">友達にシェア</string>
     <string name="Logout">ログアウト</string>
 
     <string name="camera_pop_camera">カメラ撮影</string>
@@ -89,9 +89,9 @@
     <string name="FloatWindowPermission">フローティングウィンドウの権限を開いていません。メッセージのプッシュとポップアップ情報は表示されません。設定するにはここをクリックしてください</string>
     <string name="NotificationPermission">通知権限がありません、ポップアップ情報は表示されません。設定するにはここをクリックしてください</string>
     <string name="StopPlay">演奏を停止する</string>
-    <string name="Delete">削除する</string>
+    <string name="Delete">削除</string>
     <string name="channel_description">バックグラウンドで実行されているトランシーバー</string>
-    <string name="Search">検索する</string>
+    <string name="Search">検索</string>
 
 
     <string name="input_phoneNumber">携帯電話番号</string>
@@ -105,5 +105,8 @@
     <string name="Login">ログイン</string>
     <string name="register">登録</string>
     <string name="RegistrationProtocol">ユーザー登録契約</string>
+    <string name="ChatRoomId">チャット番号</string>
+    <string name="ContactNameOrDepartment">連絡先の名前または部署</string>
+    <string name="EffectiveAfterRestart">再起動後に有効</string>
 
 </resources>

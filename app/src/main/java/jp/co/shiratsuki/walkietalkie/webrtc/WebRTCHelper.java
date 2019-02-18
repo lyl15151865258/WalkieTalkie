@@ -97,6 +97,9 @@ public class WebRTCHelper implements ISignalingEvents {
     }
 
     public boolean socketIsOpen() {
+        if (webSocket == null) {
+            return false;
+        }
         return webSocket.socketIsOpen();
     }
 
@@ -259,18 +262,16 @@ public class WebRTCHelper implements ISignalingEvents {
 
     // 发送消息
     private void sendMessage(String message) {
-        webSocket.sendMessage(message);
+        if (webSocket != null && webSocket.socketIsOpen()) {
+            webSocket.sendMessage(message);
+        }
     }
 
     // 给服务器发送当前是否在讲话的标记
     public void sendSpeakStatus(boolean isSpeaking) {
-        String roomId = SPHelper.getString("VoiceRoomId", NetWork.WEBRTC_SERVER_ROOM);
+        User user = GsonUtils.parseJSON(SPHelper.getString("User", GsonUtils.convertJSON(new User())), User.class);
         Map<String, Object> map = new HashMap<>();
         map.put("eventName", "__speakStatus");
-
-        User user = GsonUtils.parseJSON(SPHelper.getString("User", GsonUtils.convertJSON(new User())), User.class);
-        user.setRoom_id(roomId);
-        user.setRoom_name(roomId);
         user.setInroom(true);
         user.setSpeaking(isSpeaking);
         map.put("data", user);

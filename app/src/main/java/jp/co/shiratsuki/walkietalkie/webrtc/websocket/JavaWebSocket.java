@@ -9,8 +9,12 @@ import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
 import org.webrtc.IceCandidate;
 
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
@@ -18,6 +22,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
 import jp.co.shiratsuki.walkietalkie.activity.appmain.P2PRingingActivity;
@@ -86,27 +93,7 @@ public class JavaWebSocket implements IWebSocket {
                 }
             };
         }
-//        try {
-//            SSLContext sslContext = SSLContext.getInstance("TLS");
-//            if (sslContext != null) {
-//                sslContext.init(null, new TrustManager[]{new TrustManagerTest()}, new SecureRandom());
-//            }
-//
-//            SSLSocketFactory factory = null;
-//            if (sslContext != null) {
-//                factory = sslContext.getSocketFactory();
-//            }
-//
-//            if (factory != null) {
-//                mWebSocketClient.setSocket(factory.createSocket());
-//            }
-//        } catch (NoSuchAlgorithmException e) {
-//            e.printStackTrace();
-//        } catch (KeyManagementException e) {
-//            e.printStackTrace();
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
+//        setSSL();
         mWebSocketClient.connect();
     }
 
@@ -183,7 +170,6 @@ public class JavaWebSocket implements IWebSocket {
 
     //============================需要接收的=====================================
 
-    @Override
     public void handleMessage(String message) {
         Map map = JSON.parseObject(message, Map.class);
         String eventName = (String) map.get("eventName");
@@ -335,6 +321,30 @@ public class JavaWebSocket implements IWebSocket {
 
     //============================需要接收的=====================================
 
+    // 设置SSL
+    private void setSSL() {
+        try {
+            SSLContext sslContext = SSLContext.getInstance("TLS");
+            if (sslContext != null) {
+                sslContext.init(null, new TrustManager[]{new TrustManagerTest()}, new SecureRandom());
+            }
+
+            SSLSocketFactory factory = null;
+            if (sslContext != null) {
+                factory = sslContext.getSocketFactory();
+            }
+
+            if (factory != null) {
+                mWebSocketClient.setSocket(factory.createSocket());
+            }
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        } catch (KeyManagementException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
     // 忽略证书
     class TrustManagerTest implements X509TrustManager {

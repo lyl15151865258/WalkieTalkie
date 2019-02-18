@@ -209,10 +209,14 @@ public class MusicPlay {
                 mMediaPlayer.setOnCompletionListener(mediaPlayer -> {
                     // 如果播放次数达到上限，则通知页面布局更新
                     if (musicList.get(counter[0]).getAlreadyPlayCount() >= musicList.get(counter[0]).getPlayCount()) {
-                        Intent intent1 = new Intent();
-                        intent1.setAction("NO_LONGER_PLAYING");
-                        intent1.putExtra("number", musicListList.get(counter[0]).getListNo());
-                        mContext.sendBroadcast(intent1);
+                        try {
+                            Intent intent1 = new Intent();
+                            intent1.setAction("NO_LONGER_PLAYING");
+                            intent1.putExtra("number", musicListList.get(counter[0]).getListNo());
+                            mContext.sendBroadcast(intent1);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
                     }
                     mediaPlayer.reset();
                     counter[0]++;

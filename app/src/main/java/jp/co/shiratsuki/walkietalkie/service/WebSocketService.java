@@ -1,39 +1,31 @@
 package jp.co.shiratsuki.walkietalkie.service;
 
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.os.Binder;
 import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
-import android.os.LocaleList;
+import android.support.v4.app.NotificationCompat;
 
-import jp.co.shiratsuki.walkietalkie.bean.Music;
-import jp.co.shiratsuki.walkietalkie.bean.MusicList;
-import jp.co.shiratsuki.walkietalkie.bean.User;
+import jp.co.shiratsuki.walkietalkie.R;
 import jp.co.shiratsuki.walkietalkie.bean.WebSocketData;
 import jp.co.shiratsuki.walkietalkie.broadcast.BaseBroadcastReceiver;
 import jp.co.shiratsuki.walkietalkie.constant.NetWork;
 import jp.co.shiratsuki.walkietalkie.contentprovider.SPHelper;
-import jp.co.shiratsuki.walkietalkie.utils.GsonUtils;
-import jp.co.shiratsuki.walkietalkie.utils.LanguageUtil;
 import jp.co.shiratsuki.walkietalkie.utils.LogUtils;
-import jp.co.shiratsuki.walkietalkie.utils.WifiUtil;
 import jp.co.shiratsuki.walkietalkie.voice.MusicPlay;
 
-import org.java_websocket.client.WebSocketClient;
-import org.java_websocket.drafts.Draft_6455;
-import org.java_websocket.handshake.ServerHandshake;
-
-import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
-import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -53,7 +45,7 @@ public class WebSocketService extends Service {
     private WebSocketServiceBinder webSocketServiceBinder;
 
     private List<WebSocketData> malfunctionList;
-    private WebSocketClient mSocketClient;
+    private MsgWebSocketClient msgWebSocketClient;
     private String serverHost;
 
     private ExecutorService threadPool;
@@ -87,6 +79,7 @@ public class WebSocketService extends Service {
             thread.setDaemon(true);
             return thread;
         });
+        showNotification();
         malfunctionList = new ArrayList<>();
         webSocketServiceBinder = new WebSocketServiceBinder();
         MusicPlay.with(getApplicationContext()).play();
@@ -98,6 +91,39 @@ public class WebSocketService extends Service {
         registerReceiver(myReceiver, intentFilter);
     }
 
+    /**
+     * 前台Service
+     */
+    private void showNotification() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationManager manager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+            NotificationChannel Channel = new NotificationChannel("124", "异常信息推送服务", NotificationManager.IMPORTANCE_HIGH);
+            Channel.enableLights(true);                                         //设置提示灯
+            Channel.setLightColor(Color.RED);                                   //设置提示灯颜色
+            Channel.setShowBadge(true);                                         //显示logo
+            Channel.setDescription("实时推送异常信息服务");                     //设置描述
+            Channel.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);    //设置锁屏可见 VISIBILITY_PUBLIC=可见
+            manager.createNotificationChannel(Channel);
+
+            NotificationCompat.Builder notification = new NotificationCompat.Builder(this, "124");
+            notification.setContentTitle(getString(R.string.app_name));
+            notification.setContentText("实时推送异常信息服务运行中...");
+            notification.setWhen(System.currentTimeMillis());
+            notification.setSmallIcon(R.mipmap.ic_launcher);
+            notification.setLargeIcon(BitmapFactory.decodeResource(getResources(), R.mipmap.ic_launcher));
+            startForeground(124, notification.build());
+        } else {
+            Notification notification = new Notification.Builder(this)
+                    .setContentTitle(getString(R.string.app_name))                                      //设置标题
+                    .setContentText("实时推送异常信息服务运行中...")                                    //设置内容
+                    .setWhen(System.currentTimeMillis())                                                //设置创建时间
+                    .setSmallIcon(R.mipmap.ic_launcher)                                                 //设置状态栏图标
+                    .setLargeIcon(BitmapFactory.decodeResource(getResources(), R.mipmap.ic_launcher))   //设置通知栏图标
+                    .build();
+            startForeground(124, notification);
+        }
+    }
+
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         return START_STICKY;
@@ -107,157 +133,14 @@ public class WebSocketService extends Service {
      * 初始化并启动启动WebSocket
      */
     public void initWebSocket() {
-        threadPool.execute(() -> {
-            try {
-                mSocketClient = getWebSocketClient();
-            } catch (URISyntaxException e) {
-                e.printStackTrace();
-            }
-            if (mSocketClient != null) {
-                mSocketClient.connect();
-            }
-        });
-    }
-
-    /**
-     * 获取WebSocketClient对象
-     *
-     * @return WebSocketClient对象
-     * @throws URISyntaxException URI异常
-     */
-    public WebSocketClient getWebSocketClient() throws URISyntaxException {
-        // 获取最新的WebSocket参数
         serverHost = SPHelper.getString("MessageServerIP", NetWork.WEBSOCKET_IP);
         String webSocketPort = SPHelper.getString("MessageServerPort", NetWork.WEBSOCKET_PORT);
         String webSocketName = String.valueOf(NetWork.WEBSOCKET_NAME);
-        return new WebSocketClient(new URI("ws://" + serverHost + ":" + webSocketPort + "/" + webSocketName), new Draft_6455(), null, 5000) {
-            @Override
-            public void onOpen(ServerHandshake serverHandshake) {
-                //通道打开
-                LogUtils.d(TAG, "建立连接");
-
-                // 通知异常页面清空数据
-                Intent intent = new Intent();
-                intent.setAction("MESSAGE_WEBSOCKET_CLOSED");
-                sendBroadcast(intent);
-
-                // 告诉服务器本机IP和用户名
-                Map<String, String> map = new HashMap<>();
-                map.put("IPAddress", WifiUtil.getLocalIPAddress());
-                User user = GsonUtils.parseJSON(SPHelper.getString("User", GsonUtils.convertJSON(new User())), User.class);
-                map.put("UserName", user.getUser_id());
-                sendMessage(GsonUtils.convertJSON(map));
-            }
-
-            @Override
-            public void onMessage(String message) {
-                LogUtils.d(TAG, message);
-
-                WebSocketData webSocketData = GsonUtils.parseJSON(message, WebSocketData.class);
-                Intent intent = new Intent();
-                intent.setAction("RECEIVE_MALFUNCTION");
-                intent.putExtra("data", webSocketData);
-                WebSocketService.this.sendBroadcast(intent);
-
-                List<String> voiceList = webSocketData.getFileName();
-                if (voiceList != null && voiceList.size() > 0) {
-                    if (webSocketData.isStatus()) {
-                        if (!malfunctionList.contains(webSocketData)) {
-                            List<Music> musicList = new ArrayList<>();
-                            for (String voiceName : voiceList) {
-                                String directory = "";
-                                switch (LanguageUtil.getLanguageLocal(WebSocketService.this)) {
-                                    case "":
-                                        // 手机设置的语言是跟随系统
-                                        Locale locale;
-                                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                                            locale = LocaleList.getDefault().get(0);
-                                        } else {
-                                            locale = Locale.getDefault();
-                                        }
-                                        String language = locale.getLanguage();
-                                        switch (language) {
-                                            case "zh":
-                                                directory = webSocketData.getChinese();
-                                                break;
-                                            case "ja":
-                                                directory = webSocketData.getJapanese();
-                                                break;
-                                            default:
-                                                directory = webSocketData.getEnglish();
-                                                break;
-                                        }
-                                        break;
-                                    case "zh":
-                                        directory = webSocketData.getChinese();
-                                        break;
-                                    case "ja":
-                                        directory = webSocketData.getJapanese();
-                                        break;
-                                    case "en":
-                                        directory = webSocketData.getEnglish();
-                                        break;
-                                    default:
-                                        break;
-                                }
-                                String musicPath = "http://" + serverHost + "/" + directory + "/" + voiceName;
-                                LogUtils.d(TAG, "音乐文件路径：" + musicPath);
-                                musicList.add(new Music(webSocketData.getListNo(), musicPath, webSocketData.getPlayCount(), 0));
-                            }
-                            int interval1 = webSocketData.getVoiceInterval1();
-                            int interval2 = webSocketData.getVoiceInterval2();
-                            MusicPlay.with(WebSocketService.this.getApplicationContext()).addMusic(new MusicList(webSocketData.getListNo(), musicList, webSocketData.getPlayCount(), 0), interval1, interval2);
-                        }
-                    } else {
-                        MusicPlay.with(WebSocketService.this.getApplicationContext()).removeMusic(webSocketData.getListNo());
-                    }
-                }
-
-                receiveMalfunction(webSocketData);
-            }
-
-            @Override
-            public void onClose(int code, String reason, boolean remote) {
-                //通道关闭
-                // 通知主页面列表清空
-                Intent intent = new Intent();
-                intent.setAction("MESSAGE_WEBSOCKET_CLOSED");
-                sendBroadcast(intent);
-                // 清空异常信息音乐列表
-                MusicPlay.with(WebSocketService.this).getMusicListList().clear();
-            }
-
-            @Override
-            public void onError(Exception ex) {
-                //发生错误
-                LogUtils.d(TAG, "发生错误：" + ex.getMessage());
-            }
-        };
-    }
-
-
-    /**
-     * 收到异常
-     *
-     * @param webSocketData 异常信息实体
-     */
-    public void receiveMalfunction(WebSocketData webSocketData) {
-        if (webSocketData.isStatus()) {
-            // 遍历对比是否包含了这个ListNo
-            if (!malfunctionList.contains(webSocketData)) {
-                malfunctionList.add(malfunctionList.size(), webSocketData);
-            }
-        } else {
-            int position = -1;
-            for (int i = 0; i < malfunctionList.size(); i++) {
-                if (malfunctionList.get(i).getListNo() == webSocketData.getListNo()) {
-                    position = i;
-                    break;
-                }
-            }
-            if (position != -1) {
-                malfunctionList.remove(position);
-            }
+        try {
+            msgWebSocketClient = new MsgWebSocketClient(this, "ws://" + serverHost + ":" + webSocketPort + "/" + webSocketName);
+            msgWebSocketClient.connect();
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
         }
     }
 
@@ -282,29 +165,30 @@ public class WebSocketService extends Service {
      * 重连WebSocket
      */
     public void reConnect() {
-        threadPool.execute(() -> {
+        try {
+            // 等待5秒再重连
+            Thread.sleep(NetWork.WEBSOCKET_RECONNECT_TIME_INTERVAL);
             try {
-                // 等待5秒再重连
-                Thread.sleep(NetWork.WEBSOCKET_RECONNECT_TIME_INTERVAL);
-                try {
-                    mSocketClient = getWebSocketClient();
-                } catch (URISyntaxException e) {
-                    e.printStackTrace();
-                }
-                mSocketClient.connect();
-            } catch (InterruptedException e) {
+                serverHost = SPHelper.getString("MessageServerIP", NetWork.WEBSOCKET_IP);
+                String webSocketPort = SPHelper.getString("MessageServerPort", NetWork.WEBSOCKET_PORT);
+                String webSocketName = String.valueOf(NetWork.WEBSOCKET_NAME);
+                msgWebSocketClient = new MsgWebSocketClient(this, "ws://" + serverHost + ":" + webSocketPort + "/" + webSocketName);
+                msgWebSocketClient.connect();
+            } catch (URISyntaxException e) {
                 e.printStackTrace();
             }
-        });
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
     /**
      * 关闭WebSocket
      */
     public void closeWebSocket() {
-        if (mSocketClient != null) {
+        if (msgWebSocketClient != null) {
             LogUtils.d(TAG, "手动关闭WebSocket");
-            mSocketClient.close();
+            msgWebSocketClient.close();
         }
     }
 
@@ -314,7 +198,7 @@ public class WebSocketService extends Service {
      * @return 是否连接
      */
     public boolean isOpen() {
-        return mSocketClient != null && mSocketClient.isOpen();
+        return msgWebSocketClient != null && msgWebSocketClient.isOpen();
     }
 
     /**
@@ -324,7 +208,7 @@ public class WebSocketService extends Service {
      */
     public void sendMessage(String msg) {
         if (isOpen()) {
-            mSocketClient.send(msg);
+            msgWebSocketClient.send(msg);
         } else {
             reConnect();
         }

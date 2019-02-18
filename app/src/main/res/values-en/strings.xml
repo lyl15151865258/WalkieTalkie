@@ -94,7 +94,6 @@
     <string name="Search">Search</string>
 
 
-
     <string name="input_phoneNumber">Phone Number</string>
     <string name="input_password">Password</string>
     <string name="InputPassword">Password（6&#8211;20chars）</string>
@@ -106,5 +105,8 @@
     <string name="Login">Log In</string>
     <string name="register">Register</string>
     <string name="RegistrationProtocol">Registration Protocol</string>
+    <string name="ChatRoomId">Chat room number</string>
+    <string name="ContactNameOrDepartment">Contact\'s name or department</string>
+    <string name="EffectiveAfterRestart">Effective after restart</string>
 
 </resources>

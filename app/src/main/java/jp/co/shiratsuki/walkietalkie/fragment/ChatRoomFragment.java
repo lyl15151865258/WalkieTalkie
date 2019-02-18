@@ -21,6 +21,8 @@ import jp.co.shiratsuki.walkietalkie.R;
 import jp.co.shiratsuki.walkietalkie.activity.MainActivity;
 import jp.co.shiratsuki.walkietalkie.adapter.ChatRoomContactAdapter;
 import jp.co.shiratsuki.walkietalkie.bean.User;
+import jp.co.shiratsuki.walkietalkie.contentprovider.SPHelper;
+import jp.co.shiratsuki.walkietalkie.utils.GsonUtils;
 import jp.co.shiratsuki.walkietalkie.utils.LogUtils;
 
 /**
@@ -65,6 +67,11 @@ public class ChatRoomFragment extends BaseFragment {
     private View.OnClickListener onClickListener = (v) -> {
         switch (v.getId()) {
             case R.id.btnEnterExitRoom:
+                User user = GsonUtils.parseJSON(SPHelper.getString("User", GsonUtils.convertJSON(new User())), User.class);
+                String roomId = etRoomId.getText().toString().trim();
+                user.setRoom_id(roomId);
+                SPHelper.save("User", GsonUtils.convertJSON(user));
+
                 FragmentActivity activity = getActivity();
                 if (activity instanceof MainActivity) {
                     MainActivity mainActivity = (MainActivity) activity;

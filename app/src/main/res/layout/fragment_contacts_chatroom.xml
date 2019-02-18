@@ -18,17 +18,20 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:background="@drawable/border_white"
+            android:hint="@string/ChatRoomId"
             android:inputType="text"
             android:maxLines="1"
             android:padding="@dimen/dp_8"
             android:textSize="@dimen/sp_16" />
 
-        <Button
+        <jp.co.shiratsuki.walkietalkie.widget.MyButton
             android:id="@+id/btnEnterExitRoom"
             android:layout_width="wrap_content"
             android:layout_height="@dimen/dp_40"
             android:layout_marginStart="@dimen/dp_5"
             android:background="@drawable/blue_button_selector"
+            android:paddingStart="@dimen/dp_10"
+            android:paddingEnd="@dimen/dp_10"
             android:text="@string/pressToJoinChat"
             android:textAllCaps="false"
             android:textColor="@color/white"
