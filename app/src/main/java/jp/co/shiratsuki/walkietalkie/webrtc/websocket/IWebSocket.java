@@ -29,4 +29,7 @@ public interface IWebSocket {
 
     // 发送消息
     void sendMessage(String msg);
+
+    // 重新连接
+    void reconnectBlocking();
 }

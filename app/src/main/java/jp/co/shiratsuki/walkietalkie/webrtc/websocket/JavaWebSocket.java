@@ -70,7 +70,7 @@ public class JavaWebSocket implements IWebSocket {
             mWebSocketClient = new WebSocketClient(uri) {
                 @Override
                 public void onOpen(ServerHandshake handshake) {
-
+                    events.onWebSocketConnected();
                 }
 
                 @Override
@@ -315,6 +315,15 @@ public class JavaWebSocket implements IWebSocket {
         } else {
             // WebSocket断开连接，退出房间
             events.onWebSocketClosed();
+        }
+    }
+
+    @Override
+    public void reconnectBlocking() {
+        try {
+            mWebSocketClient.reconnectBlocking();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
     }
 

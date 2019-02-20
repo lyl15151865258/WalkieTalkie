@@ -109,6 +109,18 @@ public class WebRTCHelper implements ISignalingEvents {
 
 
     // ===================================webSocket回调信息=======================================
+
+    @Override
+    public void onUserInOrOut(ArrayList<User> userList) {
+        IHelper.updateContacts(userList);
+    }
+
+    @Override
+    public void onWebSocketConnected() {
+        // 连接成功后，就准备发送心跳包
+        mHandler.postDelayed(heartBeatRunnable, NetWork.HEART_BEAT_RATE);
+    }
+
     @Override  // 我加入到房间
     public void onJoinToRoom(List<String> connections, String myId) {
         LogUtils.d(TAG, "自己加入到房间");
@@ -125,9 +137,6 @@ public class WebRTCHelper implements ISignalingEvents {
         if (IHelper != null) {
             IHelper.onEnterRoom();
         }
-
-        // 连接成功后，就准备发送心跳包
-        mHandler.postDelayed(heartBeatRunnable, NetWork.HEART_BEAT_RATE);
     }
 
     /**
@@ -215,11 +224,6 @@ public class WebRTCHelper implements ISignalingEvents {
     public void onReceiveSomeoneLeave(String userId, ArrayList<User> userList) {
         IHelper.updateRoomContacts(userList);
         closePeerConnection(userId);
-    }
-
-    @Override
-    public void onUserInOrOut(ArrayList<User> userList) {
-        IHelper.updateContacts(userList);
     }
 
     @Override
@@ -422,7 +426,7 @@ public class WebRTCHelper implements ISignalingEvents {
     }
 
     // 关闭通道流
-    public void closePeerConnection(String connectionId) {
+    private void closePeerConnection(String connectionId) {
         if (IHelper != null) {
             IHelper.removeUser(connectionId);
         }

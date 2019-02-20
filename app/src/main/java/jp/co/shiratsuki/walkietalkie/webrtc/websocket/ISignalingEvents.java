@@ -37,6 +37,9 @@ public interface ISignalingEvents {
 
     void onUserInOrOut(ArrayList<User> userList);
 
+    // WebSocket连接成功
+    void onWebSocketConnected();
+
     // WebSocket断开
     void onWebSocketClosed();
 
