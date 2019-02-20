@@ -10,14 +10,27 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import jp.co.shiratsuki.walkietalkie.R;
 import jp.co.shiratsuki.walkietalkie.activity.base.SwipeBackActivity;
-import jp.co.shiratsuki.walkietalkie.constant.NetWork;
+import jp.co.shiratsuki.walkietalkie.bean.User;
+import jp.co.shiratsuki.walkietalkie.bean.UserOperateResult;
+import jp.co.shiratsuki.walkietalkie.constant.Constants;
 import jp.co.shiratsuki.walkietalkie.contentprovider.SPHelper;
+import jp.co.shiratsuki.walkietalkie.network.ExceptionHandle;
+import jp.co.shiratsuki.walkietalkie.network.NetClient;
+import jp.co.shiratsuki.walkietalkie.network.NetworkSubscriber;
 import jp.co.shiratsuki.walkietalkie.utils.ActivityController;
+import jp.co.shiratsuki.walkietalkie.utils.GsonUtils;
+import jp.co.shiratsuki.walkietalkie.utils.NetworkUtil;
 import jp.co.shiratsuki.walkietalkie.utils.RegexUtils;
 import jp.co.shiratsuki.walkietalkie.utils.ViewUtils;
 import jp.co.shiratsuki.walkietalkie.widget.MyToolbar;
+import rx.Observable;
+import rx.android.schedulers.AndroidSchedulers;
+import rx.schedulers.Schedulers;
 
 /**
  * 设置消息服务器页面
@@ -32,6 +45,7 @@ public class SetMessageServerActivity extends SwipeBackActivity {
     private Context mContext;
     private EditText etMessageServerIP, etMessageServerPort;
     private Button btnModify;
+    private User user;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,8 +60,9 @@ public class SetMessageServerActivity extends SwipeBackActivity {
         etMessageServerPort = findViewById(R.id.etMessageServerPort);
         etMessageServerIP.addTextChangedListener(textWatcher);
         etMessageServerPort.addTextChangedListener(textWatcher);
-        etMessageServerIP.setText(SPHelper.getString("MessageServerIP", NetWork.WEBSOCKET_IP));
-        etMessageServerPort.setText(SPHelper.getString("MessageServerPort", NetWork.WEBSOCKET_PORT));
+        user = GsonUtils.parseJSON(SPHelper.getString("User", GsonUtils.convertJSON(new User())), User.class);
+        etMessageServerIP.setText(user.getMessage_ip());
+        etMessageServerPort.setText(user.getMessage_port());
         ViewUtils.setCharSequence(etMessageServerIP);
         ViewUtils.setCharSequence(etMessageServerPort);
     }
@@ -104,9 +119,57 @@ public class SetMessageServerActivity extends SwipeBackActivity {
     private void modifyCompany() {
         String ip = etMessageServerIP.getText().toString().trim();
         String port = etMessageServerPort.getText().toString().trim();
-        SPHelper.save("MessageServerIP", ip);
-        SPHelper.save("MessageServerPort", port);
-        setResult(Activity.RESULT_OK);
-        ActivityController.finishActivity(this);
+        Map<String, Object> params = new HashMap<>(4);
+        params.put("userId", user.getUser_id());
+        params.put("serverIP", ip);
+        params.put("serverPort", port);
+        Observable<UserOperateResult> clientUserObservable = NetClient.getInstances(NetClient.BASE_URL_PROJECT).getNjMeterApi().updateMessageServer(params);
+        clientUserObservable.subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread()).subscribe(new NetworkSubscriber<UserOperateResult>(mContext, getClass().getSimpleName()) {
+
+            @Override
+            public void onStart() {
+                super.onStart();
+                //接下来可以检查网络连接等操作
+                if (!NetworkUtil.isNetworkAvailable(mContext)) {
+                    showToast("当前网络不可用，请检查网络");
+                    if (!isUnsubscribed()) {
+                        unsubscribe();
+                    }
+                } else {
+                    showLoadingDialog(mContext, "更新中", true);
+                }
+            }
+
+            @Override
+            public void onError(ExceptionHandle.ResponseThrowable responseThrowable) {
+                cancelDialog();
+                showToast("" + responseThrowable.message);
+            }
+
+            @Override
+            public void onNext(UserOperateResult userOperateResult) {
+                cancelDialog();
+                try {
+                    String mark = userOperateResult.getResult();
+                    String message = userOperateResult.getMessage();
+                    switch (mark) {
+                        case Constants.SUCCESS:
+                            showToast("更新成功");
+                            SPHelper.save("User", GsonUtils.convertJSON(userOperateResult.getUser()));
+                            setResult(Activity.RESULT_OK);
+                            ActivityController.finishActivity(SetMessageServerActivity.this);
+                            break;
+                        case Constants.FAIL:
+                            showToast("更新失败，" + message);
+                            break;
+                        default:
+                            showToast("更新失败");
+                            break;
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
     }
 }

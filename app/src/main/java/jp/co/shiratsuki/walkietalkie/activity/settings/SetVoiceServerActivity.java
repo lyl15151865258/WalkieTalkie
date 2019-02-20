@@ -10,16 +10,27 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import jp.co.shiratsuki.walkietalkie.R;
 import jp.co.shiratsuki.walkietalkie.activity.base.SwipeBackActivity;
 import jp.co.shiratsuki.walkietalkie.bean.User;
-import jp.co.shiratsuki.walkietalkie.constant.NetWork;
+import jp.co.shiratsuki.walkietalkie.bean.UserOperateResult;
+import jp.co.shiratsuki.walkietalkie.constant.Constants;
 import jp.co.shiratsuki.walkietalkie.contentprovider.SPHelper;
+import jp.co.shiratsuki.walkietalkie.network.ExceptionHandle;
+import jp.co.shiratsuki.walkietalkie.network.NetClient;
+import jp.co.shiratsuki.walkietalkie.network.NetworkSubscriber;
 import jp.co.shiratsuki.walkietalkie.utils.ActivityController;
 import jp.co.shiratsuki.walkietalkie.utils.GsonUtils;
+import jp.co.shiratsuki.walkietalkie.utils.NetworkUtil;
 import jp.co.shiratsuki.walkietalkie.utils.RegexUtils;
 import jp.co.shiratsuki.walkietalkie.utils.ViewUtils;
 import jp.co.shiratsuki.walkietalkie.widget.MyToolbar;
+import rx.Observable;
+import rx.android.schedulers.AndroidSchedulers;
+import rx.schedulers.Schedulers;
 
 /**
  * 设置语音服务器信息
@@ -34,6 +45,7 @@ public class SetVoiceServerActivity extends SwipeBackActivity {
     private Context mContext;
     private EditText etVoiceServerIP, etVoiceServerPort, etVoiceRoomId;
     private Button btnModify;
+    private User user;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,11 +62,10 @@ public class SetVoiceServerActivity extends SwipeBackActivity {
         etVoiceServerIP.addTextChangedListener(textWatcher);
         etVoiceServerPort.addTextChangedListener(textWatcher);
         etVoiceRoomId.addTextChangedListener(textWatcher);
-        etVoiceServerIP.setText(SPHelper.getString("VoiceServerIP", NetWork.WEBRTC_SERVER_IP));
-        etVoiceServerPort.setText(SPHelper.getString("VoiceServerPort", NetWork.WEBRTC_SERVER_PORT));
-        User user = GsonUtils.parseJSON(SPHelper.getString("User", GsonUtils.convertJSON(new User())), User.class);
-        String roomId = user.getRoom_id();
-        etVoiceRoomId.setText(roomId);
+        user = GsonUtils.parseJSON(SPHelper.getString("User", GsonUtils.convertJSON(new User())), User.class);
+        etVoiceServerIP.setText(user.getVoice_ip());
+        etVoiceServerPort.setText(user.getVoice_port());
+        etVoiceRoomId.setText(user.getRoom_id());
         ViewUtils.setCharSequence(etVoiceServerIP);
         ViewUtils.setCharSequence(etVoiceServerPort);
         ViewUtils.setCharSequence(etVoiceRoomId);
@@ -113,10 +124,59 @@ public class SetVoiceServerActivity extends SwipeBackActivity {
         String ip = etVoiceServerIP.getText().toString().trim();
         String port = etVoiceServerPort.getText().toString().trim();
         String room = etVoiceRoomId.getText().toString().trim();
-        SPHelper.save("VoiceServerIP", ip);
-        SPHelper.save("VoiceServerPort", port);
-        SPHelper.save("VoiceRoomId", room);
-        setResult(Activity.RESULT_OK);
-        ActivityController.finishActivity(this);
+
+        Map<String, Object> params = new HashMap<>(4);
+        params.put("userId", user.getUser_id());
+        params.put("serverIP", ip);
+        params.put("serverPort", port);
+        params.put("roomId", room);
+        Observable<UserOperateResult> clientUserObservable = NetClient.getInstances(NetClient.BASE_URL_PROJECT).getNjMeterApi().updateVoiceServer(params);
+        clientUserObservable.subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread()).subscribe(new NetworkSubscriber<UserOperateResult>(mContext, getClass().getSimpleName()) {
+
+            @Override
+            public void onStart() {
+                super.onStart();
+                //接下来可以检查网络连接等操作
+                if (!NetworkUtil.isNetworkAvailable(mContext)) {
+                    showToast("当前网络不可用，请检查网络");
+                    if (!isUnsubscribed()) {
+                        unsubscribe();
+                    }
+                } else {
+                    showLoadingDialog(mContext, "登陆中", true);
+                }
+            }
+
+            @Override
+            public void onError(ExceptionHandle.ResponseThrowable responseThrowable) {
+                cancelDialog();
+                showToast("" + responseThrowable.message);
+            }
+
+            @Override
+            public void onNext(UserOperateResult userOperateResult) {
+                cancelDialog();
+                try {
+                    String mark = userOperateResult.getResult();
+                    String message = userOperateResult.getMessage();
+                    switch (mark) {
+                        case Constants.SUCCESS:
+                            showToast("更新成功");
+                            SPHelper.save("User", GsonUtils.convertJSON(userOperateResult.getUser()));
+                            setResult(Activity.RESULT_OK);
+                            ActivityController.finishActivity(SetVoiceServerActivity.this);
+                            break;
+                        case Constants.FAIL:
+                            showToast("更新失败，" + message);
+                            break;
+                        default:
+                            showToast("更新失败");
+                            break;
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
     }
 }

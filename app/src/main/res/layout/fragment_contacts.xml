@@ -3,6 +3,8 @@
     android:id="@+id/ll_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:focusable="true"
+    android:focusableInTouchMode="true"
     android:orientation="vertical">
 
     <LinearLayout
@@ -12,14 +14,14 @@
         android:orientation="horizontal"
         android:padding="@dimen/dp_5">
 
-        <EditText
+        <jp.co.shiratsuki.walkietalkie.widget.MyEditText
             android:id="@+id/etContent"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:background="@drawable/border_white"
-            android:inputType="text"
             android:hint="@string/ContactNameOrDepartment"
+            android:inputType="text"
             android:maxLines="1"
             android:padding="@dimen/dp_8"
             android:textSize="@dimen/sp_16" />

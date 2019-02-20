@@ -3,7 +3,7 @@ package jp.co.shiratsuki.walkietalkie.bean;
 import android.os.Parcel;
 import android.os.Parcelable;
 
-import java.util.Date;
+import jp.co.shiratsuki.walkietalkie.utils.TimeUtils;
 
 /**
  * 联系人实体类
@@ -22,15 +22,19 @@ public class User implements Parcelable {
     private int department_id = 0;
     private String department_name = "";
     private String icon_url = "";
+    private String message_ip = "";
+    private String message_port = "";
+    private String voice_ip = "";
+    private String voice_port = "";
     private String room_id = "";
-    private String room_name = "";
     private boolean inroom = false;
     private boolean speaking = false;
     private String register_time = "";
-    private String login_time = (new Date()).toString();
+    private String login_time = TimeUtils.getCurrentDateTime();
 
     public User(String user_id, String user_pwd, String user_name, String company, int department_id, String department_name,
-                String icon_url, String room_id, String room_name, boolean inroom, boolean speaking, String register_time, String login_time) {
+                String icon_url, String message_ip, String message_port, String voice_ip, String voice_port, String room_id,
+                boolean inroom, boolean speaking, String register_time, String login_time) {
         super();
         this.user_id = user_id;
         this.user_pwd = user_pwd;
@@ -39,8 +43,11 @@ public class User implements Parcelable {
         this.department_id = department_id;
         this.department_name = department_name;
         this.icon_url = icon_url;
+        this.message_ip = message_ip;
+        this.message_port = message_port;
+        this.voice_ip = voice_ip;
+        this.voice_port = voice_port;
         this.room_id = room_id;
-        this.room_name = room_name;
         this.inroom = inroom;
         this.speaking = speaking;
         this.register_time = register_time;
@@ -107,20 +114,44 @@ public class User implements Parcelable {
         this.icon_url = icon_url;
     }
 
+    public String getMessage_ip() {
+        return message_ip;
+    }
+
+    public void setMessage_ip(String message_ip) {
+        this.message_ip = message_ip;
+    }
+
+    public String getMessage_port() {
+        return message_port;
+    }
+
+    public void setMessage_port(String message_port) {
+        this.message_port = message_port;
+    }
+
+    public String getVoice_ip() {
+        return voice_ip;
+    }
+
+    public void setVoice_ip(String voice_ip) {
+        this.voice_ip = voice_ip;
+    }
+
+    public String getVoice_port() {
+        return voice_port;
+    }
+
+    public void setVoice_port(String voice_port) {
+        this.voice_port = voice_port;
+    }
+
     public String getRoom_id() {
         return room_id;
     }
 
     public void setRoom_id(String room_id) {
         this.room_id = room_id;
-    }
-
-    public String getRoom_name() {
-        return room_name;
-    }
-
-    public void setRoom_name(String room_name) {
-        this.room_name = room_name;
     }
 
     public boolean isInroom() {
@@ -155,12 +186,30 @@ public class User implements Parcelable {
         this.login_time = login_time;
     }
 
+    public static Creator<User> getCREATOR() {
+        return CREATOR;
+    }
+
     @Override
     public String toString() {
-        return "User [user_id=" + user_id + ", user_pwd=" + user_pwd + ", user_name=" + user_name + ", company="
-                + company + ", department_id=" + department_id + ", department_name=" + department_name + ", icon_url="
-                + icon_url + ", room_id=" + room_id + ", room_name=" + room_name + ", inroom=" + inroom + ", speaking="
-                + speaking + ", register_time=" + register_time + ", login_time=" + login_time + "]";
+        return "User{" +
+                "user_id='" + user_id + '\'' +
+                ", user_pwd='" + user_pwd + '\'' +
+                ", user_name='" + user_name + '\'' +
+                ", company='" + company + '\'' +
+                ", department_id=" + department_id +
+                ", department_name='" + department_name + '\'' +
+                ", icon_url='" + icon_url + '\'' +
+                ", message_ip='" + message_ip + '\'' +
+                ", message_port='" + message_port + '\'' +
+                ", voice_ip='" + voice_ip + '\'' +
+                ", voice_port='" + voice_port + '\'' +
+                ", room_id='" + room_id + '\'' +
+                ", inroom=" + inroom +
+                ", speaking=" + speaking +
+                ", register_time='" + register_time + '\'' +
+                ", login_time='" + login_time + '\'' +
+                '}';
     }
 
     @Override
@@ -177,8 +226,11 @@ public class User implements Parcelable {
         dest.writeInt(department_id);
         dest.writeString(department_name);
         dest.writeString(icon_url);
+        dest.writeString(message_ip);
+        dest.writeString(message_port);
+        dest.writeString(voice_ip);
+        dest.writeString(voice_port);
         dest.writeString(room_id);
-        dest.writeString(room_name);
         dest.writeByte((byte) (inroom ? 1 : 0));
         dest.writeByte((byte) (speaking ? 1 : 0));
         dest.writeString(register_time);
@@ -189,7 +241,8 @@ public class User implements Parcelable {
         @Override
         public User createFromParcel(Parcel source) {
             return new User(source.readString(), source.readString(), source.readString(), source.readString(), source.readInt(), source.readString(),
-                    source.readString(), source.readString(), source.readString(), source.readByte() != 0, source.readByte() != 0, source.readString(), source.readString());
+                    source.readString(), source.readString(), source.readString(), source.readString(), source.readString(), source.readString(),
+                    source.readByte() != 0, source.readByte() != 0, source.readString(), source.readString());
         }
 
         @Override

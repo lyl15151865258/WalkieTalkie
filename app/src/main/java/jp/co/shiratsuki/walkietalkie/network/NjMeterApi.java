@@ -59,6 +59,26 @@ public interface NjMeterApi {
     Observable<UserOperateResult> updateInfo(@FieldMap Map<String, Object> params);
 
     /**
+     * 更新语音服务器
+     *
+     * @param params 参数
+     * @return 返回值
+     */
+    @FormUrlEncoded
+    @POST("user/updateVoiceServer.do")
+    Observable<UserOperateResult> updateVoiceServer(@FieldMap Map<String, Object> params);
+
+    /**
+     * 更新消息服务器
+     *
+     * @param params 参数
+     * @return 返回值
+     */
+    @FormUrlEncoded
+    @POST("user/updateMessageServer.do")
+    Observable<UserOperateResult> updateMessageServer(@FieldMap Map<String, Object> params);
+
+    /**
      * 更新用户信息
      *
      * @return 返回值

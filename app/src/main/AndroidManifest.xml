@@ -94,6 +94,20 @@
             android:name=".activity.MainActivity"
             android:screenOrientation="portrait" />
 
+        <!-- 长按耳机键弹出的页面 -->
+        <activity
+            android:name=".activity.appmain.LongPressActivity"
+            android:screenOrientation="portrait">
+            <intent-filter android:priority="2147483647">
+                <action android:name="android.speech.action.WEB_SEARCH" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+            <intent-filter android:priority="2147483647">
+                <action android:name="android.speech.action.VOICE_SEARCH_HANDS_FREE" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+
         <!-- 通用Html页面 -->
         <activity
             android:name=".activity.appmain.HtmlActivity"
@@ -149,6 +163,7 @@
             android:exported="true">
             <intent-filter android:priority="2147483647">
                 <action android:name="android.intent.action.MEDIA_BUTTON" />
+                <action android:name="android.media.AUDIO_BECOMING_NOISY" />
                 <action android:name="CANT_SPEAK" />
             </intent-filter>
         </receiver>

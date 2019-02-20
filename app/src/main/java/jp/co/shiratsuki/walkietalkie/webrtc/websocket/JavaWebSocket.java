@@ -115,7 +115,6 @@ public class JavaWebSocket implements IWebSocket {
         map.put("eventName", "__join");
         User user = GsonUtils.parseJSON(SPHelper.getString("User", GsonUtils.convertJSON(new User())), User.class);
         user.setRoom_id(room);
-        user.setRoom_name(room);
         user.setInroom(false);
         user.setSpeaking(false);
         SPHelper.save("User", GsonUtils.convertJSON(user));

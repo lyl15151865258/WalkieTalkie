@@ -59,6 +59,8 @@ public class ChatRoomFragment extends BaseFragment {
         rvContacts.setAdapter(chatRoomContactAdapter);
         rvContacts.addOnScrollListener(onScrollListener);
         etRoomId = view.findViewById(R.id.etRoomId);
+        User user = GsonUtils.parseJSON(SPHelper.getString("User", GsonUtils.convertJSON(new User())), User.class);
+        etRoomId.setText(user.getRoom_id());
         btnEnterExitRoom = view.findViewById(R.id.btnEnterExitRoom);
         btnEnterExitRoom.setOnClickListener(onClickListener);
         return view;
@@ -69,8 +71,12 @@ public class ChatRoomFragment extends BaseFragment {
             case R.id.btnEnterExitRoom:
                 User user = GsonUtils.parseJSON(SPHelper.getString("User", GsonUtils.convertJSON(new User())), User.class);
                 String roomId = etRoomId.getText().toString().trim();
-                user.setRoom_id(roomId);
-                SPHelper.save("User", GsonUtils.convertJSON(user));
+                if (roomId.equals("") && user.getRoom_id().equals("")) {
+                    showToast("请填写房间号");
+                    return;
+                }
+
+                SPHelper.save("TemporaryRoom", roomId);
 
                 FragmentActivity activity = getActivity();
                 if (activity instanceof MainActivity) {

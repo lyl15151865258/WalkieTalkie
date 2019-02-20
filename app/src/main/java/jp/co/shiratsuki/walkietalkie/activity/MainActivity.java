@@ -330,15 +330,15 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
         @Override
         public Fragment getItem(int position) {
             switch (position) {
-                // 异常信息
+                // 联系人
                 case 0:
-                    return new MalfunctionFragment();
+                    return new ContactsFragment();
                 // 聊天室
                 case 1:
                     return new ChatRoomFragment();
-                // 联系人
+                // 异常信息
                 case 2:
-                    return new ContactsFragment();
+                    return new MalfunctionFragment();
                 default:
                     break;
             }
@@ -782,7 +782,10 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
                 if (iVoiceService != null) {
                     try {
                         User user = GsonUtils.parseJSON(SPHelper.getString("User", GsonUtils.convertJSON(new User())), User.class);
-                        String roomId = user.getRoom_id();
+                        String roomId = SPHelper.getString("TemporaryRoom", user.getRoom_id());
+                        if (roomId.equals("")) {
+                            roomId = NetWork.WEBRTC_SERVER_ROOM;
+                        }
                         iVoiceService.enterRoom(roomId);
                     } catch (RemoteException e) {
                         e.printStackTrace();
@@ -801,7 +804,7 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
                 switch (intent.getAction()) {
                     case "RECEIVE_MALFUNCTION": {
                         WebSocketData webSocketData = (WebSocketData) intent.getSerializableExtra("data");
-                        viewPager.setCurrentItem(0, false);
+                        viewPager.setCurrentItem(2, false);
                         MalfunctionFragment malfunctionFragment;
                         for (Fragment fragment : fragmentList) {
                             if (fragment instanceof MalfunctionFragment) {
@@ -863,6 +866,7 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
                         break;
                     case "MESSAGE_WEBSOCKET_CLOSED": {
                         // 异常信息推送的WebSocket断开了，清空列表
+                        viewPager.setCurrentItem(2, false);
                         MalfunctionFragment malfunctionFragment;
                         for (Fragment fragment : fragmentList) {
                             if (fragment instanceof MalfunctionFragment) {
@@ -876,6 +880,7 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
                     case "UPDATE_CONTACTS_ROOM": {
                         // 刷新联系人列表
                         LogUtils.d(TAG, "刷新ChatRoomFragment联系人列表");
+                        viewPager.setCurrentItem(1, false);
                         ChatRoomFragment chatRoomFragment;
                         for (Fragment fragment : fragmentList) {
                             if (fragment instanceof ChatRoomFragment) {
@@ -898,6 +903,7 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
                         // 刷新联系人列表
                         if (isInRoom) {
                             LogUtils.d(TAG, "刷新ChatRoomFragment联系人列表");
+                            viewPager.setCurrentItem(1, false);
                             ChatRoomFragment chatRoomFragment;
                             for (Fragment fragment : fragmentList) {
                                 if (fragment instanceof ChatRoomFragment) {
@@ -920,6 +926,7 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
                     case "UPDATE_CONTACTS": {
                         // 刷新联系人列表
                         LogUtils.d(TAG, "刷新ContactsFragment联系人列表");
+                        viewPager.setCurrentItem(0, false);
                         ContactsFragment contactsFragment;
                         for (Fragment fragment : fragmentList) {
                             if (fragment instanceof ContactsFragment) {
@@ -1030,7 +1037,7 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
         String type = "webp";
         // 将本软件的包路径 + 文件名拼接成图片绝对路径
         User user = GsonUtils.parseJSON(SPHelper.getString("User", GsonUtils.convertJSON(new User())), User.class);
-        String newFile = getExternalFilesDir("Icons") + "/" + "_" + user.getUser_id() + time + "." + type;
+        String newFile = getExternalFilesDir("Icons") + "/" + user.getUser_id() + "_" + time + "." + type;
         BitmapUtils.compressPicture(imagePath, newFile);
         uploadUserIcon(new File(newFile));
     };
