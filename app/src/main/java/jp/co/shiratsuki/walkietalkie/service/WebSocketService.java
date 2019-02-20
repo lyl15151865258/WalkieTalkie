@@ -11,15 +11,16 @@ import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.os.Binder;
 import android.os.Build;
-import android.os.Handler;
 import android.os.IBinder;
 import android.support.v4.app.NotificationCompat;
 
 import jp.co.shiratsuki.walkietalkie.R;
+import jp.co.shiratsuki.walkietalkie.bean.User;
 import jp.co.shiratsuki.walkietalkie.bean.WebSocketData;
 import jp.co.shiratsuki.walkietalkie.broadcast.BaseBroadcastReceiver;
 import jp.co.shiratsuki.walkietalkie.constant.NetWork;
 import jp.co.shiratsuki.walkietalkie.contentprovider.SPHelper;
+import jp.co.shiratsuki.walkietalkie.utils.GsonUtils;
 import jp.co.shiratsuki.walkietalkie.utils.LogUtils;
 import jp.co.shiratsuki.walkietalkie.voice.MusicPlay;
 
@@ -46,13 +47,12 @@ public class WebSocketService extends Service {
 
     private List<WebSocketData> malfunctionList;
     private MsgWebSocketClient msgWebSocketClient;
-    private String serverHost;
 
     private ExecutorService threadPool;
 
-    private Handler mHandler = new Handler();
-
     private MyReceiver myReceiver;
+
+    private boolean first = true, flag = true;
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -84,7 +84,6 @@ public class WebSocketService extends Service {
         webSocketServiceBinder = new WebSocketServiceBinder();
         MusicPlay.with(getApplicationContext()).play();
         initWebSocket();
-        threadPool.submit(heartBeatRunnable);
         myReceiver = new MyReceiver();
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction("USER_DELETE_MALFUNCTION");
@@ -133,11 +132,32 @@ public class WebSocketService extends Service {
      * 初始化并启动启动WebSocket
      */
     public void initWebSocket() {
-        serverHost = SPHelper.getString("MessageServerIP", NetWork.WEBSOCKET_IP);
-        String webSocketPort = SPHelper.getString("MessageServerPort", NetWork.WEBSOCKET_PORT);
-        String webSocketName = String.valueOf(NetWork.WEBSOCKET_NAME);
+        User user = GsonUtils.parseJSON(SPHelper.getString("User", GsonUtils.convertJSON(new User())), User.class);
+        String serverHost, webSocketPort, webSocketName;
+        if (user.getMessage_ip().equals("") || user.getMessage_port().equals("")) {
+            serverHost = NetWork.MESSAGE_SERVER_IP;
+            webSocketPort = NetWork.MESSAGE_SERVER_PORT;
+        } else {
+            serverHost = user.getMessage_ip();
+            webSocketPort = user.getMessage_port();
+        }
+        webSocketName = String.valueOf(NetWork.MESSAGE_SERVER_NAME);
+
         try {
-            msgWebSocketClient = new MsgWebSocketClient(this, "ws://" + serverHost + ":" + webSocketPort + "/" + webSocketName);
+            msgWebSocketClient = new MsgWebSocketClient(this, "ws://" + serverHost + ":" + webSocketPort + "/" + webSocketName, new IMsgWebSocket() {
+                @Override
+                public void openSuccess() {
+                    if (first) {
+                        threadPool.submit(heartBeatRunnable);
+                    }
+                    first = false;
+                }
+
+                @Override
+                public void closed() {
+                    reConnect();
+                }
+            });
             msgWebSocketClient.connect();
         } catch (URISyntaxException e) {
             e.printStackTrace();
@@ -147,17 +167,15 @@ public class WebSocketService extends Service {
     /**
      * 发送心跳包
      */
-    private Runnable heartBeatRunnable = new Runnable() {
-        @Override
-        public void run() {
-            // 心跳包只需发送一个SocketId过去, 以节约数据流量
-            // 如果发送失败，就重新初始化一个socket
-            Runnable runnable = () -> {
-                LogUtils.d(TAG, "WebSocket发送心跳包");
-                sendMessage("");
-            };
-            threadPool.submit(runnable);
-            mHandler.postDelayed(this, NetWork.HEART_BEAT_RATE);
+    private Runnable heartBeatRunnable = () -> {
+        while (flag) {
+            LogUtils.d(TAG, "消息服务器WebSocket发送心跳包");
+            sendMessage("");
+            try {
+                Thread.sleep(NetWork.HEART_BEAT_RATE);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
     };
 
@@ -165,21 +183,19 @@ public class WebSocketService extends Service {
      * 重连WebSocket
      */
     public void reConnect() {
-        try {
-            // 等待5秒再重连
-            Thread.sleep(NetWork.WEBSOCKET_RECONNECT_TIME_INTERVAL);
-            try {
-                serverHost = SPHelper.getString("MessageServerIP", NetWork.WEBSOCKET_IP);
-                String webSocketPort = SPHelper.getString("MessageServerPort", NetWork.WEBSOCKET_PORT);
-                String webSocketName = String.valueOf(NetWork.WEBSOCKET_NAME);
-                msgWebSocketClient = new MsgWebSocketClient(this, "ws://" + serverHost + ":" + webSocketPort + "/" + webSocketName);
-                msgWebSocketClient.connect();
-            } catch (URISyntaxException e) {
-                e.printStackTrace();
+        LogUtils.d(TAG, "WebSocket重连");
+        Runnable runnable = new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    Thread.sleep(NetWork.WEBSOCKET_RECONNECT_RATE);
+                    msgWebSocketClient.reconnectBlocking();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
             }
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        };
+        threadPool.submit(runnable);
     }
 
     /**
@@ -245,6 +261,7 @@ public class WebSocketService extends Service {
     @Override
     public void onDestroy() {
         super.onDestroy();
+        flag = false;
         MusicPlay.with(WebSocketService.this.getApplicationContext()).release();
         closeWebSocket();
         if (myReceiver != null) {

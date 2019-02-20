@@ -34,12 +34,21 @@ public class MsgWebSocketClient extends WebSocketClient {
     private Context mContext;
     private List<WebSocketData> malfunctionList;
     private String serverHost;
+    private User user;
 
-    public MsgWebSocketClient(Context mContext, String url) throws URISyntaxException {
+    private IMsgWebSocket iMsgWebSocket;
+
+    public MsgWebSocketClient(Context mContext, String url, IMsgWebSocket iMsgWebSocket) throws URISyntaxException {
         super(new URI(url));
         this.mContext = mContext;
+        this.iMsgWebSocket = iMsgWebSocket;
+        user = GsonUtils.parseJSON(SPHelper.getString("User", GsonUtils.convertJSON(new User())), User.class);
         malfunctionList = new ArrayList<>();
-        serverHost = SPHelper.getString("MessageServerIP", NetWork.WEBSOCKET_IP);
+        if (user.getMessage_ip().equals("") || user.getMessage_port().equals("")) {
+            serverHost = NetWork.MESSAGE_SERVER_IP;
+        } else {
+            serverHost = user.getMessage_ip();
+        }
     }
 
     @Override
@@ -47,17 +56,13 @@ public class MsgWebSocketClient extends WebSocketClient {
         //通道打开
         LogUtils.d(TAG, "建立连接");
 
-        // 通知异常页面清空数据
-        Intent intent = new Intent();
-        intent.setAction("MESSAGE_WEBSOCKET_CLOSED");
-        mContext.sendBroadcast(intent);
-
         // 告诉服务器本机IP和用户名
         Map<String, String> map = new HashMap<>();
         map.put("IPAddress", WifiUtil.getLocalIPAddress());
-        User user = GsonUtils.parseJSON(SPHelper.getString("User", GsonUtils.convertJSON(new User())), User.class);
         map.put("UserName", user.getUser_id());
         send(GsonUtils.convertJSON(map));
+
+        iMsgWebSocket.openSuccess();
     }
 
     @Override
@@ -129,7 +134,9 @@ public class MsgWebSocketClient extends WebSocketClient {
 
     @Override
     public void onClose(int code, String reason, boolean remote) {
-        //通道关闭
+        // 通道关闭
+        LogUtils.d(TAG, "连接断开");
+        iMsgWebSocket.closed();
         // 通知主页面列表清空
         Intent intent = new Intent();
         intent.setAction("MESSAGE_WEBSOCKET_CLOSED");

@@ -108,12 +108,15 @@ public class VoiceService extends Service implements IWebRTCHelper, VolumeChange
         mVolumeChangeObserver.setVolumeChangeListener(this);
         mVolumeChangeObserver.registerReceiver();
 
-        String ip = SPHelper.getString("VoiceServerIP", NetWork.WEBRTC_SERVER_IP);
-        String port = SPHelper.getString("VoiceServerPort", NetWork.WEBRTC_SERVER_PORT);
         User user = GsonUtils.parseJSON(SPHelper.getString("User", GsonUtils.convertJSON(new User())), User.class);
-
-        String signal = DbcSbcUtils.getPatStr("ws://" + ip + ":" + port + "/WalkieTalkieServer/" + user.getUser_id());
-        helper.initSocket(signal, false);
+        if (user.getVoice_ip().equals("") || user.getVoice_port().equals("")) {
+            // 如果用户没有填写完整语音服务器信息，则采用默认值
+            String signal = DbcSbcUtils.getPatStr("ws://" + NetWork.WEBRTC_SERVER_IP + ":" + NetWork.WEBRTC_SERVER_PORT + "/WalkieTalkieServer/" + user.getUser_id());
+            helper.initSocket(signal, false);
+        } else {
+            String signal = DbcSbcUtils.getPatStr("ws://" + user.getVoice_ip() + ":" + user.getVoice_port() + "/WalkieTalkieServer/" + user.getUser_id());
+            helper.initSocket(signal, false);
+        }
     }
 
     // 注册耳机按钮事件
@@ -457,7 +460,6 @@ public class VoiceService extends Service implements IWebRTCHelper, VolumeChange
     public void updateRoomSpeakStatus(ArrayList<User> userList) {
 
         // 调节音量
-        int defaultVolume = SPHelper.getInt("defaultVolume", mAudioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC));
         boolean someoneSpeaking = false;
         for (int i = 0; i < userList.size(); i++) {
             if (userList.get(i).isSpeaking()) {
@@ -470,15 +472,17 @@ public class VoiceService extends Service implements IWebRTCHelper, VolumeChange
         // 如果所有人都不讲话了
         if (!someoneSpeaking) {
             SPHelper.save("SomeoneSpeaking", false);
-            LogUtils.d(TAG, "所有人都不讲话了，当前音量为：" + defaultVolume);
-            mAudioManager.setStreamVolume(AudioManager.STREAM_MUSIC, defaultVolume, AudioManager.FLAG_VIBRATE);
+            int silentVolume = SPHelper.getInt("SilentVolume", mAudioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC) / 2);
+            LogUtils.d(TAG, "所有人都不讲话了，当前音量为：" + silentVolume);
+            mAudioManager.setStreamVolume(AudioManager.STREAM_MUSIC, silentVolume, AudioManager.FLAG_VIBRATE);
 
             // 通知Activity修改音量键默认调节的音量类型
             intent.putExtra("VolumeControlStream", AudioManager.STREAM_MUSIC);
         } else {
             SPHelper.save("SomeoneSpeaking", true);
-            LogUtils.d(TAG, "当前有人在讲话，当前音量为：" + defaultVolume / 2);
-            mAudioManager.setStreamVolume(AudioManager.STREAM_MUSIC, defaultVolume / 2, AudioManager.FLAG_VIBRATE);
+            int talkVolume = SPHelper.getInt("TalkVolume", mAudioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC) / 4 * 3);
+            LogUtils.d(TAG, "当前有人在讲话，当前音量为：" + talkVolume);
+            mAudioManager.setStreamVolume(AudioManager.STREAM_MUSIC, talkVolume, AudioManager.FLAG_VIBRATE);
 
             // 通知Activity修改音量键默认调节的音量类型
             intent.putExtra("VolumeControlStream", AudioManager.STREAM_VOICE_CALL);
@@ -556,7 +560,6 @@ public class VoiceService extends Service implements IWebRTCHelper, VolumeChange
                     Intent intent1 = new Intent();
                     intent1.setAction("WIFI_DISCONNECTED");
                     VoiceService.this.sendBroadcast(intent1);
-                    VoiceService.this.onDestroy();
                 } else if (wifiState == WifiManager.WIFI_STATE_ENABLED) {
                     //wifi开启
                     LogUtils.d(TAG, "wifi已开启");
@@ -628,16 +631,14 @@ public class VoiceService extends Service implements IWebRTCHelper, VolumeChange
     @Override
     public void onVolumeChanged(int currentVolume) {
         LogUtils.d(TAG, "系统媒体音量发生变化，当前媒体音量为：" + currentVolume);
-
-        AudioManager audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
         if (SPHelper.getBoolean("SomeoneSpeaking", false)) {
             // 有人正在讲话
-            SPHelper.save("defaultVolume", currentVolume * 2 > audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC) ? audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC) : currentVolume * 2);
-            LogUtils.d(TAG, "当前有人在讲话，保存默认音量：" + (currentVolume * 2 > audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC) ? audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC) : currentVolume * 2));
+            SPHelper.save("TalkVolume", currentVolume);
+            LogUtils.d(TAG, "当前有人在讲话，保存默认音量：" + currentVolume);
         } else {
             // 没有人在讲话
             LogUtils.d(TAG, "所有人都不讲话了，保存默认音量：" + currentVolume);
-            SPHelper.save("defaultVolume", currentVolume);
+            SPHelper.save("SilentVolume", currentVolume);
         }
     }
 
@@ -645,7 +646,7 @@ public class VoiceService extends Service implements IWebRTCHelper, VolumeChange
     public void onDestroy() {
         super.onDestroy();
         LogUtils.d(TAG, "VoiceService——————生命周期——————:onDestroy");
-        helper.exitRoom();
+        helper.leaveGroup();
         helper = null;
         if (keyEventBroadcastReceiver != null) {
             unregisterReceiver(keyEventBroadcastReceiver);

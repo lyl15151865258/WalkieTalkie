@@ -422,7 +422,7 @@ public class WebRTCHelper implements ISignalingEvents {
     }
 
     // 关闭通道流
-    private void closePeerConnection(String connectionId) {
+    public void closePeerConnection(String connectionId) {
         if (IHelper != null) {
             IHelper.removeUser(connectionId);
         }
