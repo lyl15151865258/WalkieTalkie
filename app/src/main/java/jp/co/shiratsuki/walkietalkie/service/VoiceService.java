@@ -15,7 +15,8 @@ import android.content.IntentFilter;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.media.AudioManager;
-import android.media.MediaPlayer;
+import android.media.Ringtone;
+import android.media.RingtoneManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
@@ -29,7 +30,6 @@ import android.support.v4.app.NotificationCompat;
 
 import org.webrtc.MediaStream;
 
-import java.io.IOException;
 import java.util.ArrayList;
 
 import jp.co.shiratsuki.walkietalkie.R;
@@ -55,6 +55,7 @@ import jp.co.shiratsuki.walkietalkie.constant.NetWork;
 
 public class VoiceService extends Service implements IWebRTCHelper, VolumeChangeObserver.VolumeChangeListener {
 
+    private Ringtone ringtone;
     private boolean isInRoom = false;
 
     enum TYPE {
@@ -70,7 +71,6 @@ public class VoiceService extends Service implements IWebRTCHelper, VolumeChange
 
     private AudioManager mAudioManager;
     private ComponentName mComponentName;
-    private MediaPlayer mediaPlayer;
 
     private VolumeChangeObserver mVolumeChangeObserver;
 
@@ -78,6 +78,7 @@ public class VoiceService extends Service implements IWebRTCHelper, VolumeChange
     public void onCreate() {
         super.onCreate();
         LogUtils.d(TAG, "VoiceService——————生命周期——————:onCreate");
+
         keyEventBroadcastReceiver = new KeyEventBroadcastReceiver();
         IntentFilter filter1 = new IntentFilter();
         filter1.addAction("KEY_DOWN");
@@ -100,8 +101,6 @@ public class VoiceService extends Service implements IWebRTCHelper, VolumeChange
 
         // 记录当前媒体音量
         SPHelper.save("defaultVolume", mAudioManager.getStreamVolume(AudioManager.STREAM_MUSIC));
-
-        mediaPlayer = new MediaPlayer();
 
         //实例化对象并设置监听器
         mVolumeChangeObserver = new VolumeChangeObserver(this);
@@ -237,28 +236,23 @@ public class VoiceService extends Service implements IWebRTCHelper, VolumeChange
                     helper.toggleMute(true);
                     broadcastCallback(TYPE.StartRecord, null);
                     // 播放提示音
-                    try {
-                        Uri setDataSourceUri = Uri.parse("android.resource://jp.co.shiratsuki.walkietalkie/" + R.raw.dingdong);
-                        mediaPlayer.reset();
-                        mediaPlayer.setDataSource(VoiceService.this, setDataSourceUri);
-                        mediaPlayer.prepareAsync();
-                        mediaPlayer.setOnPreparedListener(mediaPlayer -> mediaPlayer.start());
-                        mediaPlayer.setOnCompletionListener(mediaPlayer -> mediaPlayer.reset());
-                    } catch (IOException e) {
-                        e.printStackTrace();
+                    if (ringtone != null && ringtone.isPlaying()) {
+                        ringtone.stop();
                     }
+                    Uri uri = Uri.parse("android.resource://jp.co.shiratsuki.walkietalkie/" + R.raw.dingdong);
+                    ringtone = RingtoneManager.getRingtone(VoiceService.this, uri);
+                    ringtone.setStreamType(AudioManager.STREAM_RING);
+                    ringtone.play();
+
                     SPHelper.save("KEY_STATUS_UP", false);
                 } else {
-                    try {
-                        Uri setDataSourceUri = Uri.parse("android.resource://jp.co.shiratsuki.walkietalkie/" + R.raw.du);
-                        mediaPlayer.reset();
-                        mediaPlayer.setDataSource(VoiceService.this, setDataSourceUri);
-                        mediaPlayer.prepareAsync();
-                        mediaPlayer.setOnPreparedListener(mediaPlayer -> mediaPlayer.start());
-                        mediaPlayer.setOnCompletionListener(mediaPlayer -> mediaPlayer.reset());
-                    } catch (IOException e) {
-                        e.printStackTrace();
+                    if (ringtone != null && ringtone.isPlaying()) {
+                        ringtone.stop();
                     }
+                    Uri uri = Uri.parse("android.resource://jp.co.shiratsuki.walkietalkie/" + R.raw.du);
+                    ringtone = RingtoneManager.getRingtone(VoiceService.this, uri);
+                    ringtone.setStreamType(AudioManager.STREAM_RING);
+                    ringtone.play();
                     SPHelper.save("KEY_STATUS_UP", true);
                 }
             } catch (Exception e) {
@@ -275,16 +269,13 @@ public class VoiceService extends Service implements IWebRTCHelper, VolumeChange
                     helper.toggleMute(false);
                     broadcastCallback(TYPE.StopRecord, null);
                     // 播放提示音
-                    try {
-                        Uri setDataSourceuri = Uri.parse("android.resource://jp.co.shiratsuki.walkietalkie/" + R.raw.du);
-                        mediaPlayer.reset();
-                        mediaPlayer.setDataSource(VoiceService.this, setDataSourceuri);
-                        mediaPlayer.prepareAsync();
-                        mediaPlayer.setOnPreparedListener(mediaPlayer -> mediaPlayer.start());
-                        mediaPlayer.setOnCompletionListener(mediaPlayer -> mediaPlayer.reset());
-                    } catch (IOException e) {
-                        e.printStackTrace();
+                    if (ringtone != null && ringtone.isPlaying()) {
+                        ringtone.stop();
                     }
+                    Uri uri = Uri.parse("android.resource://jp.co.shiratsuki.walkietalkie/" + R.raw.du);
+                    ringtone = RingtoneManager.getRingtone(VoiceService.this, uri);
+                    ringtone.setStreamType(AudioManager.STREAM_RING);
+                    ringtone.play();
                     SPHelper.save("KEY_STATUS_UP", true);
                 }
             } catch (Exception e) {

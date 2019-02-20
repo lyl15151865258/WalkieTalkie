@@ -20,6 +20,8 @@ import jp.co.shiratsuki.walkietalkie.bean.WebSocketData;
 import jp.co.shiratsuki.walkietalkie.broadcast.BaseBroadcastReceiver;
 import jp.co.shiratsuki.walkietalkie.constant.NetWork;
 import jp.co.shiratsuki.walkietalkie.contentprovider.SPHelper;
+import jp.co.shiratsuki.walkietalkie.message.IMsgWebSocket;
+import jp.co.shiratsuki.walkietalkie.message.MsgWebSocketClient;
 import jp.co.shiratsuki.walkietalkie.utils.GsonUtils;
 import jp.co.shiratsuki.walkietalkie.utils.LogUtils;
 import jp.co.shiratsuki.walkietalkie.voice.MusicPlay;

@@ -1,4 +1,4 @@
-package jp.co.shiratsuki.walkietalkie.service;
+package jp.co.shiratsuki.walkietalkie.message;
 
 public interface IMsgWebSocket {
 
