@@ -23,22 +23,33 @@
         android:layout_marginTop="@dimen/dp_15"
         android:gravity="center"
         android:text="XXX"
-        android:textColor="#FFFFFF"
-        android:textSize="@dimen/sp_22" />
+        android:textColor="@color/white"
+        android:textSize="@dimen/sp_28" />
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/dp_15"
         android:gravity="center"
-        android:text="邀请您进行通话..."
-        android:textColor="#9E9E9F"
+        android:text="邀请您进行语音通话..."
+        android:textColor="@color/white"
         android:textSize="@dimen/sp_16" />
 
-    <View
+    <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1" />
+        android:layout_weight="1">
+
+        <TextView
+            android:id="@+id/tvMessage"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:gravity="center"
+            android:textColor="@color/white"
+            android:textSize="@dimen/sp_18" />
+
+    </RelativeLayout>
 
     <LinearLayout
         android:id="@+id/ring_view"

@@ -1,7 +1,7 @@
 package jp.co.shiratsuki.walkietalkie.webrtc.websocket;
 
+import android.content.Context;
 import android.content.Intent;
-import android.support.v7.app.AppCompatActivity;
 
 import com.alibaba.fastjson.JSON;
 
@@ -28,12 +28,16 @@ import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
 import jp.co.shiratsuki.walkietalkie.activity.appmain.P2PRingingActivity;
+import jp.co.shiratsuki.walkietalkie.activity.appmain.P2PWaitingActivity;
 import jp.co.shiratsuki.walkietalkie.bean.User;
 import jp.co.shiratsuki.walkietalkie.bean.websocket.ContactsList;
+import jp.co.shiratsuki.walkietalkie.bean.websocket.P2PAccept;
+import jp.co.shiratsuki.walkietalkie.bean.websocket.P2PRequest;
+import jp.co.shiratsuki.walkietalkie.bean.websocket.P2PResult;
 import jp.co.shiratsuki.walkietalkie.bean.websocket.Peers;
 import jp.co.shiratsuki.walkietalkie.bean.websocket.UserInOrOut;
+import jp.co.shiratsuki.walkietalkie.constant.Constants;
 import jp.co.shiratsuki.walkietalkie.contentprovider.SPHelper;
-import jp.co.shiratsuki.walkietalkie.utils.ActivityController;
 import jp.co.shiratsuki.walkietalkie.utils.GsonUtils;
 import jp.co.shiratsuki.walkietalkie.utils.LogUtils;
 
@@ -49,11 +53,13 @@ public class JavaWebSocket implements IWebSocket {
 
     private final static String TAG = "JavaWebSocket";
 
+    private Context mContext;
     private WebSocketClient mWebSocketClient;
 
     private ISignalingEvents events;
 
-    public JavaWebSocket(ISignalingEvents events) {
+    public JavaWebSocket(Context mContext, ISignalingEvents events) {
+        this.mContext = mContext;
         this.events = events;
     }
 
@@ -169,7 +175,7 @@ public class JavaWebSocket implements IWebSocket {
 
     //============================需要接收的=====================================
 
-    public void handleMessage(String message) {
+    private void handleMessage(String message) {
         Map map = JSON.parseObject(message, Map.class);
         String eventName = (String) map.get("eventName");
         LogUtils.d(TAG, "收到信息：" + message);
@@ -203,7 +209,19 @@ public class JavaWebSocket implements IWebSocket {
                     handleVoice(message);
                     break;
                 case "_p2p_request":
-                    handleP2PVoice(message);
+                    handleP2PVoiceRequest(message);
+                    break;
+                case "_p2p_request_cancel":
+                    handleP2PVoiceRequestCancel(message);
+                    break;
+                case "_p2p_result":
+                    handleP2PVoiceResult(message);
+                    break;
+                case "_p2p_request_reject":
+                    handleP2PVoiceReject(message);
+                    break;
+                case "_p2p_request_accept":
+                    handleP2PVoiceAccept(message);
                     break;
                 case "_someone_leave":
                     handleLeaveRoom(message);
@@ -223,6 +241,10 @@ public class JavaWebSocket implements IWebSocket {
 
     // 自己进入房间
     private void handleJoinToRoom(String message) {
+        User user = GsonUtils.parseJSON(SPHelper.getString("User", GsonUtils.convertJSON(new User())), User.class);
+        user.setInroom(true);
+        user.setSpeaking(false);
+        SPHelper.save("User", GsonUtils.convertJSON(user));
         Peers peers = GsonUtils.parseJSON(message, Peers.class);
         String myId = peers.getData().getYou();
         List<String> connections = peers.getData().getConnections();
@@ -291,12 +313,64 @@ public class JavaWebSocket implements IWebSocket {
     }
 
     // 收到一对一通话请求
-    private void handleP2PVoice(String message) {
-        AppCompatActivity currentActivity = (AppCompatActivity) ActivityController.getInstance().getCurrentActivity();
-        Intent intent = new Intent(currentActivity, P2PRingingActivity.class);
-        intent.putExtra("Inviter", "张三");
-        intent.putExtra("IconUrl", "https://ss1.bdstatic.com/70cFuXSh_Q1YnxGkpoWK1HF6hhy/it/u=1565946200,1651212411&fm=26&gp=0.jpg");
-        currentActivity.startActivity(intent);
+    private void handleP2PVoiceRequest(String message) {
+        P2PRequest p2PRequest = GsonUtils.parseJSON(message, P2PRequest.class);
+        User user = p2PRequest.getData().getUser();
+        Intent intent = new Intent(mContext, P2PRingingActivity.class);
+        intent.putExtra("user", user);
+        mContext.startActivity(intent);
+    }
+
+    // 收到一对一通话取消请求
+    private void handleP2PVoiceRequestCancel(String message) {
+        P2PRequest p2PRequest = GsonUtils.parseJSON(message, P2PRequest.class);
+        User user = p2PRequest.getData().getUser();
+        Intent intent = new Intent();
+        intent.setAction("P2P_VOICE_REQUEST_CANCEL");
+        mContext.sendBroadcast(intent);
+    }
+
+    // 收到一对一通话拒绝请求
+    private void handleP2PVoiceReject(String message) {
+        P2PRequest p2PRequest = GsonUtils.parseJSON(message, P2PRequest.class);
+        User user = p2PRequest.getData().getUser();
+        Intent intent = new Intent();
+        intent.setAction("P2P_VOICE_REQUEST_REJECT");
+        mContext.sendBroadcast(intent);
+    }
+
+    // 收到一对一通话接受请求
+    private void handleP2PVoiceAccept(String message) {
+        P2PAccept p2PAccept = GsonUtils.parseJSON(message, P2PAccept.class);
+        String roomId = p2PAccept.getData().getRoomId();
+        joinRoom(roomId);
+        Intent intent = new Intent();
+        intent.setAction("P2P_VOICE_REQUEST_ACCEPT");
+        intent.putExtra("roomId", roomId);
+        mContext.sendBroadcast(intent);
+    }
+
+    // 收到一对一通话请求结果
+    private void handleP2PVoiceResult(String message) {
+        P2PResult p2PResult = GsonUtils.parseJSON(message, P2PResult.class);
+        String result = p2PResult.getData().getResult();
+        String msg = p2PResult.getData().getMessage();
+        User user = p2PResult.getData().getUser();
+        switch (result) {
+            case Constants.SUCCESS:
+                Intent intent = new Intent(mContext, P2PWaitingActivity.class);
+                intent.putExtra("user", user);
+                mContext.startActivity(intent);
+                break;
+            case Constants.FAIL:
+                Intent intent1 = new Intent();
+                intent1.setAction("P2P_VOICE_REQUEST_ERROR");
+                intent1.putExtra("errorMsg", msg);
+                mContext.sendBroadcast(intent1);
+                break;
+            default:
+                break;
+        }
     }
 
     // 处理有人离开房间

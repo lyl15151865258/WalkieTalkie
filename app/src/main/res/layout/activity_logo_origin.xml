@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/llRoot"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/background_building"
     android:orientation="vertical">
 
     <LinearLayout
@@ -24,7 +24,7 @@
             android:gravity="center"
             android:orientation="vertical">
 
-            <TextView
+            <jp.co.shiratsuki.walkietalkie.widget.MyTextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="	白月工業株式会社"
@@ -32,7 +32,7 @@
                 android:textSize="@dimen/sp_28"
                 android:textStyle="bold" />
 
-            <TextView
+            <jp.co.shiratsuki.walkietalkie.widget.MyTextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="SHIRATSUKI CO.,LTD"
@@ -52,7 +52,7 @@
 
     </LinearLayout>
 
-    <TextView
+    <jp.co.shiratsuki.walkietalkie.widget.MyTextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center"

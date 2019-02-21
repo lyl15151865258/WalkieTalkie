@@ -1,6 +1,5 @@
 package jp.co.shiratsuki.walkietalkie.activity.settings;
 
-import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
 import android.text.Editable;
@@ -163,7 +162,6 @@ public class SetVoiceServerActivity extends SwipeBackActivity {
                         case Constants.SUCCESS:
                             showToast("更新成功");
                             SPHelper.save("User", GsonUtils.convertJSON(userOperateResult.getUser()));
-                            setResult(Activity.RESULT_OK);
                             ActivityController.finishActivity(SetVoiceServerActivity.this);
                             break;
                         case Constants.FAIL:

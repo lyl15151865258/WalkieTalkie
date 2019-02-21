@@ -14,6 +14,11 @@
         <item name="android:windowBackground">@drawable/welcome</item>
     </style>
 
+    <style name="BlueTheme.CenterAnimation">
+        <item name="android:windowFullscreen">true</item>
+        <item name="android:windowBackground">@drawable/ll_face_logo</item>
+    </style>
+
     <style name="AnimationActivity" parent="@android:style/Animation.Activity">
         <item name="android:activityOpenEnterAnimation">@anim/right_in</item>
         // 新的activity创建进入效果
@@ -84,6 +89,12 @@
         <item name="shadow_left">@drawable/shadow_left</item>
         <item name="shadow_right">@drawable/shadow_right</item>
         <item name="shadow_bottom">@drawable/shadow_bottom</item>
+    </style>
+
+
+    <style name="Button" parent="Theme.AppCompat">
+        <item name="colorControlHighlight">@color/indigo_500</item>
+        <item name="colorButtonNormal">@color/pink_200</item>
     </style>
 
 </resources>

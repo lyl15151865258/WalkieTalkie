@@ -22,8 +22,8 @@
     <string name="settings">Settings</string>
     <string name="click_again_exit">Press again to exit the program</string>
     <string name="reminder_metter">Tip</string>
-    <string name="dialog_cancel">Cancel</string>
-    <string name="dialog_input_continue">Continue</string>
+    <string name="Cancel">Cancel</string>
+    <string name="Continue">Continue</string>
     <string name="notification_connect_wifi">You are not currently connected to WiFi, are you going to connect?</string>
     <string name="please_connect_wifi">Please connect Wifi!</string>
     <string name="MediaTest">Media Test</string>

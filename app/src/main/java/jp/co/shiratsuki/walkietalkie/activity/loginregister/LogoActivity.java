@@ -22,7 +22,7 @@ public class LogoActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_logo);
         try {
-            Thread.sleep(300);
+            Thread.sleep(3000);
         } catch (Exception e) {
             e.printStackTrace();
         } finally {

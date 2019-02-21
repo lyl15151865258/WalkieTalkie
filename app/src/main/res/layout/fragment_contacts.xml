@@ -41,11 +41,11 @@
 
     </LinearLayout>
 
-    <android.support.v7.widget.RecyclerView
-        android:id="@+id/rvContacts"
+    <ExpandableListView
+        android:id="@+id/elvContacts"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@color/gray_6"
+        android:background="@color/gray_7"
         android:overScrollMode="never"
         android:scrollbars="vertical" />
 

@@ -62,7 +62,7 @@
         android:supportsRtl="true"
         android:theme="@style/BlueTheme">
 
-        <!-- 适配全面屏，屏幕高宽比设置为2.1 -->
+        <!-- 适配全面屏，屏幕最大高宽比设置为2.1 -->
         <meta-data
             android:name="android.max_aspect"
             android:value="2.1" />
@@ -141,6 +141,13 @@
         <!-- 一对一通话响铃界面 -->
         <activity
             android:name=".activity.appmain.P2PRingingActivity"
+            android:launchMode="singleInstance"
+            android:screenOrientation="portrait" />
+
+        <!-- 一对一通话等待界面 -->
+        <activity
+            android:name=".activity.appmain.P2PWaitingActivity"
+            android:launchMode="singleInstance"
             android:screenOrientation="portrait" />
 
         <!-- 局域网通信服务-->

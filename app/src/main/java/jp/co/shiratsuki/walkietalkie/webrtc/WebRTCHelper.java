@@ -49,6 +49,7 @@ public class WebRTCHelper implements ISignalingEvents {
 
     public final static String TAG = "WebRTCHelper";
 
+    private Context mContext;
     private PeerConnectionFactory _factory;
     private MediaStream _localStream;
     private AudioTrack _localAudioTrack;
@@ -84,6 +85,7 @@ public class WebRTCHelper implements ISignalingEvents {
             PeerConnection.IceServer iceServer = new PeerConnection.IceServer(myIceServer.uri, myIceServer.username, myIceServer.password);
             ICEServers.add(iceServer);
         }
+        mContext = context;
         mAudioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
         LogUtils.d(TAG, "初始化PeerConnection");
         PeerConnectionFactory.initializeAndroidGlobals(IHelper, true, true, true);
@@ -92,7 +94,7 @@ public class WebRTCHelper implements ISignalingEvents {
 
     public void initSocket(String ws, boolean videoEnable) {
         this.videoEnable = videoEnable;
-        webSocket = new JavaWebSocket(this);
+        webSocket = new JavaWebSocket(mContext, this);
         webSocket.connect(ws);
     }
 
@@ -149,8 +151,9 @@ public class WebRTCHelper implements ISignalingEvents {
             if (webSocket != null) {
                 try {
                     LogUtils.d(TAG, "WebSocket发送心跳包");
+                    User user = GsonUtils.parseJSON(SPHelper.getString("User", GsonUtils.convertJSON(new User())), User.class);
                     HashMap<String, Object> childMap = new HashMap<>();
-                    childMap.put("userId", _myId);
+                    childMap.put("userId", user.getUser_id());
                     HashMap<String, Object> map = new HashMap<>();
                     map.put("eventName", "__ping");
                     map.put("data", childMap);
@@ -281,7 +284,71 @@ public class WebRTCHelper implements ISignalingEvents {
         map.put("data", user);
 
         JSONObject object = new JSONObject(map);
-        final String jsonString = object.toString();
+        String jsonString = object.toString();
+        sendMessage(jsonString);
+    }
+
+    /**
+     * 给别人打电话
+     *
+     * @param userId 目标的UserId
+     */
+    public void callOthers(String userId) {
+        User user = GsonUtils.parseJSON(SPHelper.getString("User", GsonUtils.convertJSON(new User())), User.class);
+        Map<String, Object> map = new HashMap<>();
+        map.put("eventName", "__p2p_request");
+        map.put("data", user);
+        map.put("destinationId", userId);
+        JSONObject object = new JSONObject(map);
+        String jsonString = object.toString();
+        sendMessage(jsonString);
+    }
+
+    /**
+     * 取消给别人打电话
+     *
+     * @param userId 目标的UserId
+     */
+    public void cancelP2PCall(String userId) {
+        User user = GsonUtils.parseJSON(SPHelper.getString("User", GsonUtils.convertJSON(new User())), User.class);
+        Map<String, Object> map = new HashMap<>();
+        map.put("eventName", "__p2p_request_cancel");
+        map.put("data", user);
+        map.put("destinationId", userId);
+        JSONObject object = new JSONObject(map);
+        String jsonString = object.toString();
+        sendMessage(jsonString);
+    }
+
+    /**
+     * 拒接别人的音频邀请
+     *
+     * @param userId 目标的UserId
+     */
+    public void rejectP2PCall(String userId) {
+        User user = GsonUtils.parseJSON(SPHelper.getString("User", GsonUtils.convertJSON(new User())), User.class);
+        Map<String, Object> map = new HashMap<>();
+        map.put("eventName", "__p2p_request_reject");
+        map.put("data", user);
+        map.put("destinationId", userId);
+        JSONObject object = new JSONObject(map);
+        String jsonString = object.toString();
+        sendMessage(jsonString);
+    }
+
+    /**
+     * 接受别人的音频邀请
+     *
+     * @param userId 目标的UserId
+     */
+    public void acceptP2PCall(String userId) {
+        User user = GsonUtils.parseJSON(SPHelper.getString("User", GsonUtils.convertJSON(new User())), User.class);
+        Map<String, Object> map = new HashMap<>();
+        map.put("eventName", "__p2p_request_accept");
+        map.put("data", user);
+        map.put("destinationId", userId);
+        JSONObject object = new JSONObject(map);
+        String jsonString = object.toString();
         sendMessage(jsonString);
     }
 

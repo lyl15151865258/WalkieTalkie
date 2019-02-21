@@ -10,6 +10,10 @@ interface IVoiceService {
     void stopRecord();
     void useSpeaker();
     void useEarpiece();
+    void callOthers(String userId);
+    void cancelP2PCall(String userId);
+    void rejectP2PCall(String userId);
+    void acceptP2PCall(String userId);
     void registerCallback(IVoiceCallback callback);
     void unRegisterCallback(IVoiceCallback callback);
 }

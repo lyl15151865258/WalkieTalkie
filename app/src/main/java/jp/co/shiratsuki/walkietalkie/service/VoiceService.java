@@ -304,6 +304,42 @@ public class VoiceService extends Service implements IWebRTCHelper, VolumeChange
         }
 
         @Override
+        public void callOthers(String userId) {
+            try {
+                helper.callOthers(userId);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        @Override
+        public void cancelP2PCall(String userId) {
+            try {
+                helper.cancelP2PCall(userId);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        @Override
+        public void rejectP2PCall(String userId) {
+            try {
+                helper.rejectP2PCall(userId);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        @Override
+        public void acceptP2PCall(String userId) {
+            try {
+                helper.acceptP2PCall(userId);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        @Override
         public void registerCallback(IVoiceCallback callback) {
             mCallbackList.register(callback);
         }

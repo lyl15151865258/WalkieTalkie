@@ -3,7 +3,6 @@ package jp.co.shiratsuki.walkietalkie.fragment;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.support.v4.app.FragmentActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -37,6 +36,7 @@ public class ChatRoomFragment extends BaseFragment {
 
     private String TAG = "ChatRoomFragment";
     private Context mContext;
+    private MainActivity mainActivity;
     private List<User> userList;
     private ChatRoomContactAdapter chatRoomContactAdapter;
     private boolean sIsScrolling = false;
@@ -48,6 +48,7 @@ public class ChatRoomFragment extends BaseFragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mContext = getContext();
+        mainActivity = (MainActivity) getActivity();
         View view = inflater.inflate(R.layout.fragment_contacts_chatroom, container, false);
         RecyclerView rvContacts = view.findViewById(R.id.rvContacts);
         //纵向线性布局
@@ -77,12 +78,7 @@ public class ChatRoomFragment extends BaseFragment {
                 }
 
                 SPHelper.save("TemporaryRoom", roomId);
-
-                FragmentActivity activity = getActivity();
-                if (activity instanceof MainActivity) {
-                    MainActivity mainActivity = (MainActivity) activity;
-                    mainActivity.clickEnterExitBtn();
-                }
+                mainActivity.clickEnterExitBtn();
                 break;
             default:
                 break;
@@ -180,6 +176,16 @@ public class ChatRoomFragment extends BaseFragment {
         btnEnterExitRoom.setText(getString(R.string.pressToJoinChat));
         etRoomId.setFocusable(true);
         etRoomId.setFocusableInTouchMode(true);
+    }
+
+    /**
+     * 设置房间ID
+     *
+     * @param roomId 房间ID
+     */
+    public void setRoomId(String roomId) {
+        etRoomId.setText(roomId);
+        enterRoom();
     }
 
 }

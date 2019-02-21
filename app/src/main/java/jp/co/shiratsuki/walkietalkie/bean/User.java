@@ -29,12 +29,13 @@ public class User implements Parcelable {
     private String room_id = "";
     private boolean inroom = false;
     private boolean speaking = false;
+    private boolean busy = false;
     private String register_time = "";
     private String login_time = TimeUtils.getCurrentDateTime();
 
     public User(String user_id, String user_pwd, String user_name, String company, int department_id, String department_name,
                 String icon_url, String message_ip, String message_port, String voice_ip, String voice_port, String room_id,
-                boolean inroom, boolean speaking, String register_time, String login_time) {
+                boolean inroom, boolean speaking, boolean busy, String register_time, String login_time) {
         super();
         this.user_id = user_id;
         this.user_pwd = user_pwd;
@@ -50,6 +51,7 @@ public class User implements Parcelable {
         this.room_id = room_id;
         this.inroom = inroom;
         this.speaking = speaking;
+        this.busy = busy;
         this.register_time = register_time;
         this.login_time = login_time;
     }
@@ -170,6 +172,14 @@ public class User implements Parcelable {
         this.speaking = speaking;
     }
 
+    public boolean isBusy() {
+        return busy;
+    }
+
+    public void setBusy(boolean busy) {
+        this.busy = busy;
+    }
+
     public String getRegister_time() {
         return register_time;
     }
@@ -207,6 +217,7 @@ public class User implements Parcelable {
                 ", room_id='" + room_id + '\'' +
                 ", inroom=" + inroom +
                 ", speaking=" + speaking +
+                ", busy=" + busy +
                 ", register_time='" + register_time + '\'' +
                 ", login_time='" + login_time + '\'' +
                 '}';
@@ -233,6 +244,7 @@ public class User implements Parcelable {
         dest.writeString(room_id);
         dest.writeByte((byte) (inroom ? 1 : 0));
         dest.writeByte((byte) (speaking ? 1 : 0));
+        dest.writeByte((byte) (busy ? 1 : 0));
         dest.writeString(register_time);
         dest.writeString(login_time);
     }
@@ -242,7 +254,7 @@ public class User implements Parcelable {
         public User createFromParcel(Parcel source) {
             return new User(source.readString(), source.readString(), source.readString(), source.readString(), source.readInt(), source.readString(),
                     source.readString(), source.readString(), source.readString(), source.readString(), source.readString(), source.readString(),
-                    source.readByte() != 0, source.readByte() != 0, source.readString(), source.readString());
+                    source.readByte() != 0, source.readByte() != 0, source.readByte() != 0, source.readString(), source.readString());
         }
 
         @Override

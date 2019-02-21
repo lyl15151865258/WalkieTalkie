@@ -63,7 +63,7 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:background="@drawable/background_button_dialog_selector_left"
-                android:text="@string/dialog_cancel"
+                android:text="@string/Cancel"
                 android:textColor="@color/gray_3"
                 android:textSize="@dimen/sp_16"
                 android:textStyle="bold" />
@@ -80,7 +80,7 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:background="@drawable/background_button_dialog_selector_right"
-                android:text="@string/dialog_input_continue"
+                android:text="@string/Continue"
                 android:textColor="@color/gray_3"
                 android:textSize="@dimen/sp_16"
                 android:textStyle="bold" />

@@ -51,7 +51,6 @@ import java.util.Locale;
 
 import jp.co.shiratsuki.walkietalkie.R;
 import jp.co.shiratsuki.walkietalkie.activity.appmain.CropActivity;
-import jp.co.shiratsuki.walkietalkie.activity.appmain.P2PRingingActivity;
 import jp.co.shiratsuki.walkietalkie.activity.base.BaseActivity;
 import jp.co.shiratsuki.walkietalkie.activity.settings.SetLanguageActivity;
 import jp.co.shiratsuki.walkietalkie.activity.settings.SetMessageServerActivity;
@@ -132,8 +131,6 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
     private static final int CAMERA_REQUEST_CODE = 1;
     protected static final int REQUEST_STORAGE_READ_ACCESS_PERMISSION = 101;
     protected static final int REQUEST_STORAGE_WRITE_ACCESS_PERMISSION = 102;
-    protected static final int REQUEST_CODE_SET_VOICE_SERVER = 103;
-    protected static final int REQUEST_CODE_SET_MESSAGE_SERVER = 104;
     private String mTempPhotoPath;
     private Uri mDestinationUri;
     private SelectPicturePopupWindow mSelectPicturePopupWindow;
@@ -417,6 +414,8 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
         intentFilter.addAction("UPDATE_CONTACTS");
         intentFilter.addAction("UPDATE_CONTACTS_ROOM");
         intentFilter.addAction("UPDATE_SPEAK_STATUS");
+        intentFilter.addAction("P2P_VOICE_REQUEST_ACCEPT");
+        intentFilter.addAction("P2P_VOICE_REQUEST_ERROR");
         mContext.registerReceiver(myReceiver, intentFilter);
     }
 
@@ -725,14 +724,12 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
                 openActivity(SetLanguageActivity.class);
                 break;
             case R.id.llVoiceServer:
-                // 语音服务器设置（修改语音服务器的话需要重启Service）
-                intent = new Intent(MainActivity.this, SetVoiceServerActivity.class);
-                startActivityForResult(intent, REQUEST_CODE_SET_VOICE_SERVER);
+                // 语音服务器设置
+                openActivity(SetVoiceServerActivity.class);
                 break;
             case R.id.llMessageServer:
                 // 消息服务器设置
-                intent = new Intent(MainActivity.this, SetMessageServerActivity.class);
-                startActivityForResult(intent, REQUEST_CODE_SET_MESSAGE_SERVER);
+                openActivity(SetMessageServerActivity.class);
                 break;
             case R.id.llWifiSetting:
                 // 无线网设置
@@ -747,10 +744,7 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
                 break;
             case R.id.llShare:
                 // 版本分享
-                intent = new Intent(MainActivity.this, P2PRingingActivity.class);
-                intent.putExtra("Inviter", "张三");
-                intent.putExtra("IconUrl", "https://ss1.bdstatic.com/70cFuXSh_Q1YnxGkpoWK1HF6hhy/it/u=1565946200,1651212411&fm=26&gp=0.jpg");
-                startActivity(intent);
+
                 break;
             case R.id.btnExit:
                 // 彻底退出程序
@@ -760,6 +754,27 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
                 break;
         }
     };
+
+    /**
+     * 给别人打电话
+     *
+     * @param userId 用户ID
+     */
+    public void callOthers(String userId) {
+        if (iVoiceService != null) {
+            if (!isInRoom) {
+                try {
+                    iVoiceService.callOthers(userId);
+                } catch (RemoteException e) {
+                    e.printStackTrace();
+                }
+            } else {
+                showToast("请先退出当前聊天");
+            }
+        } else {
+            showToast("与服务器断开连接");
+        }
+    }
 
     /**
      * 聊天页面按钮点击事件
@@ -804,7 +819,6 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
                 switch (intent.getAction()) {
                     case "RECEIVE_MALFUNCTION": {
                         WebSocketData webSocketData = (WebSocketData) intent.getSerializableExtra("data");
-                        viewPager.setCurrentItem(2, false);
                         MalfunctionFragment malfunctionFragment;
                         for (Fragment fragment : fragmentList) {
                             if (fragment instanceof MalfunctionFragment) {
@@ -866,7 +880,6 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
                         break;
                     case "MESSAGE_WEBSOCKET_CLOSED": {
                         // 异常信息推送的WebSocket断开了，清空列表
-                        viewPager.setCurrentItem(2, false);
                         MalfunctionFragment malfunctionFragment;
                         for (Fragment fragment : fragmentList) {
                             if (fragment instanceof MalfunctionFragment) {
@@ -880,7 +893,6 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
                     case "UPDATE_CONTACTS_ROOM": {
                         // 刷新联系人列表
                         LogUtils.d(TAG, "刷新ChatRoomFragment联系人列表");
-                        viewPager.setCurrentItem(1, false);
                         ChatRoomFragment chatRoomFragment;
                         for (Fragment fragment : fragmentList) {
                             if (fragment instanceof ChatRoomFragment) {
@@ -903,7 +915,6 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
                         // 刷新联系人列表
                         if (isInRoom) {
                             LogUtils.d(TAG, "刷新ChatRoomFragment联系人列表");
-                            viewPager.setCurrentItem(1, false);
                             ChatRoomFragment chatRoomFragment;
                             for (Fragment fragment : fragmentList) {
                                 if (fragment instanceof ChatRoomFragment) {
@@ -926,7 +937,6 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
                     case "UPDATE_CONTACTS": {
                         // 刷新联系人列表
                         LogUtils.d(TAG, "刷新ContactsFragment联系人列表");
-                        viewPager.setCurrentItem(0, false);
                         ContactsFragment contactsFragment;
                         for (Fragment fragment : fragmentList) {
                             if (fragment instanceof ContactsFragment) {
@@ -941,6 +951,32 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
                         }
                     }
                     break;
+                    case "P2P_VOICE_REQUEST_ACCEPT":
+                        // 一对一通话接受请求，Fragment定位到聊天室
+                        isInRoom = true;
+                        viewPager.setCurrentItem(1, false);
+                        ChatRoomFragment chatRoomFragment;
+                        for (Fragment fragment : fragmentList) {
+                            if (fragment instanceof ChatRoomFragment) {
+                                chatRoomFragment = (ChatRoomFragment) fragment;
+                                chatRoomFragment.setRoomId(intent.getStringExtra("roomId"));
+                                break;
+                            }
+                        }
+                        break;
+                    case "P2P_VOICE_REQUEST_ERROR":
+                        // 一对一通话请求，对方不在线或者忙线
+                        switch (intent.getStringExtra("errorMsg")) {
+                            case "ERROR_BUSY":
+                                showToast("对方忙线中");
+                                break;
+                            case "ERROR_OFFLINE":
+                                showToast("对方不在线");
+                                break;
+                            default:
+                                break;
+                        }
+                        break;
                     default:
                         break;
                 }
@@ -1130,27 +1166,6 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
                 case UCrop.RESULT_ERROR:
                     // 裁剪图片错误
                     handleCropError(data);
-                    break;
-                case REQUEST_CODE_SET_VOICE_SERVER:
-                    // 设置音频服务器地址后返回
-                    if (iVoiceService != null) {
-                        try {
-                            iVoiceService.stopRecord();
-                            iVoiceService.leaveGroup();
-                            iVoiceService.unRegisterCallback(iVoiceCallback);
-                        } catch (RemoteException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                    break;
-                case REQUEST_CODE_SET_MESSAGE_SERVER:
-                    // 设置消息服务器地址后返回,子线程执行，否则会阻塞卡顿
-                    if (webSocketService != null) {
-                        new Thread(() -> {
-                            webSocketService.closeWebSocket();
-                            webSocketService.reConnect();
-                        }).start();
-                    }
                     break;
                 default:
                     break;
