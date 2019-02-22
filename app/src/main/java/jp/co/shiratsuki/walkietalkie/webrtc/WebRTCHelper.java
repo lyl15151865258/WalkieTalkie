@@ -36,6 +36,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * WebRTC辅助类
@@ -73,6 +77,10 @@ public class WebRTCHelper implements ISignalingEvents {
 
     private IWebSocket webSocket;
 
+    private ExecutorService threadPool;
+
+    private boolean first = true, flag = true;
+
     private Handler mHandler = new Handler(Looper.getMainLooper());
 
     public WebRTCHelper(Context context, IWebRTCHelper IHelper, Parcelable[] servers) {
@@ -90,6 +98,13 @@ public class WebRTCHelper implements ISignalingEvents {
         LogUtils.d(TAG, "初始化PeerConnection");
         PeerConnectionFactory.initializeAndroidGlobals(IHelper, true, true, true);
         _factory = new PeerConnectionFactory();
+
+        threadPool = new ThreadPoolExecutor(5, 10, 60, TimeUnit.SECONDS,
+                new SynchronousQueue<>(), (r) -> {
+            Thread thread = new Thread(r);
+            thread.setDaemon(true);
+            return thread;
+        });
     }
 
     public void initSocket(String ws, boolean videoEnable) {
@@ -120,7 +135,12 @@ public class WebRTCHelper implements ISignalingEvents {
     @Override
     public void onWebSocketConnected() {
         // 连接成功后，就准备发送心跳包
-        mHandler.postDelayed(heartBeatRunnable, NetWork.HEART_BEAT_RATE);
+
+        if (first) {
+            threadPool.submit(heartBeatRunnable);
+        }
+        first = false;
+//        mHandler.postDelayed(heartBeatRunnable, NetWork.HEART_BEAT_RATE);
     }
 
     @Override  // 我加入到房间
@@ -144,13 +164,11 @@ public class WebRTCHelper implements ISignalingEvents {
     /**
      * 发送心跳包
      */
-    private Runnable heartBeatRunnable = new Runnable() {
-        @Override
-        public void run() {
-            // 心跳包发送一个SocketId过去
+    private Runnable heartBeatRunnable = () -> {
+        while (flag) {
             if (webSocket != null) {
                 try {
-                    LogUtils.d(TAG, "WebSocket发送心跳包");
+                    LogUtils.d(TAG, "WebRTC————————————————WebSocket发送心跳包");
                     User user = GsonUtils.parseJSON(SPHelper.getString("User", GsonUtils.convertJSON(new User())), User.class);
                     HashMap<String, Object> childMap = new HashMap<>();
                     childMap.put("userId", user.getUser_id());
@@ -161,11 +179,15 @@ public class WebRTCHelper implements ISignalingEvents {
                     String jsonString = object.toString();
                     sendMessage(jsonString);
                 } catch (Exception e) {
-                    LogUtils.d(TAG, "WebSocket发送心跳包失败");
+                    LogUtils.d(TAG, "WebRTC————————————————t发送心跳包失败");
+                    e.printStackTrace();
+                }
+                try {
+                    Thread.sleep(NetWork.HEART_BEAT_RATE);
+                } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
             }
-            mHandler.postDelayed(this, NetWork.HEART_BEAT_RATE);
         }
     };
 
@@ -271,7 +293,28 @@ public class WebRTCHelper implements ISignalingEvents {
     private void sendMessage(String message) {
         if (webSocket != null && webSocket.socketIsOpen()) {
             webSocket.sendMessage(message);
+        } else {
+            reConnect();
         }
+    }
+
+    /**
+     * 重连WebSocket
+     */
+    private void reConnect() {
+        LogUtils.d(TAG, "WebRTC————————————————WebSocket重连");
+        Runnable runnable = new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    Thread.sleep(NetWork.WEBSOCKET_RECONNECT_RATE);
+                    webSocket.reconnectBlocking();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        };
+        mHandler.post(runnable);
     }
 
     // 给服务器发送当前是否在讲话的标记
@@ -387,6 +430,8 @@ public class WebRTCHelper implements ISignalingEvents {
         map.put("data", user);
         sendMessage(GsonUtils.convertJSON(map));
 
+        flag = false;
+
         if (videoSource != null) {
             videoSource.stop();
         }
@@ -395,9 +440,9 @@ public class WebRTCHelper implements ISignalingEvents {
             closePeerConnection((String) Id);
         }
 
-        if (webSocket != null) {
-            webSocket.close();
-        }
+//        if (webSocket != null) {
+//            webSocket.close();
+//        }
         if (_connectionIdArray != null) {
             _connectionIdArray.clear();
         }
@@ -407,6 +452,12 @@ public class WebRTCHelper implements ISignalingEvents {
             IHelper.onLeaveGroup();
             SPHelper.save("KEY_STATUS_UP", true);
         }
+    }
+
+    public void closeWebSocket() {
+        webSocket.close();
+        flag = false;
+        threadPool.shutdown();
     }
 
     // 创建本地流

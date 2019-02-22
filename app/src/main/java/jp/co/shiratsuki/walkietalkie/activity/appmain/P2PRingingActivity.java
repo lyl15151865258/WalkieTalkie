@@ -17,6 +17,7 @@ import android.os.RemoteException;
 import android.os.Vibrator;
 import android.view.KeyEvent;
 import android.view.View;
+import android.view.Window;
 import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -30,7 +31,6 @@ import jp.co.shiratsuki.walkietalkie.R;
 import jp.co.shiratsuki.walkietalkie.activity.base.BaseActivity;
 import jp.co.shiratsuki.walkietalkie.bean.User;
 import jp.co.shiratsuki.walkietalkie.constant.NetWork;
-import jp.co.shiratsuki.walkietalkie.service.IVoiceCallback;
 import jp.co.shiratsuki.walkietalkie.service.IVoiceService;
 import jp.co.shiratsuki.walkietalkie.service.VoiceService;
 import jp.co.shiratsuki.walkietalkie.utils.ActivityController;
@@ -59,7 +59,12 @@ public class P2PRingingActivity extends BaseActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        Window window = getWindow();
+        window.addFlags(WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED
+                | WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD
+                | WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON
+                | WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON);
+        window.setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
         setContentView(R.layout.activity_p2p_ringing);
         mContext = this;
         ivUserIcon = findViewById(R.id.iv_userIcon);
@@ -71,6 +76,13 @@ public class P2PRingingActivity extends BaseActivity {
         inviter = user.getUser_name();
         inviterId = user.getUser_id();
         iconUrl = ("http://" + NetWork.SERVER_HOST_MAIN + ":" + NetWork.SERVER_PORT_MAIN + user.getIcon_url()).replace("\\", "/");
+
+        // 如果铃声音量为0，将铃声调至最大铃声音量的一半
+        AudioManager mAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+        int ringVolume = mAudioManager.getStreamVolume(AudioManager.STREAM_RING);
+        if (ringVolume == 0) {
+            mAudioManager.setStreamVolume(AudioManager.STREAM_RING, mAudioManager.getStreamMaxVolume(AudioManager.STREAM_RING) / 2, AudioManager.FLAG_VIBRATE);
+        }
 
         // 播放手机系统自带来电铃声
 //        Uri uri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE);
@@ -85,6 +97,7 @@ public class P2PRingingActivity extends BaseActivity {
         IntentFilter filter = new IntentFilter();
         filter.addAction("P2P_VOICE_REQUEST_CANCEL");
         filter.addAction("P2P_VOICE_REQUEST_ACCEPT");
+        filter.addAction("VOICE_WEBSOCKET_DISCONNECT");
         registerReceiver(myReceiver, filter);
     }
 
@@ -101,11 +114,6 @@ public class P2PRingingActivity extends BaseActivity {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
             iVoiceService = IVoiceService.Stub.asInterface(service);
-            try {
-                iVoiceService.registerCallback(iVoiceCallback);
-            } catch (RemoteException e) {
-                e.printStackTrace();
-            }
             LogUtils.d(TAG, "绑定Service成功");
         }
 
@@ -114,52 +122,6 @@ public class P2PRingingActivity extends BaseActivity {
             iVoiceService = null;
         }
     };
-
-    /**
-     * 被调用的方法运行在Binder线程池中，需要在主线程中更新UI
-     */
-    private IVoiceCallback iVoiceCallback = new IVoiceCallback.Stub() {
-        @Override
-        public void enterRoomSuccess() {
-
-        }
-
-        @Override
-        public void leaveRoomSuccess() {
-
-        }
-
-        @Override
-        public void leaveGroupSuccess() {
-
-        }
-
-        @Override
-        public void startRecordSuccess() {
-
-        }
-
-        @Override
-        public void stopRecordSuccess() {
-
-        }
-
-        @Override
-        public void useSpeakerSuccess() {
-
-        }
-
-        @Override
-        public void useEarpieceSuccess() {
-
-        }
-
-        @Override
-        public void removeUser(String ipAddress, String name) {
-
-        }
-    };
-
     private View.OnClickListener onClickListener = (v) -> {
         vibrator.vibrate(50);
         switch (v.getId()) {
@@ -255,6 +217,9 @@ public class P2PRingingActivity extends BaseActivity {
                 }).start();
             }
             if ("P2P_VOICE_REQUEST_ACCEPT".equals(action)) {
+                ActivityController.finishActivity(P2PRingingActivity.this);
+            }
+            if ("VOICE_WEBSOCKET_DISCONNECT".equals(action)) {
                 ActivityController.finishActivity(P2PRingingActivity.this);
             }
         }

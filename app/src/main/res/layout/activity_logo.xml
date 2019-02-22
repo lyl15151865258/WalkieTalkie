@@ -13,7 +13,7 @@
         android:padding="@dimen/dp_10"
         android:text="开始使用"
         android:textColor="@color/white"
-        android:visibility="gone"
-        android:textSize="@dimen/sp_22" />
+        android:textSize="@dimen/sp_22"
+        android:visibility="gone" />
 
 </RelativeLayout>

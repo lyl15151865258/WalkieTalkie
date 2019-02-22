@@ -3,7 +3,6 @@ package jp.co.shiratsuki.walkietalkie.activity.loginregister;
 import android.os.Bundle;
 
 import jp.co.shiratsuki.walkietalkie.R;
-import jp.co.shiratsuki.walkietalkie.activity.MainActivity;
 import jp.co.shiratsuki.walkietalkie.activity.base.BaseActivity;
 import jp.co.shiratsuki.walkietalkie.utils.ActivityController;
 

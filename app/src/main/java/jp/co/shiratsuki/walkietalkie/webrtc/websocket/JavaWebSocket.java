@@ -88,6 +88,10 @@ public class JavaWebSocket implements IWebSocket {
                 @Override
                 public void onClose(int code, String reason, boolean remote) {
                     LogUtils.d(TAG, "关闭WebSocket连接：" + reason + "，是远端关闭的吗：" + remote);
+                    // 通知其他页面退出（音频邀请和等待接听页面）
+                    Intent intent = new Intent();
+                    intent.setAction("VOICE_WEBSOCKET_DISCONNECT");
+                    mContext.sendBroadcast(intent);
                     // WebSocket断开连接，退出房间
                     events.onWebSocketClosed();
                 }

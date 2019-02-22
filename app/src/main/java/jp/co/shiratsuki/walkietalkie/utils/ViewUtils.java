@@ -6,6 +6,8 @@ import android.text.Spannable;
 import android.text.SpannableStringBuilder;
 import android.text.format.DateFormat;
 import android.text.style.ForegroundColorSpan;
+import android.view.View;
+import android.view.Window;
 import android.widget.EditText;
 import android.widget.TextView;
 
@@ -124,5 +126,19 @@ public class ViewUtils {
         SpannableStringBuilder style = new SpannableStringBuilder(string);
         style.setSpan(new ForegroundColorSpan(Color.parseColor("#00A000")), fstart, fend, Spannable.SPAN_EXCLUSIVE_INCLUSIVE);
         return style;
+    }
+
+    /**
+     * 隐藏导航栏
+     *
+     * @param window 窗口
+     */
+    public static void hideNavigationBar(Window window) {
+        View decorView = window.getDecorView();
+        decorView.setSystemUiVisibility(
+                View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                        | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                        | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                        | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
     }
 }

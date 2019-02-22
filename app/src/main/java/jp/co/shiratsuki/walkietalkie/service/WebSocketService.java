@@ -171,7 +171,7 @@ public class WebSocketService extends Service {
      */
     private Runnable heartBeatRunnable = () -> {
         while (flag) {
-            LogUtils.d(TAG, "消息服务器WebSocket发送心跳包");
+            LogUtils.d(TAG, "WebRTC————————————————WebSocket发送心跳包");
             sendMessage("");
             try {
                 Thread.sleep(NetWork.HEART_BEAT_RATE);
@@ -185,7 +185,7 @@ public class WebSocketService extends Service {
      * 重连WebSocket
      */
     public void reConnect() {
-        LogUtils.d(TAG, "WebSocket重连");
+        LogUtils.d(TAG, "WebRTC————————————————WebSocket重连");
         Runnable runnable = new Runnable() {
             @Override
             public void run() {
@@ -263,6 +263,7 @@ public class WebSocketService extends Service {
     @Override
     public void onDestroy() {
         super.onDestroy();
+        LogUtils.d(TAG, "WebSocketService——————生命周期——————:onDestroy");
         flag = false;
         MusicPlay.with(WebSocketService.this.getApplicationContext()).release();
         closeWebSocket();

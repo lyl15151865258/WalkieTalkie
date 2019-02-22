@@ -83,6 +83,7 @@ public class VoiceService extends Service implements IWebRTCHelper, VolumeChange
         IntentFilter filter1 = new IntentFilter();
         filter1.addAction("KEY_DOWN");
         filter1.addAction("KEY_UP");
+        filter1.addAction("MEDIA_BUTTON_LONG_PRESS");
         registerReceiver(keyEventBroadcastReceiver, filter1);
 
         IntentFilter filter3 = new IntentFilter();
@@ -402,6 +403,9 @@ public class VoiceService extends Service implements IWebRTCHelper, VolumeChange
                 } catch (RemoteException e) {
                     e.printStackTrace();
                 }
+            } else if (("MEDIA_BUTTON_LONG_PRESS").equals(intent.getAction())) {
+                LogUtils.d(TAG, "收到MEDIA_BUTTON_LONG_PRESS广播");
+                showToast("长按了耳机键");
             }
         }
     }
@@ -674,6 +678,7 @@ public class VoiceService extends Service implements IWebRTCHelper, VolumeChange
         super.onDestroy();
         LogUtils.d(TAG, "VoiceService——————生命周期——————:onDestroy");
         helper.leaveGroup();
+        helper.closeWebSocket();
         helper = null;
         if (keyEventBroadcastReceiver != null) {
             unregisterReceiver(keyEventBroadcastReceiver);
