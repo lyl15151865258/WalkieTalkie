@@ -11,6 +11,7 @@ import android.media.MediaPlayer;
 import android.media.Ringtone;
 import android.media.RingtoneManager;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.os.RemoteException;
@@ -24,6 +25,7 @@ import android.widget.TextView;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
 
+import java.lang.ref.WeakReference;
 import java.lang.reflect.Field;
 
 import jp.co.shiratsuki.walkietalkie.R;
@@ -54,6 +56,7 @@ public class P2PWaitingActivity extends BaseActivity {
 
     private Vibrator vibrator;
     private IVoiceService iVoiceService;
+    private SyncTimeTask syncTimeTask;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -93,6 +96,9 @@ public class P2PWaitingActivity extends BaseActivity {
         filter.addAction("P2P_VOICE_REQUEST_ERROR");
         filter.addAction("VOICE_WEBSOCKET_DISCONNECT");
         registerReceiver(myReceiver, filter);
+
+        syncTimeTask = new SyncTimeTask(this, NetWork.CALL_WAIT_TIME);
+        syncTimeTask.execute();
     }
 
     @Override
@@ -245,9 +251,78 @@ public class P2PWaitingActivity extends BaseActivity {
         }
     };
 
+    private static class SyncTimeTask extends AsyncTask<Void, Void, Void> {
+
+        private WeakReference<P2PWaitingActivity> p2PWaitingActivityWeakReference;
+        private int leftTime;
+
+        private SyncTimeTask(P2PWaitingActivity p2PWaitingActivity, int leftTime) {
+            p2PWaitingActivityWeakReference = new WeakReference<>(p2PWaitingActivity);
+            this.leftTime = leftTime;
+        }
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+        }
+
+        @Override
+        protected Void doInBackground(Void... params) {
+            while (leftTime >= 0) {
+                if (isCancelled()) {
+                    break;
+                }
+                publishProgress();
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                leftTime--;
+            }
+            return null;
+        }
+
+        @Override
+        protected void onProgressUpdate(Void... values) {
+            super.onProgressUpdate();
+            if (isCancelled()) {
+                return;
+            }
+            P2PWaitingActivity p2PWaitingActivity = p2PWaitingActivityWeakReference.get();
+            if (leftTime <= 0) {
+                p2PWaitingActivity.tvMessage.setText("等待超时");
+                // 播放提示音
+                if (p2PWaitingActivity.ringtone != null && p2PWaitingActivity.ringtone.isPlaying()) {
+                    p2PWaitingActivity.ringtone.stop();
+                }
+                Uri uri = Uri.parse("android.resource://jp.co.shiratsuki.walkietalkie/" + R.raw.du);
+                p2PWaitingActivity.ringtone = RingtoneManager.getRingtone(p2PWaitingActivity, uri);
+                p2PWaitingActivity.ringtone.setStreamType(AudioManager.STREAM_RING);
+                p2PWaitingActivity.ringtone.play();
+                new Thread(() -> {
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    ActivityController.finishActivity(p2PWaitingActivity);
+                }).start();
+            }
+        }
+
+        @Override
+        protected void onPostExecute(Void result) {
+            super.onPostExecute(result);
+        }
+    }
+
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        if (syncTimeTask != null && syncTimeTask.getStatus() == AsyncTask.Status.RUNNING) {
+            syncTimeTask.cancel(true);
+        }
         unregisterReceiver(myReceiver);
         unbindService(serviceConnection);
     }

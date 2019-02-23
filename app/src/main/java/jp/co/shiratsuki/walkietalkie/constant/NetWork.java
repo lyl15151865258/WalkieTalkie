@@ -35,13 +35,13 @@ public class NetWork {
     public static final String MESSAGE_SERVER_PORT = "50100";
     //消息服务器名称
     public static final String MESSAGE_SERVER_NAME = "Interphone";
-    //消息服务器WebSocket重连时间间隔
-    public static final int WEBSOCKET_RECONNECT_TIME_INTERVAL = 5000;
+    //通话等待时间45秒
+    public static final int CALL_WAIT_TIME = 45;
 
     //http请求超时时间
     public static final int TIME_OUT_HTTP = 10 * 1000;
-    //心跳包发送间隔（30秒）
-    public static final int HEART_BEAT_RATE = 30 * 1000;
+    //心跳包发送间隔（10秒）
+    public static final int HEART_BEAT_RATE = 10 * 1000;
     //WebSocket重连间隔（5秒）
     public static final int WEBSOCKET_RECONNECT_RATE = 5 * 1000;
 

@@ -179,7 +179,7 @@ public class WebRTCHelper implements ISignalingEvents {
                     String jsonString = object.toString();
                     sendMessage(jsonString);
                 } catch (Exception e) {
-                    LogUtils.d(TAG, "WebRTC————————————————t发送心跳包失败");
+                    LogUtils.d(TAG, "WebRTC————————————————发送心跳包失败");
                     e.printStackTrace();
                 }
                 try {
@@ -187,6 +187,8 @@ public class WebRTCHelper implements ISignalingEvents {
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
+            }else{
+                LogUtils.d(TAG, "WebRTC————————————————WebSocket发送心跳包，webSocket为null");
             }
         }
     };
@@ -291,10 +293,14 @@ public class WebRTCHelper implements ISignalingEvents {
 
     // 发送消息
     private void sendMessage(String message) {
+        LogUtils.d(TAG, "WebRTC————————————————发送消息");
         if (webSocket != null && webSocket.socketIsOpen()) {
             webSocket.sendMessage(message);
         } else {
-            reConnect();
+            // 如果没有退出程序
+            if (flag) {
+                reConnect();
+            }
         }
     }
 

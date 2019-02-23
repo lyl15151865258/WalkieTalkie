@@ -405,7 +405,11 @@ public class VoiceService extends Service implements IWebRTCHelper, VolumeChange
                 }
             } else if (("MEDIA_BUTTON_LONG_PRESS").equals(intent.getAction())) {
                 LogUtils.d(TAG, "收到MEDIA_BUTTON_LONG_PRESS广播");
-                showToast("长按了耳机键");
+                try {
+                    mBinder.leaveRoom();
+                } catch (RemoteException e) {
+                    e.printStackTrace();
+                }
             }
         }
     }
