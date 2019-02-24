@@ -24,7 +24,7 @@ import jp.co.shiratsuki.walkietalkie.message.IMsgWebSocket;
 import jp.co.shiratsuki.walkietalkie.message.MsgWebSocketClient;
 import jp.co.shiratsuki.walkietalkie.utils.GsonUtils;
 import jp.co.shiratsuki.walkietalkie.utils.LogUtils;
-import jp.co.shiratsuki.walkietalkie.voice.MusicPlay;
+import jp.co.shiratsuki.walkietalkie.message.MusicPlay;
 
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -54,7 +54,7 @@ public class WebSocketService extends Service {
 
     private MyReceiver myReceiver;
 
-    private boolean first = true, flag = true;
+    private boolean flag = true;
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -84,7 +84,6 @@ public class WebSocketService extends Service {
         showNotification();
         malfunctionList = new ArrayList<>();
         webSocketServiceBinder = new WebSocketServiceBinder();
-        MusicPlay.with(getApplicationContext()).play();
         initWebSocket();
         myReceiver = new MyReceiver();
         IntentFilter intentFilter = new IntentFilter();
@@ -98,17 +97,17 @@ public class WebSocketService extends Service {
     private void showNotification() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             NotificationManager manager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-            NotificationChannel Channel = new NotificationChannel("124", "异常信息推送服务", NotificationManager.IMPORTANCE_HIGH);
+            NotificationChannel Channel = new NotificationChannel("124", getString(R.string.RealTimePushService), NotificationManager.IMPORTANCE_NONE);
             Channel.enableLights(true);                                         //设置提示灯
             Channel.setLightColor(Color.RED);                                   //设置提示灯颜色
             Channel.setShowBadge(true);                                         //显示logo
-            Channel.setDescription("实时推送异常信息服务");                     //设置描述
-            Channel.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);    //设置锁屏可见 VISIBILITY_PUBLIC=可见
+            Channel.setDescription(getString(R.string.RealTimePushService));    //设置描述
+            Channel.setLockscreenVisibility(Notification.VISIBILITY_SECRET);    //设置锁屏不可见 VISIBILITY_SECRET=不可见
             manager.createNotificationChannel(Channel);
 
             NotificationCompat.Builder notification = new NotificationCompat.Builder(this, "124");
             notification.setContentTitle(getString(R.string.app_name));
-            notification.setContentText("实时推送异常信息服务运行中...");
+            notification.setContentText(getString(R.string.RealTimePushServiceRunning));
             notification.setWhen(System.currentTimeMillis());
             notification.setSmallIcon(R.mipmap.ic_launcher);
             notification.setLargeIcon(BitmapFactory.decodeResource(getResources(), R.mipmap.ic_launcher));
@@ -116,7 +115,7 @@ public class WebSocketService extends Service {
         } else {
             Notification notification = new Notification.Builder(this)
                     .setContentTitle(getString(R.string.app_name))                                      //设置标题
-                    .setContentText("实时推送异常信息服务运行中...")                                    //设置内容
+                    .setContentText(getString(R.string.RealTimePushServiceRunning))                     //设置内容
                     .setWhen(System.currentTimeMillis())                                                //设置创建时间
                     .setSmallIcon(R.mipmap.ic_launcher)                                                 //设置状态栏图标
                     .setLargeIcon(BitmapFactory.decodeResource(getResources(), R.mipmap.ic_launcher))   //设置通知栏图标
@@ -149,18 +148,16 @@ public class WebSocketService extends Service {
             msgWebSocketClient = new MsgWebSocketClient(this, "ws://" + serverHost + ":" + webSocketPort + "/" + webSocketName, new IMsgWebSocket() {
                 @Override
                 public void openSuccess() {
-                    if (first) {
-                        threadPool.submit(heartBeatRunnable);
-                    }
-                    first = false;
+                    LogUtils.d(TAG, "Message————————————————WebSocketopenSuccess");
+                    MusicPlay.with(getApplicationContext()).play();
                 }
 
                 @Override
                 public void closed() {
-                    // 如果没有退出程序
-                    if (flag) {
-                        reConnect();
-                    }
+                    // 释放播放器
+                    MusicPlay.with(getApplicationContext()).release();
+                    // 执行重连
+                    reConnect();
                 }
             });
             msgWebSocketClient.connect();
@@ -170,34 +167,19 @@ public class WebSocketService extends Service {
     }
 
     /**
-     * 发送心跳包
-     */
-    private Runnable heartBeatRunnable = () -> {
-        while (flag) {
-            LogUtils.d(TAG, "Message————————————————WebSocket发送心跳包");
-            sendMessage("");
-            try {
-                Thread.sleep(NetWork.HEART_BEAT_RATE);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
-    };
-
-    /**
      * 重连WebSocket
      */
     public void reConnect() {
-        LogUtils.d(TAG, "Message————————————————WebSocket重连");
-        Runnable runnable = new Runnable() {
-            @Override
-            public void run() {
-                try {
+        // 如果程序退出了就不要重连了
+        Runnable runnable = () -> {
+            try {
+                if (flag) {
+                    LogUtils.d(TAG, "Message————————————————WebSocket重连");
                     Thread.sleep(NetWork.WEBSOCKET_RECONNECT_RATE);
                     msgWebSocketClient.reconnectBlocking();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
                 }
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
         };
         threadPool.submit(runnable);
@@ -210,31 +192,6 @@ public class WebSocketService extends Service {
         if (msgWebSocketClient != null) {
             LogUtils.d(TAG, "手动关闭WebSocket");
             msgWebSocketClient.close();
-        }
-    }
-
-    /**
-     * WebSocket是否已连接
-     *
-     * @return 是否连接
-     */
-    public boolean isOpen() {
-        return msgWebSocketClient != null && msgWebSocketClient.isOpen();
-    }
-
-    /**
-     * WebSocket发送消息
-     *
-     * @param msg 需要发送的信息
-     */
-    public void sendMessage(String msg) {
-        if (isOpen()) {
-            msgWebSocketClient.send(msg);
-        } else {
-            // 如果没有退出程序
-            if (flag) {
-                reConnect();
-            }
         }
     }
 

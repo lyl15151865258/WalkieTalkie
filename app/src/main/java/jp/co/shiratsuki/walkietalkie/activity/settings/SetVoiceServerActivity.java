@@ -102,11 +102,11 @@ public class SetVoiceServerActivity extends SwipeBackActivity {
                 String port = etVoiceServerPort.getText().toString().trim();
                 if (!RegexUtils.checkIpAddress(ip)) {
                     // 不是正确的IP地址
-                    showToast("Please enter the correct IP address!");
+                    showToast(R.string.IPError);
                     return;
                 }
                 if (Integer.valueOf(port) < 0 || Integer.valueOf(port) > 65535) {
-                    showToast("Please enter the correct port!");
+                    showToast(R.string.PortError);
                     return;
                 }
                 modifyCompany();
@@ -137,12 +137,12 @@ public class SetVoiceServerActivity extends SwipeBackActivity {
                 super.onStart();
                 //接下来可以检查网络连接等操作
                 if (!NetworkUtil.isNetworkAvailable(mContext)) {
-                    showToast("当前网络不可用，请检查网络");
+                    showToast(getString(R.string.NetworkUnavailable));
                     if (!isUnsubscribed()) {
                         unsubscribe();
                     }
                 } else {
-                    showLoadingDialog(mContext, "登陆中", true);
+                    showLoadingDialog(mContext, getString(R.string.updating), true);
                 }
             }
 
@@ -160,15 +160,15 @@ public class SetVoiceServerActivity extends SwipeBackActivity {
                     String message = userOperateResult.getMessage();
                     switch (mark) {
                         case Constants.SUCCESS:
-                            showToast("更新成功");
+                            showToast(R.string.UpdateSuccess);
                             SPHelper.save("User", GsonUtils.convertJSON(userOperateResult.getUser()));
                             ActivityController.finishActivity(SetVoiceServerActivity.this);
                             break;
                         case Constants.FAIL:
-                            showToast("更新失败，" + message);
+                            showToast(getString(R.string.UpdateFailed) + " " + message);
                             break;
                         default:
-                            showToast("更新失败");
+                            showToast(R.string.UpdateFailed);
                             break;
                     }
                 } catch (Exception e) {

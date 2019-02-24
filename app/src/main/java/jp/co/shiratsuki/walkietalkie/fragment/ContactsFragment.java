@@ -2,9 +2,12 @@ package jp.co.shiratsuki.walkietalkie.fragment;
 
 import android.content.Context;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
 import android.widget.ExpandableListView;
 
 import java.util.ArrayList;
@@ -37,6 +40,7 @@ public class ContactsFragment extends BaseFragment {
     private List<String> departmentList;
     private List<List<User>> departmentUserList;
     private ContactAdapter contactAdapter;
+    private EditText etContent;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -52,6 +56,10 @@ public class ContactsFragment extends BaseFragment {
         contactAdapter = new ContactAdapter(mContext, rvContacts, departmentList, departmentUserList);
         rvContacts.setAdapter(contactAdapter);
         rvContacts.setOnChildClickListener(onChildClickListener);
+        etContent = view.findViewById(R.id.etContent);
+        etContent.addTextChangedListener(textWatcher);
+        view.findViewById(R.id.iv_deleteName).setOnClickListener(onClickListener);
+        view.findViewById(R.id.btn_search).setOnClickListener(onClickListener);
         return view;
     }
 
@@ -60,6 +68,21 @@ public class ContactsFragment extends BaseFragment {
 
     }
 
+    private View.OnClickListener onClickListener = (v) -> {
+        switch (v.getId()) {
+            case R.id.iv_deleteName:
+                // 删除输入的内容
+                etContent.setText("");
+                break;
+            case R.id.btn_search:
+                // 查找用户
+
+                break;
+            default:
+                break;
+        }
+    };
+
     private ExpandableListView.OnChildClickListener onChildClickListener = (parent, view, groupPosition, childPosition, id) -> {
         String userId = departmentUserList.get(groupPosition).get(childPosition).getUser_id();
         User user = GsonUtils.parseJSON(SPHelper.getString("User", GsonUtils.convertJSON(new User())), User.class);
@@ -67,6 +90,25 @@ public class ContactsFragment extends BaseFragment {
             mainActivity.callOthers(userId);
         }
         return true;
+    };
+
+    private TextWatcher textWatcher = new TextWatcher() {
+
+        @Override
+        public void afterTextChanged(Editable s) {
+
+        }
+
+        @Override
+        public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+        }
+
+        @Override
+        public void onTextChanged(CharSequence s, int start, int before, int count) {
+            // 根据搜索框内容更新联系人列表
+
+        }
     };
 
     /**
@@ -120,9 +162,6 @@ public class ContactsFragment extends BaseFragment {
         HashMap<String, List<User>> map = new HashMap<>();
         for (int i = 0; i < userList.size(); i++) {
             String departmentName = userList.get(i).getDepartment_name();
-            if (!departmentList.contains(departmentName)) {
-                departmentList.add(departmentName);
-            }
             if (map.containsKey(departmentName)) {
                 List<User> users = map.get(departmentName);
                 if (users != null) {
@@ -139,7 +178,8 @@ public class ContactsFragment extends BaseFragment {
             }
         }
         for (Map.Entry<String, List<User>> entry : map.entrySet()) {
-            departmentUserList.add(entry.getValue());
+            departmentList.add(departmentList.size(), entry.getKey());
+            departmentUserList.add(departmentUserList.size(), entry.getValue());
         }
     }
 

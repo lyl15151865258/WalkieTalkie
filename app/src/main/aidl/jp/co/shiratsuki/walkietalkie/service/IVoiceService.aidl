@@ -14,6 +14,7 @@ interface IVoiceService {
     void cancelP2PCall(String userId);
     void rejectP2PCall(String userId);
     void acceptP2PCall(String userId);
+    void timeOut(String userId);
     void registerCallback(IVoiceCallback callback);
     void unRegisterCallback(IVoiceCallback callback);
 }

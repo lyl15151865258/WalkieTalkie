@@ -12,19 +12,45 @@
         android:layout_height="wrap_content"
         android:gravity="center"
         android:orientation="horizontal"
-        android:padding="@dimen/dp_5">
+        android:padding="@dimen/dp_3">
 
-        <jp.co.shiratsuki.walkietalkie.widget.MyEditText
-            android:id="@+id/etContent"
+        <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:background="@drawable/border_white"
-            android:hint="@string/ContactNameOrDepartment"
-            android:inputType="text"
-            android:maxLines="1"
-            android:padding="@dimen/dp_8"
-            android:textSize="@dimen/sp_16" />
+            android:gravity="center_vertical">
+
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_gravity="center_vertical"
+                android:layout_marginStart="@dimen/dp_5"
+                android:contentDescription="@null"
+                android:src="@drawable/search_normal" />
+
+            <jp.co.shiratsuki.walkietalkie.widget.MyEditText
+                android:id="@+id/etContent"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:background="@null"
+                android:hint="@string/ContactNameOrDepartment"
+                android:inputType="text"
+                android:maxLines="1"
+                android:padding="@dimen/dp_8"
+                android:textSize="@dimen/sp_16" />
+
+            <ImageView
+                android:id="@+id/iv_deleteName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:contentDescription="@null"
+                android:padding="@dimen/dp_10"
+                android:src="@drawable/delete_gray" />
+
+        </LinearLayout>
 
         <jp.co.shiratsuki.walkietalkie.widget.MyButton
             android:id="@+id/btn_search"

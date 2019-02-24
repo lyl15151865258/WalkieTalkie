@@ -8,13 +8,23 @@ public class MusicList {
 
     private List<Music> musicList;
 
+    private String JapaneseFolder;
+
+    private String ChineseFolder;
+
+    private String EnglishFolder;
+
     private int playCount;
 
     private int alreadyPlayCount;
 
-    public MusicList(int listNo, List<Music> musicList, int playCount, int alreadyPlayCount) {
+    public MusicList(int listNo, List<Music> musicList, String JapaneseFolder, String ChineseFolder, String EnglishFolder,
+                     int playCount, int alreadyPlayCount) {
         this.listNo = listNo;
         this.musicList = musicList;
+        this.JapaneseFolder = JapaneseFolder;
+        this.ChineseFolder = ChineseFolder;
+        this.EnglishFolder = EnglishFolder;
         this.playCount = playCount;
         this.alreadyPlayCount = alreadyPlayCount;
     }
@@ -33,6 +43,30 @@ public class MusicList {
 
     public void setMusicList(List<Music> musicList) {
         this.musicList = musicList;
+    }
+
+    public String getJapaneseFolder() {
+        return JapaneseFolder;
+    }
+
+    public void setJapaneseFolder(String japaneseFolder) {
+        JapaneseFolder = japaneseFolder;
+    }
+
+    public String getChineseFolder() {
+        return ChineseFolder;
+    }
+
+    public void setChineseFolder(String chineseFolder) {
+        ChineseFolder = chineseFolder;
+    }
+
+    public String getEnglishFolder() {
+        return EnglishFolder;
+    }
+
+    public void setEnglishFolder(String englishFolder) {
+        EnglishFolder = englishFolder;
     }
 
     public int getPlayCount() {

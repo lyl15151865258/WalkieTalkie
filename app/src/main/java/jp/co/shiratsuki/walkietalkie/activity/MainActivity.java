@@ -42,6 +42,9 @@ import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
 import com.kevin.crop.UCrop;
 
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
+
 import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -83,6 +86,7 @@ import jp.co.shiratsuki.walkietalkie.utils.NetworkUtil;
 import jp.co.shiratsuki.walkietalkie.utils.NotificationsUtil;
 import jp.co.shiratsuki.walkietalkie.utils.PermissionUtil;
 import jp.co.shiratsuki.walkietalkie.utils.StatusBarUtil;
+import jp.co.shiratsuki.walkietalkie.utils.ViewUtil;
 import jp.co.shiratsuki.walkietalkie.utils.WifiUtil;
 import jp.co.shiratsuki.walkietalkie.webrtc.WebRTCHelper;
 import jp.co.shiratsuki.walkietalkie.widget.NoScrollViewPager;
@@ -148,8 +152,14 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
         //权限检查
         PermissionUtil.isNeedRequestPermission(this);
 
-        initWebSocketService();
-        initVoiceService();
+        User user = GsonUtils.parseJSON(SPHelper.getString("User", GsonUtils.convertJSON(new User())), User.class);
+        if (user.getUser_name().equals("") || user.getCompany().equals("") || user.getDepartment_name().equals("")) {
+            // 补充个人信息
+            showUpdateInfoDialog();
+        } else {
+            initWebSocketService();
+            initVoiceService();
+        }
 
         // 初始化耳机按键标记
         SPHelper.save("KEY_STATUS_UP", true);
@@ -160,6 +170,47 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
         mTempPhotoPath = Environment.getExternalStorageDirectory() + File.separator + "photo.jpeg";
         mSelectPicturePopupWindow = new SelectPicturePopupWindow(mContext, (findViewById(android.R.id.content)));
         mSelectPicturePopupWindow.setOnSelectedListener(this);
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onStringEvent(String msg) {
+        LogUtils.d(TAG, "走了更新语言的方法");
+        ViewUtil.updateViewLanguage(findViewById(android.R.id.content));
+        // 更新异常信息列表的语言
+        List<Fragment> fragmentList = getSupportFragmentManager().getFragments();
+        MalfunctionFragment malfunctionFragment;
+        for (Fragment fragment : fragmentList) {
+            if (fragment instanceof MalfunctionFragment) {
+                malfunctionFragment = (MalfunctionFragment) fragment;
+                malfunctionFragment.refreshList();
+                break;
+            }
+        }
+    }
+
+    /**
+     * 显示更新个人信息的页面
+     */
+    private void showUpdateInfoDialog() {
+        if (commonWarningDialog == null) {
+            commonWarningDialog = new CommonWarningDialog(mContext, getString(R.string.notification_update_info));
+            commonWarningDialog.setCancelable(false);
+            commonWarningDialog.setOnDialogClickListener(new CommonWarningDialog.OnDialogClickListener() {
+                @Override
+                public void onOKClick() {
+                    // 进入个人信息设置页面
+                    openActivity(SetPersonalInfoActivity.class);
+                }
+
+                @Override
+                public void onCancelClick() {
+                    ActivityController.finishActivity(MainActivity.this);
+                }
+            });
+        }
+        if (!commonWarningDialog.isShowing()) {
+            commonWarningDialog.show();
+        }
     }
 
     /**
@@ -193,15 +244,17 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
         super.onResume();
         showOrHideNotification();
 
+        User user = GsonUtils.parseJSON(SPHelper.getString("User", GsonUtils.convertJSON(new User())), User.class);
+        if (user.getUser_name().equals("") || user.getCompany().equals("") || user.getDepartment_name().equals("")) {
+            // 补充个人信息
+            showUpdateInfoDialog();
+        }
+
         if (WifiUtil.WifiConnected(mContext)) {
             tvSSID.setText(WifiUtil.getSSID(mContext));
             tvIp.setText(WifiUtil.getLocalIPAddress());
-        } else {
-            //提示是否连接WiFi
-            showConnectWifiDialog();
         }
 
-        User user = GsonUtils.parseJSON(SPHelper.getString("User", GsonUtils.convertJSON(new User())), User.class);
         tvUserName.setText(user.getUser_name());
         tvCompanyName.setText(user.getCompany());
         tvDepartment.setText(user.getDepartment_name());
@@ -342,41 +395,6 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
             return null;
         }
     };
-
-    /**
-     * 显示连接Wifi的弹窗
-     */
-    private void showConnectWifiDialog() {
-        if (commonWarningDialog == null) {
-            commonWarningDialog = new CommonWarningDialog(mContext, getString(R.string.notification_connect_wifi));
-            commonWarningDialog.setCancelable(false);
-            commonWarningDialog.setOnDialogClickListener(new CommonWarningDialog.OnDialogClickListener() {
-                @Override
-                public void onOKClick() {
-                    //进入WiFi连接页面
-                    Intent wifiSettingsIntent = new Intent("android.settings.WIFI_SETTINGS");
-                    startActivity(wifiSettingsIntent);
-                }
-
-                @Override
-                public void onCancelClick() {
-                    ActivityController.finishActivity(MainActivity.this);
-                }
-            });
-        }
-        if (!commonWarningDialog.isShowing()) {
-            commonWarningDialog.show();
-        }
-    }
-
-    /**
-     * 取消显示连接Wifi的弹窗
-     */
-    private void dismissWifiDialog() {
-        if (commonWarningDialog != null && commonWarningDialog.isShowing()) {
-            commonWarningDialog.dismiss();
-        }
-    }
 
     private DrawerLayout.DrawerListener drawerListener = new DrawerLayout.DrawerListener() {
         @Override
@@ -747,7 +765,7 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
 
                 break;
             case R.id.btnExit:
-                // 彻底退出程序
+                // 退出程序
                 ActivityController.exit(this);
                 break;
             default:
@@ -769,10 +787,10 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
                     e.printStackTrace();
                 }
             } else {
-                showToast("请先退出当前聊天");
+                showToast(R.string.ExitCurrentRoom);
             }
         } else {
-            showToast("与服务器断开连接");
+            showToast(R.string.ServerDisconnected);
         }
     }
 
@@ -867,11 +885,9 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
                         // 清除TextView内容，弹出Dialog
                         tvIp.setText("");
                         tvSSID.setText("");
-                        showConnectWifiDialog();
                         break;
                     case "WIFI_CONNECTED":
                         // 取消显示Dialog
-                        dismissWifiDialog();
                         // TextView显示网络信息
                         if (WifiUtil.WifiConnected(mContext)) {
                             tvSSID.setText(WifiUtil.getSSID(mContext));
@@ -968,10 +984,10 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
                         // 一对一通话请求，对方不在线或者忙线
                         switch (intent.getStringExtra("errorMsg")) {
                             case "ERROR_BUSY":
-                                showToast("对方忙线中");
+                                showToast(getString(R.string.TargetBusy));
                                 break;
                             case "ERROR_OFFLINE":
-                                showToast("对方不在线");
+                                showToast(R.string.TargetOffline);
                                 break;
                             default:
                                 break;
@@ -1099,12 +1115,12 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
                 super.onStart();
                 //接下来可以检查网络连接等操作
                 if (!NetworkUtil.isNetworkAvailable(mContext)) {
-                    showToast("当前网络不可用，请检查网络");
+                    showToast(getString(R.string.NetworkUnavailable));
                     if (!isUnsubscribed()) {
                         unsubscribe();
                     }
                 } else {
-                    showLoadingDialog(mContext, "更新中", true);
+                    showLoadingDialog(mContext, getString(R.string.updating), true);
                 }
             }
 
@@ -1128,14 +1144,14 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
                     SPHelper.save("User", GsonUtils.convertJSON(user));
                     switch (result) {
                         case Constants.SUCCESS:
-                            showToast("头像更新成功");
+                            showToast(R.string.UploadSuccess);
                             showUserIcon(photoPath);
                             break;
                         case Constants.FAIL:
-                            showToast("服务器保存异常，更新失败");
+                            showToast(R.string.ServerError);
                             break;
                         default:
-                            showToast("未知错误，头像更新失败");
+                            showToast(R.string.UnknownError);
                             break;
                     }
                 }
@@ -1205,7 +1221,7 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
             mOnPictureSelectedListener.onPictureSelected(resultUri, bitmap);
             overridePendingTransition(R.anim.left_in, R.anim.right_out);
         } else {
-            showToast("无法剪切选择图片");
+            showToast(R.string.CutError);
         }
     }
 
@@ -1220,7 +1236,7 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
         if (cropError != null) {
             showToast(cropError.getMessage());
         } else {
-            showToast("无法剪切选择图片");
+            showToast(R.string.CutError);
         }
     }
 
@@ -1288,8 +1304,8 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
     protected void onDestroy() {
         super.onDestroy();
         if (webSocketService != null) {
-            webSocketService.onDestroy();
             unbindService(serviceConnection1);
+            webSocketService.stopSelf();
         }
         if (iVoiceService != null) {
             try {
@@ -1309,10 +1325,6 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
             }
             unbindService(serviceConnection2);
         }
-        Intent intent = new Intent(this, WebSocketService.class);
-        stopService(intent);
-        Intent intent1 = new Intent(this, VoiceService.class);
-        stopService(intent1);
         if (myReceiver != null) {
             mContext.unregisterReceiver(myReceiver);
         }

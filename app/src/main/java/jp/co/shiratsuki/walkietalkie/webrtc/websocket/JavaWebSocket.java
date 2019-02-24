@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
@@ -49,7 +50,7 @@ import jp.co.shiratsuki.walkietalkie.utils.LogUtils;
  * @version 1.0
  */
 
-public class JavaWebSocket implements IWebSocket {
+public class JavaWebSocket {
 
     private final static String TAG = "JavaWebSocket";
 
@@ -113,13 +114,12 @@ public class JavaWebSocket implements IWebSocket {
         }
     }
 
-    @Override
     public boolean socketIsOpen() {
         return mWebSocketClient.isOpen();
     }
 
     //============================需要发送的=====================================
-    @Override
+
     public void joinRoom(String room) {
         Map<String, Object> map = new HashMap<>();
         map.put("eventName", "__join");
@@ -207,7 +207,7 @@ public class JavaWebSocket implements IWebSocket {
                     handleAnswer(map);
                     break;
                 case "_pong":
-                    handlePong(map);
+                    handlePong();
                     break;
                 case "_speak_status":
                     handleVoice(message);
@@ -305,8 +305,17 @@ public class JavaWebSocket implements IWebSocket {
     }
 
     // 处理服务器传回的心跳
-    private void handlePong(Map map) {
-        LogUtils.d(TAG, "服务器传来的心跳回复");
+    private void handlePong() {
+        LogUtils.d(TAG, "回复服务器的心跳");
+        User user = GsonUtils.parseJSON(SPHelper.getString("User", GsonUtils.convertJSON(new User())), User.class);
+        HashMap<String, Object> childMap = new HashMap<>();
+        childMap.put("userId", user.getUser_id());
+        HashMap<String, Object> map = new HashMap<>();
+        map.put("eventName", "__ping");
+        map.put("data", childMap);
+        JSONObject object = new JSONObject(map);
+        String jsonString = object.toString();
+        sendMessage(jsonString);
     }
 
     // 处理声音状态位
@@ -396,7 +405,6 @@ public class JavaWebSocket implements IWebSocket {
         }
     }
 
-    @Override
     public void reconnectBlocking() {
         try {
             mWebSocketClient.reconnectBlocking();

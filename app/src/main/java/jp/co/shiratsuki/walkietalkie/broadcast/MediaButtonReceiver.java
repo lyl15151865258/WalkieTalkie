@@ -27,7 +27,8 @@ public class MediaButtonReceiver extends BroadcastReceiver {
             KeyEvent keyEvent = intent.getParcelableExtra(Intent.EXTRA_KEY_EVENT);
             LogUtils.d(TAG, "KeyEvent----->" + keyEvent.getKeyCode() + "，KeyAction----->" + keyEvent.getAction());
 
-            if (keyEvent.getKeyCode() == KeyEvent.KEYCODE_HEADSETHOOK && keyEvent.getAction() == KeyEvent.ACTION_DOWN) {
+            if ((keyEvent.getKeyCode() == KeyEvent.KEYCODE_HEADSETHOOK || keyEvent.getKeyCode() == KeyEvent.KEYCODE_MEDIA_PLAY)
+                    && keyEvent.getAction() == KeyEvent.ACTION_DOWN) {
                 if (SPHelper.getBoolean("KEY_STATUS_UP", true)) {
                     LogUtils.d(TAG, "发送按下的广播");
                     Intent intent1 = new Intent();

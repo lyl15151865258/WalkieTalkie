@@ -103,15 +103,15 @@ public class SetPersonalInfoActivity extends SwipeBackActivity {
         String companyName = etCompanyName.getText().toString().trim();
 
         if (name.equals("")) {
-            showToast("请输入姓名");
+            showToast(R.string.EnterYorName);
             return;
         }
         if (companyName.equals("")) {
-            showToast("请输入单位");
+            showToast(R.string.EnterYourCompany);
             return;
         }
         if (selectedPosition == 0) {
-            showToast("请输入选择部门");
+            showToast(R.string.SelectDepartment);
             return;
         }
         User user = GsonUtils.parseJSON(SPHelper.getString("User", GsonUtils.convertJSON(new User())), User.class);
@@ -129,19 +129,19 @@ public class SetPersonalInfoActivity extends SwipeBackActivity {
                 super.onStart();
                 //接下来可以检查网络连接等操作
                 if (!NetworkUtil.isNetworkAvailable(mContext)) {
-                    showToast("当前网络不可用，请检查网络");
+                    showToast(R.string.NetworkUnavailable);
                     if (!isUnsubscribed()) {
                         unsubscribe();
                     }
                 } else {
-                    showLoadingDialog(mContext, "登陆中", true);
+                    showLoadingDialog(mContext, getString(R.string.updating), true);
                 }
             }
 
             @Override
             public void onError(ExceptionHandle.ResponseThrowable responseThrowable) {
                 cancelDialog();
-                showToast("" + responseThrowable.message);
+                showToast(responseThrowable.message);
             }
 
             @Override
@@ -152,16 +152,16 @@ public class SetPersonalInfoActivity extends SwipeBackActivity {
                     String message = userOperateResult.getMessage();
                     switch (mark) {
                         case Constants.SUCCESS:
-                            showToast("更新成功");
+                            showToast(R.string.UpdateFailed);
                             SPHelper.save("User", GsonUtils.convertJSON(userOperateResult.getUser()));
 
                             ActivityController.finishActivity(SetPersonalInfoActivity.this);
                             break;
                         case Constants.FAIL:
-                            showToast("更新失败，" + message);
+                            showToast(getString(R.string.UpdateFailed) + " " + message);
                             break;
                         default:
-                            showToast("更新失败");
+                            showToast(R.string.UpdateFailed);
                             break;
                     }
                 } catch (Exception e) {
@@ -183,19 +183,17 @@ public class SetPersonalInfoActivity extends SwipeBackActivity {
                 super.onStart();
                 //接下来可以检查网络连接等操作
                 if (!NetworkUtil.isNetworkAvailable(mContext)) {
-                    showToast("当前网络不可用，请检查网络");
+                    showToast(getString(R.string.NetworkUnavailable));
                     if (!isUnsubscribed()) {
                         unsubscribe();
                     }
-                } else {
-                    showLoadingDialog(mContext, "登陆中", true);
                 }
             }
 
             @Override
             public void onError(ExceptionHandle.ResponseThrowable responseThrowable) {
                 cancelDialog();
-                showToast("" + responseThrowable.message);
+                showToast(responseThrowable.message);
             }
 
             @Override
@@ -222,7 +220,7 @@ public class SetPersonalInfoActivity extends SwipeBackActivity {
                             if (position != -1) {
                                 spinnerDepartment.setTextInternal(departmentList.get(position).getDepartment_name());
                             } else {
-                                spinnerDepartment.setTextInternal("— 请选择部门 —");
+                                spinnerDepartment.setTextInternal(getString(R.string.SelectYourDepartment));
                             }
                             break;
                         case Constants.FAIL:

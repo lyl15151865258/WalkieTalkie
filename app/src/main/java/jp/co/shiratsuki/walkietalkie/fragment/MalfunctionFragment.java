@@ -36,6 +36,7 @@ public class MalfunctionFragment extends BaseFragment {
     private List<WebSocketData> malfunctionList;
     private MalfunctionAdapter malfunctionAdapter;
     private boolean sIsScrolling = false;
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -149,6 +150,14 @@ public class MalfunctionFragment extends BaseFragment {
         LogUtils.d(TAG, "刷新异常信息列表");
         this.malfunctionList.clear();
         this.malfunctionList.addAll(malfunctionList);
+        malfunctionAdapter.notifyDataSetChanged();
+    }
+
+    /**
+     * 刷新异常信息列表（用于切换语言后重新加载语言）
+     */
+    public void refreshList() {
+        LogUtils.d(TAG, "走了更新语言的方法，刷新异常信息列表的语言");
         malfunctionAdapter.notifyDataSetChanged();
     }
 

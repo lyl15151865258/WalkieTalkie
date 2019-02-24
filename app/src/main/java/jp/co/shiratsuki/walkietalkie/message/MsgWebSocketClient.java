@@ -2,8 +2,6 @@ package jp.co.shiratsuki.walkietalkie.message;
 
 import android.content.Context;
 import android.content.Intent;
-import android.os.Build;
-import android.os.LocaleList;
 
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
@@ -13,27 +11,22 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 
 import jp.co.shiratsuki.walkietalkie.bean.Music;
 import jp.co.shiratsuki.walkietalkie.bean.MusicList;
 import jp.co.shiratsuki.walkietalkie.bean.User;
 import jp.co.shiratsuki.walkietalkie.bean.WebSocketData;
-import jp.co.shiratsuki.walkietalkie.constant.NetWork;
 import jp.co.shiratsuki.walkietalkie.contentprovider.SPHelper;
 import jp.co.shiratsuki.walkietalkie.utils.GsonUtils;
-import jp.co.shiratsuki.walkietalkie.utils.LanguageUtil;
 import jp.co.shiratsuki.walkietalkie.utils.LogUtils;
 import jp.co.shiratsuki.walkietalkie.utils.WifiUtil;
-import jp.co.shiratsuki.walkietalkie.voice.MusicPlay;
 
 public class MsgWebSocketClient extends WebSocketClient {
 
     private String TAG = "MsgWebSocketClient";
     private Context mContext;
     private List<WebSocketData> malfunctionList;
-    private String serverHost;
     private User user;
 
     private IMsgWebSocket iMsgWebSocket;
@@ -44,11 +37,6 @@ public class MsgWebSocketClient extends WebSocketClient {
         this.iMsgWebSocket = iMsgWebSocket;
         user = GsonUtils.parseJSON(SPHelper.getString("User", GsonUtils.convertJSON(new User())), User.class);
         malfunctionList = new ArrayList<>();
-        if (user.getMessage_ip().equals("") || user.getMessage_port().equals("")) {
-            serverHost = NetWork.MESSAGE_SERVER_IP;
-        } else {
-            serverHost = user.getMessage_ip();
-        }
     }
 
     @Override
@@ -69,67 +57,43 @@ public class MsgWebSocketClient extends WebSocketClient {
     public void onMessage(String message) {
         LogUtils.d(TAG, message);
 
-        WebSocketData webSocketData = GsonUtils.parseJSON(message, WebSocketData.class);
-        Intent intent = new Intent();
-        intent.setAction("RECEIVE_MALFUNCTION");
-        intent.putExtra("data", webSocketData);
-        mContext.sendBroadcast(intent);
+        if (message.contains("PingPong")) {
+            // 收到心跳包，原文返回
+            send(message);
+        } else {
+            // 收到异常信息的内容
+            WebSocketData webSocketData = GsonUtils.parseJSON(message, WebSocketData.class);
+            Intent intent = new Intent();
+            intent.setAction("RECEIVE_MALFUNCTION");
+            intent.putExtra("data", webSocketData);
+            mContext.sendBroadcast(intent);
 
-        List<String> voiceList = webSocketData.getFileName();
-        if (voiceList != null && voiceList.size() > 0) {
-            if (webSocketData.isStatus()) {
-                if (!malfunctionList.contains(webSocketData)) {
-                    List<Music> musicList = new ArrayList<>();
-                    for (String voiceName : voiceList) {
-                        String directory = "";
-                        switch (LanguageUtil.getLanguageLocal(mContext)) {
-                            case "":
-                                // 手机设置的语言是跟随系统
-                                Locale locale;
-                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                                    locale = LocaleList.getDefault().get(0);
-                                } else {
-                                    locale = Locale.getDefault();
-                                }
-                                String language = locale.getLanguage();
-                                switch (language) {
-                                    case "zh":
-                                        directory = webSocketData.getChinese();
-                                        break;
-                                    case "ja":
-                                        directory = webSocketData.getJapanese();
-                                        break;
-                                    default:
-                                        directory = webSocketData.getEnglish();
-                                        break;
-                                }
-                                break;
-                            case "zh":
-                                directory = webSocketData.getChinese();
-                                break;
-                            case "ja":
-                                directory = webSocketData.getJapanese();
-                                break;
-                            case "en":
-                                directory = webSocketData.getEnglish();
-                                break;
-                            default:
-                                break;
+            List<String> voiceList = webSocketData.getFileName();
+            if (voiceList != null && voiceList.size() > 0) {
+                // 判断播放次数，-1为无穷播放，0为不播放，正整数为相应播放次数
+                if (webSocketData.getPlayCount() != 0) {
+                    //播放次数为-1或者正整数
+                    if (webSocketData.isStatus()) {
+                        if (!malfunctionList.contains(webSocketData)) {
+                            List<Music> musicList = new ArrayList<>();
+                            for (String voiceName : voiceList) {
+                                LogUtils.d(TAG, "音乐文件名称：" + voiceName);
+                                musicList.add(new Music(webSocketData.getListNo(), voiceName, webSocketData.getPlayCount(), 0));
+                            }
+                            int interval1 = webSocketData.getVoiceInterval1();
+                            int interval2 = webSocketData.getVoiceInterval2();
+                            MusicPlay.with(mContext.getApplicationContext()).addMusic(new MusicList(webSocketData.getListNo(), musicList, webSocketData.getJapanese(),
+                                    webSocketData.getChinese(), webSocketData.getEnglish(), webSocketData.getPlayCount(), 0), interval1, interval2);
                         }
-                        String musicPath = "http://" + serverHost + "/" + directory + "/" + voiceName;
-                        LogUtils.d(TAG, "音乐文件路径：" + musicPath);
-                        musicList.add(new Music(webSocketData.getListNo(), musicPath, webSocketData.getPlayCount(), 0));
+                    } else {
+                        MusicPlay.with(mContext.getApplicationContext()).removeMusic(webSocketData.getListNo());
                     }
-                    int interval1 = webSocketData.getVoiceInterval1();
-                    int interval2 = webSocketData.getVoiceInterval2();
-                    MusicPlay.with(mContext.getApplicationContext()).addMusic(new MusicList(webSocketData.getListNo(), musicList, webSocketData.getPlayCount(), 0), interval1, interval2);
+                } else {
+                    LogUtils.d(TAG, "播放次数为0，不添加到音乐播放列表");
                 }
-            } else {
-                MusicPlay.with(mContext.getApplicationContext()).removeMusic(webSocketData.getListNo());
             }
+            receiveMalfunction(webSocketData);
         }
-
-        receiveMalfunction(webSocketData);
     }
 
     @Override
@@ -141,6 +105,9 @@ public class MsgWebSocketClient extends WebSocketClient {
         Intent intent = new Intent();
         intent.setAction("MESSAGE_WEBSOCKET_CLOSED");
         mContext.sendBroadcast(intent);
+
+        // 清空自身列表
+        malfunctionList.clear();
         // 清空异常信息音乐列表
         MusicPlay.with(mContext.getApplicationContext()).getMusicListList().clear();
     }

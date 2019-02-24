@@ -161,27 +161,27 @@ public class LoginRegisterActivity extends BaseActivity {
                 String passWordRegister = etPassWordRegister.getText().toString().trim();
                 String confirm = etConfirmRegister.getText().toString().trim();
                 if (TextUtils.isEmpty(userNameRegister)) {
-                    showToast("请输入手机号");
+                    showToast(R.string.EnterPhoneNumber);
                     return;
                 }
                 if (TextUtils.isEmpty(passWordRegister)) {
-                    showToast("请输入密码");
+                    showToast(R.string.EnterPassword);
                     return;
                 }
                 int passwordLength = 6;
                 if (passWordRegister.length() < passwordLength) {
-                    showToast("密码长度小于6位");
+                    showToast(R.string.LessThanSixDigits);
                     return;
                 }
                 if (TextUtils.isEmpty(confirm)) {
-                    showToast("请再次输入密码");
+                    showToast(R.string.EnterPasswordAgain);
                     return;
                 }
                 if (passWordRegister.equals(confirm)) {
                     // 两次密码一致
                     register();
                 } else {
-                    showToast("两次输入的密码不一致");
+                    showToast(R.string.InconsistentPassword);
                 }
                 break;
             default:
@@ -230,11 +230,11 @@ public class LoginRegisterActivity extends BaseActivity {
         String userId = etPhoneNumberLogin.getText().toString().trim();
         String passWord = etPassWordLogin.getText().toString().trim();
         if (TextUtils.isEmpty(userId)) {
-            showToast("请输入用户名");
+            showToast(getString(R.string.EnterPhoneNumber));
             return;
         }
         if (TextUtils.isEmpty(passWord)) {
-            showToast("请输入密码");
+            showToast(getString(R.string.EnterPassword));
             return;
         }
         Map<String, String> params = new HashMap<>(2);
@@ -248,19 +248,19 @@ public class LoginRegisterActivity extends BaseActivity {
                 super.onStart();
                 //接下来可以检查网络连接等操作
                 if (!NetworkUtil.isNetworkAvailable(mContext)) {
-                    showToast("当前网络不可用，请检查网络");
+                    showToast(getString(R.string.NetworkUnavailable));
                     if (!isUnsubscribed()) {
                         unsubscribe();
                     }
                 } else {
-                    showLoadingDialog(mContext, "登陆中", true);
+                    showLoadingDialog(mContext, getString(R.string.LoggingIn), true);
                 }
             }
 
             @Override
             public void onError(ExceptionHandle.ResponseThrowable responseThrowable) {
                 cancelDialog();
-                showToast("" + responseThrowable.message);
+                showToast(responseThrowable.message);
             }
 
             @Override
@@ -271,7 +271,6 @@ public class LoginRegisterActivity extends BaseActivity {
                     String message = userOperateResult.getMessage();
                     switch (mark) {
                         case Constants.SUCCESS:
-                            LogUtils.d("登陆成功");
                             //保存用户名密码
                             String phoneNumber = etPhoneNumberLogin.getText().toString();
                             String passWord = etPassWordLogin.getText().toString();
@@ -285,10 +284,10 @@ public class LoginRegisterActivity extends BaseActivity {
                             ActivityController.finishActivity(LoginRegisterActivity.this);
                             break;
                         case Constants.FAIL:
-                            showToast("登陆失败，" + message);
+                            showToast(getString(R.string.LogInFailed) + message);
                             break;
                         default:
-                            showToast("登陆失败");
+                            showToast(getString(R.string.LogInFailed));
                             break;
                     }
                 } catch (Exception e) {
@@ -315,12 +314,12 @@ public class LoginRegisterActivity extends BaseActivity {
                 super.onStart();
                 //接下来可以检查网络连接等操作
                 if (!NetworkUtil.isNetworkAvailable(mContext)) {
-                    showToast("当前网络不可用，请检查网络");
+                    showToast(getString(R.string.NetworkUnavailable));
                     if (!isUnsubscribed()) {
                         unsubscribe();
                     }
                 } else {
-                    showLoadingDialog(mContext, "注册中", true);
+                    showLoadingDialog(mContext, getString(R.string.Registering), true);
                 }
             }
 
@@ -334,7 +333,7 @@ public class LoginRegisterActivity extends BaseActivity {
             public void onNext(UserOperateResult userOperateResult) {
                 cancelDialog();
                 if (userOperateResult == null) {
-                    showToast("注册失败，返回值异常");
+                    showToast(R.string.RegisterFailed);
                 } else {
                     String mark = userOperateResult.getResult();
                     String message = userOperateResult.getMessage();
@@ -345,7 +344,7 @@ public class LoginRegisterActivity extends BaseActivity {
                             String passWord = etPassWordRegister.getText().toString();
                             SPHelper.save("userName_main", phoneNumber);
                             SPHelper.save("passWord_main", passWord);
-                            showToast("注册成功");
+                            showToast(R.string.RegisteredSuccess);
                             //切换到登录页面
                             rlLogin.setVisibility(View.VISIBLE);
                             llRegister.setVisibility(View.GONE);
@@ -354,10 +353,10 @@ public class LoginRegisterActivity extends BaseActivity {
 //                            openActivity(ChooseHeadPortraitActivity.class);
                             break;
                         case Constants.FAIL:
-                            showToast("注册失败，" + message);
+                            showToast(R.string.RegisterFailed + " " + message);
                             break;
                         default:
-                            showToast("注册失败");
+                            showToast(R.string.RegisterFailed);
                             break;
                     }
                 }

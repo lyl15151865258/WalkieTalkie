@@ -22,7 +22,9 @@ public class WebSocketData implements Serializable {
     private int PlayCount;
     private String ServerAddress;
     private boolean Status;
-    private String Text;
+    private String Text_Japanese;
+    private String Text_Chinese;
+    private String Text_English;
     private String Time;
     private String Type;
     private int VoiceInterval1;
@@ -92,12 +94,28 @@ public class WebSocketData implements Serializable {
         Status = status;
     }
 
-    public String getText() {
-        return Text;
+    public String getText_Japanese() {
+        return Text_Japanese;
     }
 
-    public void setText(String text) {
-        Text = text;
+    public void setText_Japanese(String text_Japanese) {
+        Text_Japanese = text_Japanese;
+    }
+
+    public String getText_Chinese() {
+        return Text_Chinese;
+    }
+
+    public void setText_Chinese(String text_Chinese) {
+        Text_Chinese = text_Chinese;
+    }
+
+    public String getText_English() {
+        return Text_English;
+    }
+
+    public void setText_English(String text_English) {
+        Text_English = text_English;
     }
 
     public String getTime() {

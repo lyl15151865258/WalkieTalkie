@@ -86,7 +86,7 @@ public class ContactAdapter extends BaseExpandableListAdapter {
             departmentViewHolder = (DepartmentViewHolder) convertView.getTag();
         }
         String departmentName = departmentList.get(groupPosition);
-        departmentViewHolder.tvDepartment.setText(departmentName);
+        departmentViewHolder.tvDepartment.setText(departmentName + "（" + userList.get(groupPosition).size() + "）");
 
         if (isExpanded) {
             departmentViewHolder.ivExpand.setImageResource(R.drawable.ic_arrow_down);

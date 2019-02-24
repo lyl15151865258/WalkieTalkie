@@ -1,6 +1,7 @@
 package jp.co.shiratsuki.walkietalkie.fragment;
 
 import android.content.Context;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.GridLayoutManager;
@@ -10,9 +11,13 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
 
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -23,6 +28,7 @@ import jp.co.shiratsuki.walkietalkie.bean.User;
 import jp.co.shiratsuki.walkietalkie.contentprovider.SPHelper;
 import jp.co.shiratsuki.walkietalkie.utils.GsonUtils;
 import jp.co.shiratsuki.walkietalkie.utils.LogUtils;
+import jp.co.shiratsuki.walkietalkie.utils.TimeUtils;
 
 /**
  * 聊天室页面
@@ -41,8 +47,12 @@ public class ChatRoomFragment extends BaseFragment {
     private ChatRoomContactAdapter chatRoomContactAdapter;
     private boolean sIsScrolling = false;
     private EditText etRoomId;
+    private TextView tvCount, tvChatTime;
+    private LinearLayout llChatInfo;
     private Button btnEnterExitRoom;
-
+    private ImageView ivDeleteRoomId;
+    private SyncTimeTask syncTimeTask;
+    private long startTime = System.currentTimeMillis();
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -64,6 +74,11 @@ public class ChatRoomFragment extends BaseFragment {
         etRoomId.setText(user.getRoom_id());
         btnEnterExitRoom = view.findViewById(R.id.btnEnterExitRoom);
         btnEnterExitRoom.setOnClickListener(onClickListener);
+        ivDeleteRoomId = view.findViewById(R.id.iv_deleteRoomId);
+        ivDeleteRoomId.setOnClickListener(onClickListener);
+        tvCount = view.findViewById(R.id.tvCount);
+        tvChatTime = view.findViewById(R.id.tvChatTime);
+        llChatInfo = view.findViewById(R.id.llChatInfo);
         return view;
     }
 
@@ -73,12 +88,15 @@ public class ChatRoomFragment extends BaseFragment {
                 User user = GsonUtils.parseJSON(SPHelper.getString("User", GsonUtils.convertJSON(new User())), User.class);
                 String roomId = etRoomId.getText().toString().trim();
                 if (roomId.equals("") && user.getRoom_id().equals("")) {
-                    showToast("请填写房间号");
+                    showToast(R.string.EnterRoomId);
                     return;
                 }
 
                 SPHelper.save("TemporaryRoom", roomId);
                 mainActivity.clickEnterExitBtn();
+                break;
+            case R.id.iv_deleteRoomId:
+                etRoomId.setText("");
                 break;
             default:
                 break;
@@ -116,7 +134,19 @@ public class ChatRoomFragment extends BaseFragment {
 
     @Override
     public void lazyLoad() {
+    }
 
+    /**
+     * 更新聊天室信息
+     */
+    private void updateNumberOfPeople() {
+        int count = userList.size();
+        if (count == 0) {
+            llChatInfo.setVisibility(View.GONE);
+        } else {
+            llChatInfo.setVisibility(View.VISIBLE);
+            tvCount.setText(String.valueOf(count));
+        }
     }
 
     /**
@@ -129,6 +159,7 @@ public class ChatRoomFragment extends BaseFragment {
         this.userList.clear();
         this.userList.addAll(userList);
         chatRoomContactAdapter.notifyDataSetChanged();
+        updateNumberOfPeople();
     }
 
     /**
@@ -149,6 +180,7 @@ public class ChatRoomFragment extends BaseFragment {
             userList.remove(position);
             chatRoomContactAdapter.notifyItemRemoved(position);
         }
+        updateNumberOfPeople();
     }
 
     /**
@@ -158,6 +190,7 @@ public class ChatRoomFragment extends BaseFragment {
         userList.clear();
         LogUtils.d(TAG, "走了这里，清空房间联系人，联系人数量：" + userList.size());
         chatRoomContactAdapter.notifyDataSetChanged();
+        updateNumberOfPeople();
     }
 
     /**
@@ -167,6 +200,10 @@ public class ChatRoomFragment extends BaseFragment {
         btnEnterExitRoom.setText(getString(R.string.releaseToExitChat));
         etRoomId.setFocusable(false);
         etRoomId.setFocusableInTouchMode(false);
+        ivDeleteRoomId.setClickable(false);
+        startTime = System.currentTimeMillis();
+        syncTimeTask = new SyncTimeTask(this);
+        syncTimeTask.execute();
     }
 
     /**
@@ -174,8 +211,15 @@ public class ChatRoomFragment extends BaseFragment {
      */
     public void exitRoom() {
         btnEnterExitRoom.setText(getString(R.string.pressToJoinChat));
+        //恢复显示默认房间
+        User user = GsonUtils.parseJSON(SPHelper.getString("User", GsonUtils.convertJSON(new User())), User.class);
+        etRoomId.setText(user.getRoom_id());
         etRoomId.setFocusable(true);
         etRoomId.setFocusableInTouchMode(true);
+        ivDeleteRoomId.setClickable(true);
+        if (syncTimeTask != null) {
+            syncTimeTask.cancel(true);
+        }
     }
 
     /**
@@ -188,4 +232,56 @@ public class ChatRoomFragment extends BaseFragment {
         enterRoom();
     }
 
+    private static class SyncTimeTask extends AsyncTask<Void, Void, Void> {
+
+        private WeakReference<ChatRoomFragment> fragmentWeakReference;
+
+        private SyncTimeTask(ChatRoomFragment fragment) {
+            fragmentWeakReference = new WeakReference<>(fragment);
+        }
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+        }
+
+        @Override
+        protected Void doInBackground(Void... params) {
+            while (true) {
+                if (isCancelled()) {
+                    break;
+                }
+                publishProgress();
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+            return null;
+        }
+
+        @Override
+        protected void onProgressUpdate(Void... values) {
+            super.onProgressUpdate();
+            if (isCancelled()) {
+                return;
+            }
+            ChatRoomFragment chatRoomFragment = fragmentWeakReference.get();
+            chatRoomFragment.tvChatTime.setText(TimeUtils.timeFormat(System.currentTimeMillis() - chatRoomFragment.startTime));
+        }
+
+        @Override
+        protected void onPostExecute(Void result) {
+            super.onPostExecute(result);
+        }
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        if (syncTimeTask != null) {
+            syncTimeTask.cancel(true);
+        }
+    }
 }

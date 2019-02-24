@@ -33,9 +33,11 @@ import jp.co.shiratsuki.walkietalkie.R;
 import jp.co.shiratsuki.walkietalkie.activity.base.BaseActivity;
 import jp.co.shiratsuki.walkietalkie.bean.User;
 import jp.co.shiratsuki.walkietalkie.constant.NetWork;
+import jp.co.shiratsuki.walkietalkie.contentprovider.SPHelper;
 import jp.co.shiratsuki.walkietalkie.service.IVoiceService;
 import jp.co.shiratsuki.walkietalkie.service.VoiceService;
 import jp.co.shiratsuki.walkietalkie.utils.ActivityController;
+import jp.co.shiratsuki.walkietalkie.utils.GsonUtils;
 import jp.co.shiratsuki.walkietalkie.utils.LogUtils;
 
 /**
@@ -48,8 +50,8 @@ import jp.co.shiratsuki.walkietalkie.utils.LogUtils;
 
 public class P2PRingingActivity extends BaseActivity {
 
-    private String TAG = "P2PRingingActivity";
-    private Context mContext;
+    private final static String TAG = "P2PRingingActivity";
+    private String myUserId;
     private String iconUrl, inviter, inviterId;
     private TextView tvInviter, tvMessage;
     private ImageView ivUserIcon;
@@ -69,7 +71,7 @@ public class P2PRingingActivity extends BaseActivity {
                 | WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON);
         window.setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
         setContentView(R.layout.activity_p2p_ringing);
-        mContext = this;
+        myUserId = GsonUtils.parseJSON(SPHelper.getString("User", GsonUtils.convertJSON(new User())), User.class).getUser_id();
         ivUserIcon = findViewById(R.id.iv_userIcon);
         tvInviter = findViewById(R.id.tv_inviter);
         tvMessage = findViewById(R.id.tvMessage);
@@ -90,11 +92,11 @@ public class P2PRingingActivity extends BaseActivity {
         // 播放手机系统自带来电铃声
 //        Uri uri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE);
         Uri uri = Uri.parse("android.resource://jp.co.shiratsuki.walkietalkie/" + R.raw.dengdaijieting);
-        ringtone = RingtoneManager.getRingtone(mContext, uri);
+        ringtone = RingtoneManager.getRingtone(this, uri);
 
         vibrator = (Vibrator) getSystemService(VIBRATOR_SERVICE);
 
-        Intent intent = new Intent(mContext, VoiceService.class);
+        Intent intent = new Intent(this, VoiceService.class);
         bindService(intent, serviceConnection, BIND_AUTO_CREATE);
 
         IntentFilter filter = new IntentFilter();
@@ -138,7 +140,7 @@ public class P2PRingingActivity extends BaseActivity {
                 } catch (RemoteException e) {
                     e.printStackTrace();
                 }
-                ActivityController.finishActivity(this);
+                playMusicAndFinish();
                 break;
             case R.id.ring_pickup:
                 // 接听
@@ -204,29 +206,15 @@ public class P2PRingingActivity extends BaseActivity {
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
             if ("P2P_VOICE_REQUEST_CANCEL".equals(action)) {
-                tvMessage.setText("对方已取消");
-                // 播放提示音
-                if (ringtone != null && ringtone.isPlaying()) {
-                    ringtone.stop();
-                }
-                Uri uri = Uri.parse("android.resource://jp.co.shiratsuki.walkietalkie/" + R.raw.du);
-                ringtone = RingtoneManager.getRingtone(P2PRingingActivity.this, uri);
-                ringtone.setStreamType(AudioManager.STREAM_RING);
-                ringtone.play();
-                new Thread(() -> {
-                    try {
-                        Thread.sleep(1000);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                    ActivityController.finishActivity(P2PRingingActivity.this);
-                }).start();
+                tvMessage.setText(getString(R.string.TargetCancel));
+                playMusicAndFinish();
             }
             if ("P2P_VOICE_REQUEST_ACCEPT".equals(action)) {
                 ActivityController.finishActivity(P2PRingingActivity.this);
             }
             if ("VOICE_WEBSOCKET_DISCONNECT".equals(action)) {
-                ActivityController.finishActivity(P2PRingingActivity.this);
+                tvMessage.setText(getString(R.string.NetworkError));
+                playMusicAndFinish();
             }
         }
     };
@@ -269,25 +257,15 @@ public class P2PRingingActivity extends BaseActivity {
             if (isCancelled()) {
                 return;
             }
-            P2PRingingActivity p2PRingingActivity = p2PRingingActivityWeakReference.get();
             if (leftTime <= 0) {
-                p2PRingingActivity.tvMessage.setText("对方暂时无人接听");
-                // 播放提示音
-                if (p2PRingingActivity.ringtone != null && p2PRingingActivity.ringtone.isPlaying()) {
-                    p2PRingingActivity.ringtone.stop();
+                P2PRingingActivity p2PRingingActivity = p2PRingingActivityWeakReference.get();
+                try {
+                    p2PRingingActivity.iVoiceService.timeOut(p2PRingingActivity.myUserId);
+                } catch (RemoteException e) {
+                    e.printStackTrace();
                 }
-                Uri uri = Uri.parse("android.resource://jp.co.shiratsuki.walkietalkie/" + R.raw.du);
-                p2PRingingActivity.ringtone = RingtoneManager.getRingtone(p2PRingingActivity, uri);
-                p2PRingingActivity.ringtone.setStreamType(AudioManager.STREAM_RING);
-                p2PRingingActivity.ringtone.play();
-                new Thread(() -> {
-                    try {
-                        Thread.sleep(1000);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                    ActivityController.finishActivity(p2PRingingActivity);
-                }).start();
+                p2PRingingActivity.tvMessage.setText(p2PRingingActivity.getString(R.string.WaitingTimeout));
+                p2PRingingActivity.playMusicAndFinish();
             }
         }
 
@@ -295,6 +273,26 @@ public class P2PRingingActivity extends BaseActivity {
         protected void onPostExecute(Void result) {
             super.onPostExecute(result);
         }
+    }
+
+    // 播放du音乐并关闭当前Activity
+    private void playMusicAndFinish() {
+        // 播放提示音
+        if (ringtone != null && ringtone.isPlaying()) {
+            ringtone.stop();
+        }
+        Uri uri = Uri.parse("android.resource://jp.co.shiratsuki.walkietalkie/" + R.raw.du);
+        ringtone = RingtoneManager.getRingtone(P2PRingingActivity.this, uri);
+        ringtone.setStreamType(AudioManager.STREAM_RING);
+        ringtone.play();
+        new Thread(() -> {
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            ActivityController.finishActivity(P2PRingingActivity.this);
+        }).start();
     }
 
     @Override

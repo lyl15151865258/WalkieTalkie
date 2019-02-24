@@ -341,6 +341,16 @@ public class VoiceService extends Service implements IWebRTCHelper, VolumeChange
         }
 
         @Override
+        public void timeOut(String userId) {
+            // 等待或者拨号超时
+            try {
+                helper.timeOut(userId);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        @Override
         public void registerCallback(IVoiceCallback callback) {
             mCallbackList.register(callback);
         }
@@ -357,17 +367,17 @@ public class VoiceService extends Service implements IWebRTCHelper, VolumeChange
     private void showNotification() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             NotificationManager manager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-            NotificationChannel Channel = new NotificationChannel("123", "对讲机语音服务", NotificationManager.IMPORTANCE_HIGH);
+            NotificationChannel Channel = new NotificationChannel("123", getString(R.string.VoiceService), NotificationManager.IMPORTANCE_NONE);
             Channel.enableLights(true);                                             //设置提示灯
             Channel.setLightColor(Color.RED);                                       //设置提示灯颜色
             Channel.setShowBadge(true);                                             //显示logo
-            Channel.setDescription("正在使用对讲机");                               //设置描述
-            Channel.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);        //设置锁屏可见 VISIBILITY_PUBLIC=可见
+            Channel.setDescription(getString(R.string.UsingWalkieTalkie));          //设置描述
+            Channel.setLockscreenVisibility(Notification.VISIBILITY_SECRET);        //设置锁屏不可见 VISIBILITY_SECRET=不可见
             manager.createNotificationChannel(Channel);
 
             NotificationCompat.Builder notification = new NotificationCompat.Builder(this, "123");
             notification.setContentTitle(getString(R.string.app_name));
-            notification.setContentText("对讲机语音服务运行中...");
+            notification.setContentText(getString(R.string.VoiceServiceRunning));
             notification.setWhen(System.currentTimeMillis());
             notification.setSmallIcon(R.mipmap.ic_launcher);
             notification.setLargeIcon(BitmapFactory.decodeResource(getResources(), R.mipmap.ic_launcher));
@@ -375,7 +385,7 @@ public class VoiceService extends Service implements IWebRTCHelper, VolumeChange
         } else {
             Notification notification = new Notification.Builder(this)
                     .setContentTitle(getString(R.string.app_name))                                      //设置标题
-                    .setContentText("对讲机语音服务运行中...")                                          //设置内容
+                    .setContentText(getString(R.string.UsingWalkieTalkie))                              //设置内容
                     .setWhen(System.currentTimeMillis())                                                //设置创建时间
                     .setSmallIcon(R.mipmap.ic_launcher)                                                 //设置状态栏图标
                     .setLargeIcon(BitmapFactory.decodeResource(getResources(), R.mipmap.ic_launcher))   //设置通知栏图标
@@ -681,9 +691,7 @@ public class VoiceService extends Service implements IWebRTCHelper, VolumeChange
     public void onDestroy() {
         super.onDestroy();
         LogUtils.d(TAG, "VoiceService——————生命周期——————:onDestroy");
-        helper.leaveGroup();
-        helper.closeWebSocket();
-        helper = null;
+        helper.release();
         if (keyEventBroadcastReceiver != null) {
             unregisterReceiver(keyEventBroadcastReceiver);
         }

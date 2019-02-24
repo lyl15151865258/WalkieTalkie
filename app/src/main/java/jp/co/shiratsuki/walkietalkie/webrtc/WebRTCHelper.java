@@ -14,7 +14,6 @@ import jp.co.shiratsuki.walkietalkie.contentprovider.SPHelper;
 import jp.co.shiratsuki.walkietalkie.utils.GsonUtils;
 import jp.co.shiratsuki.walkietalkie.utils.LogUtils;
 import jp.co.shiratsuki.walkietalkie.webrtc.websocket.ISignalingEvents;
-import jp.co.shiratsuki.walkietalkie.webrtc.websocket.IWebSocket;
 import jp.co.shiratsuki.walkietalkie.webrtc.websocket.JavaWebSocket;
 
 import org.webrtc.AudioSource;
@@ -75,13 +74,13 @@ public class WebRTCHelper implements ISignalingEvents {
 
     private Role _role;
 
-    private IWebSocket webSocket;
+    private JavaWebSocket webSocket;
 
     private ExecutorService threadPool;
 
-    private boolean first = true, flag = true;
-
     private Handler mHandler = new Handler(Looper.getMainLooper());
+
+    private boolean flag = true;
 
     public WebRTCHelper(Context context, IWebRTCHelper IHelper, Parcelable[] servers) {
         this.IHelper = IHelper;
@@ -134,13 +133,7 @@ public class WebRTCHelper implements ISignalingEvents {
 
     @Override
     public void onWebSocketConnected() {
-        // 连接成功后，就准备发送心跳包
 
-        if (first) {
-            threadPool.submit(heartBeatRunnable);
-        }
-        first = false;
-//        mHandler.postDelayed(heartBeatRunnable, NetWork.HEART_BEAT_RATE);
     }
 
     @Override  // 我加入到房间
@@ -160,38 +153,6 @@ public class WebRTCHelper implements ISignalingEvents {
             IHelper.onEnterRoom();
         }
     }
-
-    /**
-     * 发送心跳包
-     */
-    private Runnable heartBeatRunnable = () -> {
-        while (flag) {
-            if (webSocket != null) {
-                try {
-                    LogUtils.d(TAG, "WebRTC————————————————WebSocket发送心跳包");
-                    User user = GsonUtils.parseJSON(SPHelper.getString("User", GsonUtils.convertJSON(new User())), User.class);
-                    HashMap<String, Object> childMap = new HashMap<>();
-                    childMap.put("userId", user.getUser_id());
-                    HashMap<String, Object> map = new HashMap<>();
-                    map.put("eventName", "__ping");
-                    map.put("data", childMap);
-                    JSONObject object = new JSONObject(map);
-                    String jsonString = object.toString();
-                    sendMessage(jsonString);
-                } catch (Exception e) {
-                    LogUtils.d(TAG, "WebRTC————————————————发送心跳包失败");
-                    e.printStackTrace();
-                }
-                try {
-                    Thread.sleep(NetWork.HEART_BEAT_RATE);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }else{
-                LogUtils.d(TAG, "WebRTC————————————————WebSocket发送心跳包，webSocket为null");
-            }
-        }
-    };
 
     @Override  // 其他人加入到房间
     public void onRemoteJoinToRoom(String userId, ArrayList<User> userList) {
@@ -255,7 +216,8 @@ public class WebRTCHelper implements ISignalingEvents {
 
     @Override
     public void onWebSocketClosed() {
-        leaveGroup();
+        websocketDisconnect();
+        reConnect();
     }
 
 
@@ -296,11 +258,6 @@ public class WebRTCHelper implements ISignalingEvents {
         LogUtils.d(TAG, "WebRTC————————————————发送消息");
         if (webSocket != null && webSocket.socketIsOpen()) {
             webSocket.sendMessage(message);
-        } else {
-            // 如果没有退出程序
-            if (flag) {
-                reConnect();
-            }
         }
     }
 
@@ -308,16 +265,16 @@ public class WebRTCHelper implements ISignalingEvents {
      * 重连WebSocket
      */
     private void reConnect() {
-        LogUtils.d(TAG, "WebRTC————————————————WebSocket重连");
-        Runnable runnable = new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    Thread.sleep(NetWork.WEBSOCKET_RECONNECT_RATE);
+        // 如果程序退出了就不要重连了
+        Runnable runnable = () -> {
+            try {
+                Thread.sleep(NetWork.WEBSOCKET_RECONNECT_RATE);
+                if (flag) {
+                    LogUtils.d(TAG, "WebRTC————————————————WebSocket重连");
                     webSocket.reconnectBlocking();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
                 }
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
         };
         mHandler.post(runnable);
@@ -402,6 +359,20 @@ public class WebRTCHelper implements ISignalingEvents {
     }
 
     /**
+     * 音频邀请等待超时
+     *
+     * @param userId 目标的UserId
+     */
+    public void timeOut(String userId) {
+        Map<String, Object> map = new HashMap<>();
+        map.put("eventName", "__p2p_time_out");
+        map.put("userId", userId);
+        JSONObject object = new JSONObject(map);
+        String jsonString = object.toString();
+        sendMessage(jsonString);
+    }
+
+    /**
      * 退出房间
      */
     public void exitRoom() {
@@ -436,8 +407,6 @@ public class WebRTCHelper implements ISignalingEvents {
         map.put("data", user);
         sendMessage(GsonUtils.convertJSON(map));
 
-        flag = false;
-
         if (videoSource != null) {
             videoSource.stop();
         }
@@ -460,9 +429,26 @@ public class WebRTCHelper implements ISignalingEvents {
         }
     }
 
+    private void websocketDisconnect() {
+        if (videoSource != null) {
+            videoSource.stop();
+        }
+        ArrayList myCopy = (ArrayList) _connectionIdArray.clone();
+        for (Object Id : myCopy) {
+            closePeerConnection((String) Id);
+        }
+        if (_connectionIdArray != null) {
+            _connectionIdArray.clear();
+        }
+        _localStream = null;
+        if (IHelper != null) {
+            IHelper.onLeaveGroup();
+            SPHelper.save("KEY_STATUS_UP", true);
+        }
+    }
+
     public void closeWebSocket() {
         webSocket.close();
-        flag = false;
         threadPool.shutdown();
     }
 
@@ -713,6 +699,12 @@ public class WebRTCHelper implements ISignalingEvents {
             return _factory.createPeerConnection(ICEServers, peerConnectionConstraints(), this);
         }
 
+    }
+
+    public void release(){
+        leaveGroup();
+        closeWebSocket();
+        flag = false;
     }
 
 }

@@ -7,8 +7,6 @@ import android.support.v7.widget.RecyclerView;
 import android.view.View;
 
 import org.greenrobot.eventbus.EventBus;
-import org.greenrobot.eventbus.Subscribe;
-import org.greenrobot.eventbus.ThreadMode;
 
 import jp.co.shiratsuki.walkietalkie.R;
 import jp.co.shiratsuki.walkietalkie.activity.base.SwipeBackActivity;
@@ -16,8 +14,6 @@ import jp.co.shiratsuki.walkietalkie.adapter.ChooseLanguageAdapter;
 import jp.co.shiratsuki.walkietalkie.bean.Language;
 import jp.co.shiratsuki.walkietalkie.contentprovider.SPHelper;
 import jp.co.shiratsuki.walkietalkie.utils.ActivityController;
-import jp.co.shiratsuki.walkietalkie.utils.LogUtils;
-import jp.co.shiratsuki.walkietalkie.utils.ViewUtil;
 import jp.co.shiratsuki.walkietalkie.widget.MyToolbar;
 import jp.co.shiratsuki.walkietalkie.widget.RecyclerViewDivider;
 
@@ -65,12 +61,6 @@ public class SetLanguageActivity extends SwipeBackActivity {
             // 通过EventBus通知其他页面更改语言
             EventBus.getDefault().post("CHANGE_LANGUAGE");
         });
-    }
-
-    @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onStringEvent(String msg) {
-        LogUtils.d(TAG, "走了更新语言的方法");
-        ViewUtil.updateViewLanguage(findViewById(android.R.id.content));
     }
 
     private View.OnClickListener onClickListener = (v) -> {

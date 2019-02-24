@@ -41,7 +41,7 @@ public class NetWork {
     //http请求超时时间
     public static final int TIME_OUT_HTTP = 10 * 1000;
     //心跳包发送间隔（10秒）
-    public static final int HEART_BEAT_RATE = 10 * 1000;
+    public static final int HEART_BEAT_RATE = 30 * 1000;
     //WebSocket重连间隔（5秒）
     public static final int WEBSOCKET_RECONNECT_RATE = 5 * 1000;
 

@@ -63,7 +63,6 @@ public class MyToolbar extends Toolbar {
 
     public void setTitleByResourceId(int rid) {
         if (titleTextView != null) {
-            titleTextView.setText(rid);
             titleTextView.setTextById(rid);
         }
     }

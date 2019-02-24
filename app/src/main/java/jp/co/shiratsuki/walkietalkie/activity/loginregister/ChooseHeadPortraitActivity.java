@@ -94,7 +94,7 @@ public class ChooseHeadPortraitActivity extends BaseActivity {
         setContentView(R.layout.activity_choose_head_portrait);
         mContext = this;
         MyToolbar toolbar = findViewById(R.id.myToolbar);
-        toolbar.initToolBar(this, toolbar, "设置头像", R.drawable.back_white, R.drawable.icon_finish, onClickListener);
+        toolbar.initToolBar(this, toolbar, R.string.SetHeadPortrait, R.drawable.back_white, R.drawable.icon_finish, onClickListener);
         User user = GsonUtils.parseJSON(SPHelper.getString("User", GsonUtils.convertJSON(new User())), User.class);
         userId = user.getUser_id();
         ivUserIcon = findViewById(R.id.ivUserIcon);
@@ -111,14 +111,14 @@ public class ChooseHeadPortraitActivity extends BaseActivity {
                 if (isUploadedIcon) {
                     ActivityController.finishActivity(this);
                 } else {
-                    showToast("请上传头像后退出");
+                    showToast(R.string.UploadHeadPortrait);
                 }
                 break;
             case R.id.iv_right:
                 if (isUploadedIcon) {
                     ActivityController.finishActivity(this);
                 } else {
-                    showToast("请上传头像");
+                    showToast(R.string.UploadHeadPortrait);
                 }
                 break;
             case R.id.btnTakePhoto:
@@ -168,12 +168,12 @@ public class ChooseHeadPortraitActivity extends BaseActivity {
                 super.onStart();
                 //接下来可以检查网络连接等操作
                 if (!NetworkUtil.isNetworkAvailable(mContext)) {
-                    showToast("当前网络不可用，请检查网络");
+                    showToast(R.string.NetworkUnavailable);
                     if (!isUnsubscribed()) {
                         unsubscribe();
                     }
                 } else {
-                    showLoadingDialog(mContext, "更新中", true);
+                    showLoadingDialog(mContext, getString(R.string.uploading), true);
                 }
             }
 
@@ -187,7 +187,7 @@ public class ChooseHeadPortraitActivity extends BaseActivity {
             public void onNext(NormalResult normalResult) {
                 cancelDialog();
                 if (normalResult == null) {
-                    showToast("头像更新失败");
+                    showToast(R.string.UploadFailed);
                 } else {
                     String result = normalResult.getResult();
                     String photoPath = ("http://" + NetWork.SERVER_HOST_MAIN + ":" + NetWork.SERVER_PORT_MAIN + "/" + normalResult.getMessage()).replace("\\", "/");
@@ -197,15 +197,15 @@ public class ChooseHeadPortraitActivity extends BaseActivity {
                     SPHelper.save("User", GsonUtils.convertJSON(user));
                     switch (result) {
                         case Constants.SUCCESS:
-                            showToast("头像更新成功");
+                            showToast(R.string.UploadSuccess);
                             showUserIcon(photoPath);
                             isUploadedIcon = true;
                             break;
                         case Constants.FAIL:
-                            showToast("服务器保存异常，更新失败");
+                            showToast(R.string.ServerError);
                             break;
                         default:
-                            showToast("未知错误，头像更新失败");
+                            showToast(R.string.UnknownError);
                             break;
                     }
                 }
@@ -340,7 +340,7 @@ public class ChooseHeadPortraitActivity extends BaseActivity {
             mOnPictureSelectedListener.onPictureSelected(resultUri, bitmap);
             overridePendingTransition(R.anim.left_in, R.anim.right_out);
         } else {
-            showToast("无法剪切选择图片");
+            showToast(R.string.CutError);
         }
     }
 
@@ -355,7 +355,7 @@ public class ChooseHeadPortraitActivity extends BaseActivity {
         if (cropError != null) {
             showToast(cropError.getMessage());
         } else {
-            showToast("无法剪切选择图片");
+            showToast(R.string.CutError);
         }
     }
 
@@ -380,11 +380,7 @@ public class ChooseHeadPortraitActivity extends BaseActivity {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (shouldShowRequestPermissionRationale(permission)) {
                 showAlertDialog(getString(R.string.permission_title_rationale), rationale,
-                        (dialog, which) -> {
-                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                                requestPermissions(new String[]{permission}, requestCode);
-                            }
-                        }, getString(R.string.label_ok));
+                        (dialog, which) -> requestPermissions(new String[]{permission}, requestCode), getString(R.string.label_ok));
             } else {
                 requestPermissions(new String[]{permission}, requestCode);
             }

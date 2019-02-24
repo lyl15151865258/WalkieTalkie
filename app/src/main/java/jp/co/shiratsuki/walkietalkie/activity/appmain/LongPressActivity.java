@@ -7,7 +7,7 @@ import jp.co.shiratsuki.walkietalkie.activity.base.BaseActivity;
 import jp.co.shiratsuki.walkietalkie.utils.ActivityController;
 
 /**
- * 长按耳机中键打开的页面
+ * 长按耳机中键，打开本Activity发送一个广播立刻关闭，不显示
  * Created at 2019/2/20 9:55
  *
  * @author Li Yuliang
