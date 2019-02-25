@@ -40,6 +40,7 @@ import jp.co.shiratsuki.walkietalkie.utils.ActivityController;
 import jp.co.shiratsuki.walkietalkie.utils.GsonUtils;
 import jp.co.shiratsuki.walkietalkie.utils.LogUtils;
 import jp.co.shiratsuki.walkietalkie.utils.NetworkUtil;
+import jp.co.shiratsuki.walkietalkie.utils.PermissionUtil;
 import jp.co.shiratsuki.walkietalkie.utils.StatusBarUtil;
 import jp.co.shiratsuki.walkietalkie.utils.ViewUtils;
 import jp.co.shiratsuki.walkietalkie.widget.SmoothCheckBox;
@@ -69,6 +70,9 @@ public class LoginRegisterActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login_register);
         mContext = this;
+
+        //权限检查
+        PermissionUtil.isNeedRequestPermission(this);
 
         String userId = SPHelper.getString("userId", Constants.EMPTY);
         String passWord = SPHelper.getString("passWord", Constants.EMPTY);

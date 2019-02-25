@@ -119,7 +119,7 @@
     <string name="register">注册</string>
     <string name="RegistrationProtocol">用户注册协议</string>
     <string name="ChatRoomId">聊天室编号</string>
-    <string name="ContactNameOrDepartment">联系人姓名或部门</string>
+    <string name="NameOrDepartment">联系人姓名或部门</string>
     <string name="EffectiveAfterRestart">重启后生效</string>
     <string name="NumberOfPeople">人数：</string>
     <string name="ChatTime">聊天时长：</string>

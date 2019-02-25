@@ -107,7 +107,7 @@
     <string name="register">登録</string>
     <string name="RegistrationProtocol">ユーザー登録契約</string>
     <string name="ChatRoomId">チャット番号</string>
-    <string name="ContactNameOrDepartment">連絡先の名前または部署</string>
+    <string name="NameOrDepartment">名前または部署</string>
     <string name="EffectiveAfterRestart">再起動後に有効</string>
     <string name="NumberOfPeople">人数：</string>
     <string name="ChatTime">チャット時間：</string>

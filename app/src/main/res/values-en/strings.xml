@@ -107,7 +107,7 @@
     <string name="register">Register</string>
     <string name="RegistrationProtocol">Registration Protocol</string>
     <string name="ChatRoomId">Chat room number</string>
-    <string name="ContactNameOrDepartment">Contact\'s name or department</string>
+    <string name="NameOrDepartment">Name or department</string>
     <string name="EffectiveAfterRestart">Effective after restart</string>
     <string name="NumberOfPeople">Peoples：</string>
     <string name="ChatTime">Chat time：</string>

@@ -2,6 +2,11 @@ package jp.co.shiratsuki.walkietalkie.message;
 
 import android.content.Context;
 import android.content.Intent;
+import android.media.AudioManager;
+import android.media.Ringtone;
+import android.media.RingtoneManager;
+import android.net.Uri;
+import android.os.Vibrator;
 
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
@@ -12,7 +17,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
+import jp.co.shiratsuki.walkietalkie.R;
 import jp.co.shiratsuki.walkietalkie.bean.Music;
 import jp.co.shiratsuki.walkietalkie.bean.MusicList;
 import jp.co.shiratsuki.walkietalkie.bean.User;
@@ -22,6 +30,8 @@ import jp.co.shiratsuki.walkietalkie.utils.GsonUtils;
 import jp.co.shiratsuki.walkietalkie.utils.LogUtils;
 import jp.co.shiratsuki.walkietalkie.utils.WifiUtil;
 
+import static android.content.Context.VIBRATOR_SERVICE;
+
 public class MsgWebSocketClient extends WebSocketClient {
 
     private String TAG = "MsgWebSocketClient";
@@ -30,6 +40,9 @@ public class MsgWebSocketClient extends WebSocketClient {
     private User user;
 
     private IMsgWebSocket iMsgWebSocket;
+    private Ringtone ringtone;
+    private Vibrator vibrator;
+    private ExecutorService mExecutorService;
 
     public MsgWebSocketClient(Context mContext, String url, IMsgWebSocket iMsgWebSocket) throws URISyntaxException {
         super(new URI(url));
@@ -37,6 +50,8 @@ public class MsgWebSocketClient extends WebSocketClient {
         this.iMsgWebSocket = iMsgWebSocket;
         user = GsonUtils.parseJSON(SPHelper.getString("User", GsonUtils.convertJSON(new User())), User.class);
         malfunctionList = new ArrayList<>();
+        vibrator = (Vibrator) mContext.getSystemService(VIBRATOR_SERVICE);
+        mExecutorService = Executors.newCachedThreadPool();
     }
 
     @Override
@@ -85,6 +100,20 @@ public class MsgWebSocketClient extends WebSocketClient {
                             MusicPlay.with(mContext.getApplicationContext()).addMusic(new MusicList(webSocketData.getListNo(), musicList, webSocketData.getJapanese(),
                                     webSocketData.getChinese(), webSocketData.getEnglish(), webSocketData.getPlayCount(), 0), interval1, interval2);
                         }
+
+                        mExecutorService.execute(()->{
+                            // 播放提示音
+                            if (ringtone != null && ringtone.isPlaying()) {
+                                ringtone.stop();
+                            }
+                            Uri uri = Uri.parse("android.resource://jp.co.shiratsuki.walkietalkie/" + R.raw.dingdong);
+                            ringtone = RingtoneManager.getRingtone(mContext, uri);
+                            ringtone.setStreamType(AudioManager.STREAM_RING);
+                            ringtone.play();
+                            // 震动0.3秒
+                            vibrator.vibrate(300);
+                        });
+
                     } else {
                         MusicPlay.with(mContext.getApplicationContext()).removeMusic(webSocketData.getListNo());
                     }
@@ -110,6 +139,10 @@ public class MsgWebSocketClient extends WebSocketClient {
         malfunctionList.clear();
         // 清空异常信息音乐列表
         MusicPlay.with(mContext.getApplicationContext()).getMusicListList().clear();
+
+        // 停止播放提示音和震动
+        ringtone.stop();
+        vibrator.cancel();
     }
 
     @Override

@@ -84,7 +84,6 @@ import jp.co.shiratsuki.walkietalkie.utils.GsonUtils;
 import jp.co.shiratsuki.walkietalkie.utils.LogUtils;
 import jp.co.shiratsuki.walkietalkie.utils.NetworkUtil;
 import jp.co.shiratsuki.walkietalkie.utils.NotificationsUtil;
-import jp.co.shiratsuki.walkietalkie.utils.PermissionUtil;
 import jp.co.shiratsuki.walkietalkie.utils.StatusBarUtil;
 import jp.co.shiratsuki.walkietalkie.utils.ViewUtil;
 import jp.co.shiratsuki.walkietalkie.utils.WifiUtil;
@@ -128,7 +127,6 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
     private TextView tvSSID, tvIp;
     private Button btnSpeak, btnSpeaker;
 
-    // 振动电机
     private Vibrator vibrator;
 
     private static final int GALLERY_REQUEST_CODE = 0;
@@ -148,9 +146,6 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
         vibrator = (Vibrator) getSystemService(VIBRATOR_SERVICE);
         initView();
         initBroadcastReceiver();
-
-        //权限检查
-        PermissionUtil.isNeedRequestPermission(this);
 
         User user = GsonUtils.parseJSON(SPHelper.getString("User", GsonUtils.convertJSON(new User())), User.class);
         if (user.getUser_name().equals("") || user.getCompany().equals("") || user.getDepartment_name().equals("")) {

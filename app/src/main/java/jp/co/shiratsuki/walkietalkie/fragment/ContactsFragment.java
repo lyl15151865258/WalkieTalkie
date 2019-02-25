@@ -108,6 +108,7 @@ public class ContactsFragment extends BaseFragment {
         public void onTextChanged(CharSequence s, int start, int before, int count) {
             // 根据搜索框内容更新联系人列表
 
+            generateAndRefreshList(s.toString());
         }
     };
 
@@ -120,9 +121,7 @@ public class ContactsFragment extends BaseFragment {
         LogUtils.d(TAG, "刷新联系人列表");
         this.userList.clear();
         this.userList.addAll(userList);
-
-        generateList();
-        contactAdapter.notifyDataSetChanged();
+        generateAndRefreshList("");
     }
 
     /**
@@ -141,8 +140,7 @@ public class ContactsFragment extends BaseFragment {
         }
         if (position != -1) {
             userList.remove(position);
-            generateList();
-            contactAdapter.notifyDataSetChanged();
+            generateAndRefreshList("");
         }
     }
 
@@ -152,35 +150,60 @@ public class ContactsFragment extends BaseFragment {
     public void clearUserList() {
         LogUtils.d(TAG, "清空联系人列表");
         userList.clear();
-        generateList();
-        contactAdapter.notifyDataSetChanged();
+        generateAndRefreshList("");
     }
 
-    private void generateList() {
+    /**
+     * 根据关键字匹配联系人
+     *
+     * @param content 部门名称或者联系人的姓名的一部分
+     */
+    private void generateAndRefreshList(String content) {
         departmentList.clear();
         departmentUserList.clear();
         HashMap<String, List<User>> map = new HashMap<>();
         for (int i = 0; i < userList.size(); i++) {
+            String userName = userList.get(i).getUser_name();
             String departmentName = userList.get(i).getDepartment_name();
-            if (map.containsKey(departmentName)) {
-                List<User> users = map.get(departmentName);
-                if (users != null) {
-                    users.add(userList.get(i));
+            if (userName.contains(content) || departmentName.contains(content)) {
+                if (map.containsKey(departmentName)) {
+                    List<User> users = map.get(departmentName);
+                    if (users != null) {
+                        users.add(userList.get(i));
+                    } else {
+                        users = new ArrayList<>();
+                        users.add(userList.get(i));
+                    }
+                    map.put(departmentName, users);
                 } else {
-                    users = new ArrayList<>();
+                    List<User> users = new ArrayList<>();
                     users.add(userList.get(i));
+                    map.put(departmentName, users);
                 }
-                map.put(departmentName, users);
-            } else {
-                List<User> users = new ArrayList<>();
-                users.add(userList.get(i));
-                map.put(departmentName, users);
             }
+//            else if (userName.contains(content)) {
+//                if (map.containsKey(departmentName)) {
+//                    List<User> users = map.get(departmentName);
+//                    if (users != null) {
+//                        users.add(userList.get(i));
+//                    } else {
+//                        users = new ArrayList<>();
+//                        users.add(userList.get(i));
+//                    }
+//                    map.put(departmentName, users);
+//                } else {
+//                    List<User> users = new ArrayList<>();
+//                    users.add(userList.get(i));
+//                    map.put(departmentName, users);
+//                }
+//            }
         }
         for (Map.Entry<String, List<User>> entry : map.entrySet()) {
             departmentList.add(departmentList.size(), entry.getKey());
             departmentUserList.add(departmentUserList.size(), entry.getValue());
         }
+        contactAdapter.notifyDataSetChanged();
+        LogUtils.d("计算出来的列表长度分别为：departmentList：" + departmentList.size() + "，departmentUserList:" + departmentUserList.size());
     }
 
 }

@@ -268,7 +268,7 @@ public class MusicPlay {
                                 if (NetworkUtil.isNetworkAvailable(mContext) && UrlCheckUtil.checkUrlExist(filePath1)) {
                                     try {
                                         mediaPlayer.setDataSource(filePath1);
-                                        mediaPlayer.prepare();
+                                        mediaPlayer.prepareAsync();
                                     } catch (IOException e) {
                                         e.printStackTrace();
                                         mCountDownLatch.countDown();
@@ -283,18 +283,8 @@ public class MusicPlay {
                             }
                         });
                     } else {
-                        // 如果播放次数达到上限，则通知页面布局更新
-                        if (musicList.get(counter[0]).getPlayCount() != -1 &&
-                                musicList.get(counter[0]).getAlreadyPlayCount() >= musicList.get(counter[0]).getPlayCount()) {
-                            try {
-                                Intent intent1 = new Intent();
-                                intent1.setAction("NO_LONGER_PLAYING");
-                                intent1.putExtra("number", musicListList.get(counter[0]).getListNo());
-                                mContext.sendBroadcast(intent1);
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                            }
-                        }
+                        // 如果网络未连接或者音乐链接不存在
+                        mCountDownLatch.countDown();
                     }
 
 //                }
