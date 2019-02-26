@@ -4,9 +4,14 @@ import android.content.Context;
 import android.content.Intent;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
+import android.media.Ringtone;
+import android.media.RingtoneManager;
+import android.net.Uri;
 import android.os.Build;
 import android.os.LocaleList;
+import android.os.Vibrator;
 
+import jp.co.shiratsuki.walkietalkie.R;
 import jp.co.shiratsuki.walkietalkie.bean.Music;
 import jp.co.shiratsuki.walkietalkie.bean.MusicList;
 import jp.co.shiratsuki.walkietalkie.bean.User;
@@ -27,6 +32,8 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import static android.content.Context.VIBRATOR_SERVICE;
+
 /**
  * 音乐播放工具
  * Created at 2018/11/29 9:53
@@ -46,6 +53,8 @@ public class MusicPlay {
     private volatile static List<MusicList> musicListList;
     private boolean flag = true;
     private int interval1 = 1000, interval2 = 3000;
+    private Ringtone ringtone;
+    private Vibrator vibrator;
 
     private MusicPlay(Context context) {
         this.mContext = context;
@@ -57,6 +66,7 @@ public class MusicPlay {
         } else {
             serverHost = user.getMessage_ip();
         }
+        vibrator = (Vibrator) mContext.getSystemService(VIBRATOR_SERVICE);
     }
 
     /**
@@ -99,7 +109,16 @@ public class MusicPlay {
             this.interval1 = interval1;
             this.interval2 = interval2;
         } else {
-            LogUtils.d(TAG, "添加音乐，编号：" + musicList.getListNo() + "，列表中包含该音乐，添加失败");
+            LogUtils.d(TAG, "添加音乐，编号：" + musicList.getListNo() + "，列表中包含该音乐，修改其播放次数为0");
+            for (int i = 0; i < musicListList.size(); i++) {
+                if (musicListList.get(i).getListNo() == musicList.getListNo()) {
+                    musicListList.get(i).setAlreadyPlayCount(musicList.getPlayCount());
+                    for (int j = 0; j < musicListList.get(i).getMusicList().size(); j++) {
+                        Music music = musicListList.get(i).getMusicList().get(j);
+                        music.setAlreadyPlayCount(0);
+                    }
+                }
+            }
         }
     }
 
@@ -209,91 +228,55 @@ public class MusicPlay {
             // 调用await( ) 方法来阻塞当前线程，直到N减为0。
             CountDownLatch mCountDownLatch = new CountDownLatch(1);
 
-            mExecutorService.execute(() -> {
+            List<Music> musicList = musicListList.get(position).getMusicList();
+            final int[] counter = {0};
+            if (musicList.get(counter[0]).isFirstPlay()) {
+                LogUtils.d(TAG, "第一次播放，播放叮咚声音并震动");
+                // 通知主页面刷新布局
+                Intent intent = new Intent();
+                intent.setAction("CURRENT_PLAYING");
+                intent.putExtra("number", musicList.get(counter[0]).getListNo());
+                mContext.sendBroadcast(intent);
+                // 如果是第一次播放的话
+                CountDownLatch mCountDownLatch1 = new CountDownLatch(1);
+                mExecutorService.execute(() -> {
+                    // 播放提示音
+                    if (ringtone != null && ringtone.isPlaying()) {
+                        ringtone.stop();
+                    }
+                    Uri uri = Uri.parse("android.resource://jp.co.shiratsuki.walkietalkie/" + R.raw.dingdong);
+                    ringtone = RingtoneManager.getRingtone(mContext, uri);
+                    ringtone.setStreamType(AudioManager.STREAM_RING);
+                    ringtone.play();
+                    // 震动0.3秒
+                    vibrator.vibrate(500);
+                    try {
+                        Thread.sleep(1500);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    mCountDownLatch1.countDown();
+                });
                 try {
-                    final int[] counter = {0};
-                    if (musicListList.size() == 0) {
-                        return;
-                    }
-                    List<Music> musicList = musicListList.get(position).getMusicList();
-//                if (musicList.get(0).getPlayCount() != musicList.get(0).getAlreadyPlayCount()) {
-                    // 通知主页面刷新布局
-                    Intent intent = new Intent();
-                    intent.setAction("CURRENT_PLAYING");
-                    intent.putExtra("number", musicList.get(counter[0]).getListNo());
-                    mContext.sendBroadcast(intent);
-
-                    // 根据语言获取音乐路径
-                    String filePath = getMusicPath(musicListList.get(position), musicList.get(counter[0]).getFilePath());
-                    LogUtils.d(TAG, "检查文件是否存在，文件路径：" + filePath);
-                    if (NetworkUtil.isNetworkAvailable(mContext) && UrlCheckUtil.checkUrlExist(filePath)) {
-                        try {
-//                            mMediaPlayer.reset();
-                            mMediaPlayer.setDataSource(filePath);
-                            mMediaPlayer.prepareAsync();
-                            mMediaPlayer.setScreenOnWhilePlaying(true);
-                        } catch (IllegalArgumentException | IllegalStateException | IOException e) {
-                            e.printStackTrace();
-                        }
-                        mMediaPlayer.setOnPreparedListener(mediaPlayer -> mMediaPlayer.start());
-                        mMediaPlayer.setOnErrorListener((mediaPlayer, what, extra) -> {
-                            // 遇到错误就重置MediaPlayer
-                            LogUtils.d(TAG, "媒体文件获取异常，播放失败");
-                            mediaPlayer.reset();
-                            return false;
-                        });
-                        mMediaPlayer.setOnCompletionListener(mediaPlayer -> {
-                            // 如果播放次数达到上限，则通知页面布局更新
-                            if (musicList.get(counter[0]).getPlayCount() != -1 &&
-                                    musicList.get(counter[0]).getAlreadyPlayCount() >= musicList.get(counter[0]).getPlayCount()) {
-                                try {
-                                    Intent intent1 = new Intent();
-                                    intent1.setAction("NO_LONGER_PLAYING");
-                                    intent1.putExtra("number", musicListList.get(counter[0]).getListNo());
-                                    mContext.sendBroadcast(intent1);
-                                } catch (Exception e) {
-                                    e.printStackTrace();
-                                }
-                            }
-                            mediaPlayer.reset();
-                            counter[0]++;
-                            if (musicListList.size() == 0) {
-                                return;
-                            }
-                            List<Music> musicList1 = musicListList.get(position).getMusicList();
-
-//                    if (counter[0] < musicList1.size() && musicList.get(0).getPlayCount() != musicList.get(0).getAlreadyPlayCount()) {
-                            if (counter[0] < musicList1.size()) {
-                                String filePath1 = getMusicPath(musicListList.get(position), musicList.get(counter[0]).getFilePath());
-                                if (NetworkUtil.isNetworkAvailable(mContext) && UrlCheckUtil.checkUrlExist(filePath1)) {
-                                    try {
-                                        mediaPlayer.setDataSource(filePath1);
-                                        mediaPlayer.prepareAsync();
-                                    } catch (IOException e) {
-                                        e.printStackTrace();
-                                        mCountDownLatch.countDown();
-                                    }
-                                } else {
-                                    mediaPlayer.release();
-                                    mCountDownLatch.countDown();
-                                }
-                            } else {
-                                mediaPlayer.release();
-                                mCountDownLatch.countDown();
-                            }
-                        });
-                    } else {
-                        // 如果网络未连接或者音乐链接不存在
-                        mCountDownLatch.countDown();
-                    }
-
-//                }
-                } catch (Exception e) {
+                    mCountDownLatch1.await();
+                    notifyAll();
+                } catch (InterruptedException e) {
                     e.printStackTrace();
-                    mCountDownLatch.countDown();
                 }
-            });
-
+                musicList.get(counter[0]).setFirstPlay(false);
+                LogUtils.d(TAG, "回到播放线程，开始播放音乐列表");
+                // 播放音乐列表
+                playMusic(mMediaPlayer, mCountDownLatch, musicList, position, counter);
+            } else {
+                // 通知主页面刷新布局
+                Intent intent = new Intent();
+                intent.setAction("CURRENT_PLAYING");
+                intent.putExtra("number", musicList.get(counter[0]).getListNo());
+                mContext.sendBroadcast(intent);
+                // 播放音乐列表
+                playMusic(mMediaPlayer, mCountDownLatch, musicList, position, counter);
+            }
+            // 阻塞线程，等待中
             try {
                 mCountDownLatch.await();
                 notifyAll();
@@ -352,6 +335,114 @@ public class MusicPlay {
                 break;
         }
         return "http://" + serverHost + "/" + directory + "/" + fileName;
+    }
+
+    /**
+     * 子线程中播放音乐列表
+     *
+     * @param mMediaPlayer    音乐播放器对象
+     * @param mCountDownLatch CountDownLatch对象
+     * @param musicList       音乐列表
+     * @param position        当前播放的音乐列表在总列表的位置
+     * @param counter         计数器数组
+     */
+    private void playMusic(MediaPlayer mMediaPlayer, CountDownLatch mCountDownLatch, List<Music> musicList, int position, int[] counter) {
+        mExecutorService.execute(() -> {
+            try {
+                if (musicListList.size() == 0) {
+                    return;
+                }
+//                if (musicList.get(0).getPlayCount() != musicList.get(0).getAlreadyPlayCount()) {
+                // 根据语言获取音乐路径
+                String filePath = getMusicPath(musicListList.get(position), musicList.get(counter[0]).getFilePath());
+                LogUtils.d(TAG, "检查文件是否存在，文件路径：" + filePath);
+                if (NetworkUtil.isNetworkAvailable(mContext) && UrlCheckUtil.checkUrlExist(filePath)) {
+                    try {
+                        mMediaPlayer.reset();
+                        mMediaPlayer.setDataSource(filePath);
+                        mMediaPlayer.prepareAsync();
+                        mMediaPlayer.setScreenOnWhilePlaying(true);
+                    } catch (IllegalArgumentException | IllegalStateException | IOException e) {
+                        e.printStackTrace();
+                    }
+                    mMediaPlayer.setOnPreparedListener(mediaPlayer -> mMediaPlayer.start());
+                    mMediaPlayer.setOnErrorListener((mediaPlayer, what, extra) -> {
+                        // 遇到错误就重置MediaPlayer
+                        LogUtils.d(TAG, "媒体文件获取异常，播放失败");
+                        mediaPlayer.reset();
+                        return false;
+                    });
+                    mMediaPlayer.setOnCompletionListener(mediaPlayer -> {
+                        // 如果播放次数达到上限，则通知页面布局更新
+                        if (musicList.get(counter[0]).getPlayCount() != -1 &&
+                                musicList.get(counter[0]).getAlreadyPlayCount() >= musicList.get(counter[0]).getPlayCount()) {
+                            try {
+                                Intent intent1 = new Intent();
+                                intent1.setAction("NO_LONGER_PLAYING");
+                                intent1.putExtra("number", musicListList.get(counter[0]).getListNo());
+                                mContext.sendBroadcast(intent1);
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                        }
+                        mediaPlayer.reset();
+                        counter[0]++;
+                        if (musicListList.size() == 0) {
+                            return;
+                        }
+                        List<Music> musicList1 = musicListList.get(position).getMusicList();
+
+//                    if (counter[0] < musicList1.size() && musicList.get(0).getPlayCount() != musicList.get(0).getAlreadyPlayCount()) {
+                        if (counter[0] < musicList1.size()) {
+                            String filePath1 = getMusicPath(musicListList.get(position), musicList.get(counter[0]).getFilePath());
+                            LogUtils.d(TAG, "检查文件是否存在，文件路径：" + filePath1);
+                            if (NetworkUtil.isNetworkAvailable(mContext) && UrlCheckUtil.checkUrlExist(filePath1)) {
+                                try {
+                                    mediaPlayer.setDataSource(filePath1);
+                                    mediaPlayer.prepareAsync();
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                    mCountDownLatch.countDown();
+                                }
+                            } else {
+                                mediaPlayer.release();
+                                mCountDownLatch.countDown();
+                            }
+                        } else {
+                            mediaPlayer.release();
+                            mCountDownLatch.countDown();
+                        }
+                    });
+                } else {
+                    // 如果网络未连接或者音乐链接不存在
+                    mCountDownLatch.countDown();
+                }
+
+//                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                mCountDownLatch.countDown();
+            }
+        });
+    }
+
+    /**
+     * 播放叮咚声音（第一次播放一条报警信息的时候）
+     */
+    private void playDingDong(CountDownLatch mCountDownLatch) {
+        mExecutorService.execute(() -> {
+            // 播放提示音
+            if (ringtone != null && ringtone.isPlaying()) {
+                ringtone.stop();
+            }
+            Uri uri = Uri.parse("android.resource://jp.co.shiratsuki.walkietalkie/" + R.raw.dingdong);
+            ringtone = RingtoneManager.getRingtone(mContext, uri);
+            ringtone.setStreamType(AudioManager.STREAM_RING);
+            ringtone.play();
+            // 震动0.3秒
+            vibrator.vibrate(300);
+            mCountDownLatch.countDown();
+        });
     }
 
     public void release() {

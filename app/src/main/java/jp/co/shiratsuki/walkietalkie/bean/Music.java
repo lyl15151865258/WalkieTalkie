@@ -14,6 +14,8 @@ public class Music {
 
     private String filePath;
 
+    private boolean firstPlay = true;
+
     private int playCount;
 
     private int alreadyPlayCount;
@@ -39,6 +41,14 @@ public class Music {
 
     public void setFilePath(String filePath) {
         this.filePath = filePath;
+    }
+
+    public boolean isFirstPlay() {
+        return firstPlay;
+    }
+
+    public void setFirstPlay(boolean firstPlay) {
+        this.firstPlay = firstPlay;
     }
 
     public int getPlayCount() {

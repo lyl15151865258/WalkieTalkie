@@ -107,7 +107,6 @@ public class ContactsFragment extends BaseFragment {
         @Override
         public void onTextChanged(CharSequence s, int start, int before, int count) {
             // 根据搜索框内容更新联系人列表
-
             generateAndRefreshList(s.toString());
         }
     };
