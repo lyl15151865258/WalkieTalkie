@@ -65,6 +65,7 @@ public class P2PWaitingActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
         setContentView(R.layout.activity_p2p_waiting);
+        SPHelper.save("CanPlay", false);
         myUserId = GsonUtils.parseJSON(SPHelper.getString("User", GsonUtils.convertJSON(new User())), User.class).getUser_id();
         ivUserIcon = findViewById(R.id.iv_userIcon);
         tvDestination = findViewById(R.id.tv_destination);
@@ -281,6 +282,7 @@ public class P2PWaitingActivity extends BaseActivity {
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
+            SPHelper.save("CanPlay", true);
             ActivityController.finishActivity(P2PWaitingActivity.this);
         }).start();
     }

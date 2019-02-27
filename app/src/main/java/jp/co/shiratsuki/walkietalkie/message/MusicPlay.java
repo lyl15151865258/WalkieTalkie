@@ -157,24 +157,30 @@ public class MusicPlay {
                         // 如果已经播放次数小于需要播放的次数，或者，需要播放的次数为-1（无限循环播放）且已播放次数（默认为0，除非用户手动取消播放，会设置成需要播放次数）不等于需要播放次数（-1）
                         if (musicListList.get(i).getAlreadyPlayCount() < musicListList.get(i).getPlayCount() ||
                                 (musicListList.get(i).getPlayCount() == -1 && (musicListList.get(i).getAlreadyPlayCount() != musicListList.get(i).getPlayCount()))) {
-                            playOneList(i);
-                            LogUtils.d(TAG, "播放ID：" + musicListList.get(i).getListNo() + ",已经播放次数：" + musicListList.get(i).getAlreadyPlayCount());
-                            int alreadyPlayCount = musicListList.get(i).getAlreadyPlayCount();
-                            // 如果播放次数不为-1（为-1的话需要无限循环播放），播放次数加1
-                            if (musicListList.get(i).getPlayCount() != -1) {
-                                alreadyPlayCount = musicListList.get(i).getAlreadyPlayCount() + 1;
+
+                            if (SPHelper.getBoolean("CanPlay", false)) {
+                                playOneList(i);
+                                LogUtils.d(TAG, "播放ID：" + musicListList.get(i).getListNo() + ",已经播放次数：" + musicListList.get(i).getAlreadyPlayCount());
+                                int alreadyPlayCount = musicListList.get(i).getAlreadyPlayCount();
+                                // 如果播放次数不为-1（为-1的话需要无限循环播放）而且当前是允许播放，播放次数加1
+                                if (musicListList.get(i).getPlayCount() != -1 && SPHelper.getBoolean("CanPlay", false)) {
+                                    alreadyPlayCount = musicListList.get(i).getAlreadyPlayCount() + 1;
+                                } else {
+                                    LogUtils.d(TAG, "需要播放次数为-1或者当前以及暂停播放，因此播放次数无需增加");
+                                }
+                                musicListList.get(i).setAlreadyPlayCount(alreadyPlayCount);
+                                LogUtils.d(TAG, "播放ID：" + musicListList.get(i).getListNo() + ",已经播放次数：" + alreadyPlayCount);
+                                // 如果需要播放次数不为-1（无限循环播放），而且已经播放次数大于等于需要播放次数，添加到删除列表中
+                                if (musicListList.get(i).getPlayCount() != -1 && alreadyPlayCount >= musicListList.get(i).getPlayCount()) {
+                                    delList.add(musicListList.get(i));
+                                    // 通知页面布局更新
+                                    Intent intent1 = new Intent();
+                                    intent1.setAction("NO_LONGER_PLAYING");
+                                    intent1.putExtra("number", musicListList.get(i).getListNo());
+                                    mContext.sendBroadcast(intent1);
+                                }
                             }
-                            musicListList.get(i).setAlreadyPlayCount(alreadyPlayCount);
-                            LogUtils.d(TAG, "播放ID：" + musicListList.get(i).getListNo() + ",已经播放次数：" + alreadyPlayCount);
-                            // 如果需要播放次数不为-1（无限循环播放），而且已经播放次数大于等于需要播放次数，添加到删除列表中
-                            if (musicListList.get(i).getPlayCount() != -1 && alreadyPlayCount >= musicListList.get(i).getPlayCount()) {
-                                delList.add(musicListList.get(i));
-                                // 通知页面布局更新
-                                Intent intent1 = new Intent();
-                                intent1.setAction("NO_LONGER_PLAYING");
-                                intent1.putExtra("number", musicListList.get(i).getListNo());
-                                mContext.sendBroadcast(intent1);
-                            }
+
                             // 如果是列表末尾位置,等待interval2
                             if (i >= musicListList.size() - 1) {
                                 // 列表整体循环播放间隔
@@ -219,75 +225,62 @@ public class MusicPlay {
      */
     private void playOneList(int position) {
         synchronized (MusicPlay.this) {
-            MediaPlayer mMediaPlayer = new MediaPlayer();
-            mMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
             // CountDownLatch允许一个或多个线程等待其他线程执行完毕后再运行
             // CountDownLatch的构造函数接收int类型的参数作为计数器，若要等待N个点再执行后续逻辑，就传入N。
             // 这里的N可以是N个线程，也可以是N个执行步骤。
             // 当我们调用countDown( )方法时，N会减一。
             // 调用await( ) 方法来阻塞当前线程，直到N减为0。
             CountDownLatch mCountDownLatch = new CountDownLatch(1);
-
-            List<Music> musicList = musicListList.get(position).getMusicList();
-            final int[] counter = {0};
-            if (musicList.get(counter[0]).isFirstPlay()) {
-                LogUtils.d(TAG, "第一次播放，播放叮咚声音并震动");
-                // 通知主页面刷新布局
-                Intent intent = new Intent();
-                intent.setAction("CURRENT_PLAYING");
-                intent.putExtra("number", musicList.get(counter[0]).getListNo());
-                mContext.sendBroadcast(intent);
-                // 如果是第一次播放的话
-                CountDownLatch mCountDownLatch1 = new CountDownLatch(1);
-                mExecutorService.execute(() -> {
-                    // 播放提示音
-                    if (ringtone != null && ringtone.isPlaying()) {
-                        ringtone.stop();
-                    }
-                    Uri uri = Uri.parse("android.resource://jp.co.shiratsuki.walkietalkie/" + R.raw.dingdong);
-                    ringtone = RingtoneManager.getRingtone(mContext, uri);
-                    ringtone.setStreamType(AudioManager.STREAM_RING);
-                    ringtone.play();
-                    // 震动0.3秒
-                    vibrator.vibrate(500);
+            if (SPHelper.getBoolean("CanPlay", false)) {
+                MediaPlayer mMediaPlayer = new MediaPlayer();
+                mMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+                List<Music> musicList = musicListList.get(position).getMusicList();
+                final int[] counter = {0};
+                if (musicList.get(counter[0]).isFirstPlay()) {
+                    LogUtils.d(TAG, "第一次播放，播放叮咚声音并震动");
+                    // 通知主页面刷新布局
+                    Intent intent = new Intent();
+                    intent.setAction("CURRENT_PLAYING");
+                    intent.putExtra("number", musicList.get(counter[0]).getListNo());
+                    mContext.sendBroadcast(intent);
+                    // 如果是第一次播放的话，播放叮咚声音
+                    CountDownLatch mCountDownLatch1 = new CountDownLatch(1);
+                    playDingDong(mCountDownLatch1);
                     try {
-                        Thread.sleep(1500);
+                        mCountDownLatch1.await();
+                        notifyAll();
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
-                    mCountDownLatch1.countDown();
-                });
+                    musicList.get(counter[0]).setFirstPlay(false);
+                    LogUtils.d(TAG, "回到播放线程，开始播放音乐列表");
+                    // 播放音乐列表
+                    playMusic(mMediaPlayer, mCountDownLatch, musicList, position, counter);
+                } else {
+                    // 通知主页面刷新布局
+                    Intent intent = new Intent();
+                    intent.setAction("CURRENT_PLAYING");
+                    intent.putExtra("number", musicList.get(counter[0]).getListNo());
+                    mContext.sendBroadcast(intent);
+                    // 播放音乐列表
+                    playMusic(mMediaPlayer, mCountDownLatch, musicList, position, counter);
+                }
+                // 阻塞线程，等待中
                 try {
-                    mCountDownLatch1.await();
+                    mCountDownLatch.await();
                     notifyAll();
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-                musicList.get(counter[0]).setFirstPlay(false);
-                LogUtils.d(TAG, "回到播放线程，开始播放音乐列表");
-                // 播放音乐列表
-                playMusic(mMediaPlayer, mCountDownLatch, musicList, position, counter);
+                // 播放完毕通知主页面刷新布局
+                Intent intent1 = new Intent();
+                intent1.setAction("CURRENT_PLAYING");
+                intent1.putExtra("number", -1);
+                mContext.sendBroadcast(intent1);
             } else {
-                // 通知主页面刷新布局
-                Intent intent = new Intent();
-                intent.setAction("CURRENT_PLAYING");
-                intent.putExtra("number", musicList.get(counter[0]).getListNo());
-                mContext.sendBroadcast(intent);
-                // 播放音乐列表
-                playMusic(mMediaPlayer, mCountDownLatch, musicList, position, counter);
+                LogUtils.d(TAG, "当前异常信息的音乐暂停播放");
+                mCountDownLatch.countDown();
             }
-            // 阻塞线程，等待中
-            try {
-                mCountDownLatch.await();
-                notifyAll();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            // 播放完毕通知主页面刷新布局
-            Intent intent1 = new Intent();
-            intent1.setAction("CURRENT_PLAYING");
-            intent1.putExtra("number", -1);
-            mContext.sendBroadcast(intent1);
         }
     }
 
@@ -356,7 +349,7 @@ public class MusicPlay {
                 // 根据语言获取音乐路径
                 String filePath = getMusicPath(musicListList.get(position), musicList.get(counter[0]).getFilePath());
                 LogUtils.d(TAG, "检查文件是否存在，文件路径：" + filePath);
-                if (NetworkUtil.isNetworkAvailable(mContext) && UrlCheckUtil.checkUrlExist(filePath)) {
+                if (NetworkUtil.isNetworkAvailable(mContext) && UrlCheckUtil.checkUrlExist(filePath) && SPHelper.getBoolean("CanPlay", false)) {
                     try {
                         mMediaPlayer.reset();
                         mMediaPlayer.setDataSource(filePath);
@@ -396,7 +389,7 @@ public class MusicPlay {
                         if (counter[0] < musicList1.size()) {
                             String filePath1 = getMusicPath(musicListList.get(position), musicList.get(counter[0]).getFilePath());
                             LogUtils.d(TAG, "检查文件是否存在，文件路径：" + filePath1);
-                            if (NetworkUtil.isNetworkAvailable(mContext) && UrlCheckUtil.checkUrlExist(filePath1)) {
+                            if (NetworkUtil.isNetworkAvailable(mContext) && UrlCheckUtil.checkUrlExist(filePath1) && SPHelper.getBoolean("CanPlay", false)) {
                                 try {
                                     mediaPlayer.setDataSource(filePath1);
                                     mediaPlayer.prepareAsync();
@@ -415,12 +408,14 @@ public class MusicPlay {
                     });
                 } else {
                     // 如果网络未连接或者音乐链接不存在
+                    mMediaPlayer.release();
                     mCountDownLatch.countDown();
                 }
 
 //                }
             } catch (Exception e) {
                 e.printStackTrace();
+                mMediaPlayer.release();
                 mCountDownLatch.countDown();
             }
         });
@@ -440,7 +435,12 @@ public class MusicPlay {
             ringtone.setStreamType(AudioManager.STREAM_RING);
             ringtone.play();
             // 震动0.3秒
-            vibrator.vibrate(300);
+            vibrator.vibrate(500);
+            try {
+                Thread.sleep(1500);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
             mCountDownLatch.countDown();
         });
     }

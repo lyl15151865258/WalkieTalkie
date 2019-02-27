@@ -158,6 +158,8 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
 
         // 初始化耳机按键标记
         SPHelper.save("KEY_STATUS_UP", true);
+        // 初始化异常声音是否允许播放的标记
+        SPHelper.save("CanPlay", true);
 
         // 设置裁剪图片结果监听
         setOnPictureSelectedListener(onPictureSelectedListener);
@@ -556,6 +558,7 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
                 }
 
                 SPHelper.save("KEY_STATUS_UP", true);
+                SPHelper.save("CanPlay", true);
                 showToast(getString(R.string.ExitChatRoom));
             }));
         }
@@ -873,7 +876,7 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
                     case "KEY_UP":
                         vibrator.vibrate(50);
                         if (!isInRoom) {
-                            showToast(getString(R.string.OutChatRoom));
+                            MainActivity.this.showToast(getString(R.string.OutChatRoom));
                         }
                         break;
                     case "WIFI_DISCONNECTED":
@@ -979,10 +982,10 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
                         // 一对一通话请求，对方不在线或者忙线
                         switch (intent.getStringExtra("errorMsg")) {
                             case "ERROR_BUSY":
-                                showToast(getString(R.string.TargetBusy));
+                                MainActivity.this.showToast(getString(R.string.TargetBusy));
                                 break;
                             case "ERROR_OFFLINE":
-                                showToast(R.string.TargetOffline);
+                                MainActivity.this.showToast(R.string.TargetOffline);
                                 break;
                             default:
                                 break;

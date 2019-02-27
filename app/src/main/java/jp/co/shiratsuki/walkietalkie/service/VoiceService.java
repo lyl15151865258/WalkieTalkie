@@ -517,7 +517,7 @@ public class VoiceService extends Service implements IWebRTCHelper, VolumeChange
         // 如果所有人都不讲话了
         if (!someoneSpeaking) {
             SPHelper.save("SomeoneSpeaking", false);
-            int silentVolume = SPHelper.getInt("SilentVolume", mAudioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC) / 2);
+            int silentVolume = SPHelper.getInt("SilentVolume", mAudioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC) / 4 * 3);
             LogUtils.d(TAG, "所有人都不讲话了，当前音量为：" + silentVolume);
             mAudioManager.setStreamVolume(AudioManager.STREAM_MUSIC, silentVolume, AudioManager.FLAG_VIBRATE);
 
@@ -525,7 +525,7 @@ public class VoiceService extends Service implements IWebRTCHelper, VolumeChange
             intent.putExtra("VolumeControlStream", AudioManager.STREAM_MUSIC);
         } else {
             SPHelper.save("SomeoneSpeaking", true);
-            int talkVolume = SPHelper.getInt("TalkVolume", mAudioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC) / 4 * 3);
+            int talkVolume = SPHelper.getInt("TalkVolume", mAudioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC) / 2);
             LogUtils.d(TAG, "当前有人在讲话，当前音量为：" + talkVolume);
             mAudioManager.setStreamVolume(AudioManager.STREAM_MUSIC, talkVolume, AudioManager.FLAG_VIBRATE);
 

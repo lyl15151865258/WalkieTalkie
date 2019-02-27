@@ -24,6 +24,7 @@ import org.webrtc.IceCandidate;
 import org.webrtc.MediaConstraints;
 import org.webrtc.MediaStream;
 import org.webrtc.PeerConnection;
+import org.webrtc.PeerConnection.IceServer;
 import org.webrtc.PeerConnectionFactory;
 import org.webrtc.SdpObserver;
 import org.webrtc.SessionDescription;
@@ -53,21 +54,21 @@ public class WebRTCHelper implements ISignalingEvents {
     public final static String TAG = "WebRTCHelper";
 
     private Context mContext;
-    private PeerConnectionFactory _factory;
-    private MediaStream _localStream;
-    private AudioTrack _localAudioTrack;
+    private PeerConnectionFactory peerConnectionFactory;
+    private MediaStream localStream;
+    private AudioTrack mAudioTrack;
     private VideoCapturerAndroid captureAndroid;
     private VideoSource videoSource;
 
     private AudioManager mAudioManager;
 
-    private ArrayList<String> _connectionIdArray;
-    private Map<String, Peer> _connectionPeerDic;
+    private ArrayList<String> connectionIdList;
+    private Map<String, Peer> connectionPeerList;
 
     private String _myId;
     private IWebRTCHelper IHelper;
 
-    private ArrayList<PeerConnection.IceServer> ICEServers;
+    private ArrayList<IceServer> ICEServers;
     private boolean videoEnable;
 
     enum Role {Caller, Receiver,}
@@ -84,19 +85,19 @@ public class WebRTCHelper implements ISignalingEvents {
 
     public WebRTCHelper(Context context, IWebRTCHelper IHelper, Parcelable[] servers) {
         this.IHelper = IHelper;
-        this._connectionPeerDic = new HashMap<>();
-        this._connectionIdArray = new ArrayList<>();
+        this.connectionPeerList = new HashMap<>();
+        this.connectionIdList = new ArrayList<>();
         this.ICEServers = new ArrayList<>();
         for (Parcelable parcelable : servers) {
             MyIceServer myIceServer = (MyIceServer) parcelable;
-            PeerConnection.IceServer iceServer = new PeerConnection.IceServer(myIceServer.uri, myIceServer.username, myIceServer.password);
+            IceServer iceServer = new IceServer(myIceServer.uri, myIceServer.username, myIceServer.password);
             ICEServers.add(iceServer);
         }
         mContext = context;
         mAudioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
         LogUtils.d(TAG, "初始化PeerConnection");
         PeerConnectionFactory.initializeAndroidGlobals(IHelper, true, true, true);
-        _factory = new PeerConnectionFactory();
+        peerConnectionFactory = new PeerConnectionFactory();
 
         threadPool = new ThreadPoolExecutor(5, 10, 60, TimeUnit.SECONDS,
                 new SynchronousQueue<>(), (r) -> {
@@ -139,9 +140,9 @@ public class WebRTCHelper implements ISignalingEvents {
     @Override  // 我加入到房间
     public void onJoinToRoom(List<String> connections, String myId) {
         LogUtils.d(TAG, "自己加入到房间");
-        _connectionIdArray.addAll(connections);
+        connectionIdList.addAll(connections);
         _myId = myId;
-        if (_localStream == null) {
+        if (localStream == null) {
             LogUtils.d(TAG, "创建本地流");
             createLocalStream();
         }
@@ -160,19 +161,23 @@ public class WebRTCHelper implements ISignalingEvents {
 
         IHelper.updateRoomContacts(userList);
 
-        if (_localStream == null) {
+        if (localStream == null) {
             createLocalStream();
         }
-        Peer mPeer = new Peer(userId);
-        mPeer.pc.addStream(_localStream);
 
-        _connectionIdArray.add(userId);
-        _connectionPeerDic.put(userId, mPeer);
+        Peer mPeer = new Peer(userId);
+        mPeer.pc.addStream(localStream);
+
+        if (!connectionIdList.contains(userId)) {
+            connectionIdList.add(userId);
+        }
+        connectionPeerList.remove(userId);
+        connectionPeerList.put(userId, mPeer);
     }
 
     @Override
     public void onRemoteIceCandidate(String userId, IceCandidate iceCandidate) {
-        Peer mPeer = _connectionPeerDic.get(userId);
+        Peer mPeer = connectionPeerList.get(userId);
         if (mPeer != null) {
             mPeer.pc.addIceCandidate(iceCandidate);
         }
@@ -187,7 +192,7 @@ public class WebRTCHelper implements ISignalingEvents {
     @Override
     public void onReceiveOffer(String userId, String sdp) {
         _role = Role.Receiver;
-        Peer mPeer = _connectionPeerDic.get(userId);
+        Peer mPeer = connectionPeerList.get(userId);
         SessionDescription sessionDescription = new SessionDescription(SessionDescription.Type.OFFER, sdp);
         if (mPeer != null) {
             mPeer.pc.setRemoteDescription(mPeer, sessionDescription);
@@ -196,7 +201,7 @@ public class WebRTCHelper implements ISignalingEvents {
 
     @Override
     public void onReceiverAnswer(String userId, String sdp) {
-        Peer mPeer = _connectionPeerDic.get(userId);
+        Peer mPeer = connectionPeerList.get(userId);
         SessionDescription sessionDescription = new SessionDescription(SessionDescription.Type.ANSWER, sdp);
         if (mPeer != null) {
             mPeer.pc.setRemoteDescription(mPeer, sessionDescription);
@@ -241,8 +246,8 @@ public class WebRTCHelper implements ISignalingEvents {
 
     // 设置自己静音
     public void toggleMute(boolean enable) {
-        if (_localAudioTrack != null) {
-            _localAudioTrack.setEnabled(enable);
+        if (mAudioTrack != null) {
+            mAudioTrack.setEnabled(enable);
         }
     }
 
@@ -385,14 +390,14 @@ public class WebRTCHelper implements ISignalingEvents {
         if (videoSource != null) {
             videoSource.stop();
         }
-        ArrayList myCopy = (ArrayList) _connectionIdArray.clone();
+        ArrayList myCopy = (ArrayList) connectionIdList.clone();
         for (Object Id : myCopy) {
             closePeerConnection((String) Id);
         }
-        if (_connectionIdArray != null) {
-            _connectionIdArray.clear();
+        if (connectionIdList != null) {
+            connectionIdList.clear();
         }
-        _localStream = null;
+        localStream = null;
 
         if (IHelper != null) {
             IHelper.onLeaveRoom();
@@ -410,7 +415,7 @@ public class WebRTCHelper implements ISignalingEvents {
         if (videoSource != null) {
             videoSource.stop();
         }
-        ArrayList myCopy = (ArrayList) _connectionIdArray.clone();
+        ArrayList myCopy = (ArrayList) connectionIdList.clone();
         for (Object Id : myCopy) {
             closePeerConnection((String) Id);
         }
@@ -418,10 +423,10 @@ public class WebRTCHelper implements ISignalingEvents {
 //        if (webSocket != null) {
 //            webSocket.close();
 //        }
-        if (_connectionIdArray != null) {
-            _connectionIdArray.clear();
+        if (connectionIdList != null) {
+            connectionIdList.clear();
         }
-        _localStream = null;
+        localStream = null;
 
         if (IHelper != null) {
             IHelper.onLeaveGroup();
@@ -433,14 +438,14 @@ public class WebRTCHelper implements ISignalingEvents {
         if (videoSource != null) {
             videoSource.stop();
         }
-        ArrayList myCopy = (ArrayList) _connectionIdArray.clone();
+        ArrayList myCopy = (ArrayList) connectionIdList.clone();
         for (Object Id : myCopy) {
             closePeerConnection((String) Id);
         }
-        if (_connectionIdArray != null) {
-            _connectionIdArray.clear();
+        if (connectionIdList != null) {
+            connectionIdList.clear();
         }
-        _localStream = null;
+        localStream = null;
         if (IHelper != null) {
             IHelper.onLeaveGroup();
             SPHelper.save("KEY_STATUS_UP", true);
@@ -454,11 +459,11 @@ public class WebRTCHelper implements ISignalingEvents {
 
     // 创建本地流
     private void createLocalStream() {
-        _localStream = _factory.createLocalMediaStream("ARDAMS");
+        localStream = peerConnectionFactory.createLocalMediaStream("ARDAMS");
         // 音频
-        AudioSource audioSource = _factory.createAudioSource(new MediaConstraints());
-        _localAudioTrack = _factory.createAudioTrack("ARDAMSa0", audioSource);
-        _localStream.addTrack(_localAudioTrack);
+        AudioSource audioSource = peerConnectionFactory.createAudioSource(new MediaConstraints());
+        mAudioTrack = peerConnectionFactory.createAudioTrack("ARDAMSa0", audioSource);
+        localStream.addTrack(mAudioTrack);
 
         if (videoEnable) {
             String frontFacingDevice = CameraEnumerationAndroid.getNameOfFrontFacingDevice();
@@ -491,34 +496,33 @@ public class WebRTCHelper implements ISignalingEvents {
             });
             // 视频
             MediaConstraints audioConstraints = localVideoConstraints();
-            videoSource = _factory.createVideoSource(captureAndroid, audioConstraints);
-            VideoTrack localVideoTrack = _factory.createVideoTrack("ARDAMSv0", videoSource);
-            _localStream.addTrack(localVideoTrack);
+            videoSource = peerConnectionFactory.createVideoSource(captureAndroid, audioConstraints);
+            VideoTrack localVideoTrack = peerConnectionFactory.createVideoTrack("ARDAMSv0", videoSource);
+            localStream.addTrack(localVideoTrack);
         }
 
-
         if (IHelper != null) {
-            IHelper.onSetLocalStream(_localStream, _myId);
+            IHelper.onSetLocalStream(localStream, _myId);
         }
 
     }
 
     // 创建所有连接
     private void createPeerConnections() {
-        for (Object str : _connectionIdArray) {
+        for (Object str : connectionIdList) {
             Peer peer = new Peer((String) str);
-            _connectionPeerDic.put((String) str, peer);
+            connectionPeerList.put((String) str, peer);
         }
     }
 
     // 为所有连接添加流
     private void addStreams() {
         LogUtils.d(TAG, "为所有连接添加流");
-        for (Map.Entry<String, Peer> entry : _connectionPeerDic.entrySet()) {
-            if (_localStream == null) {
+        for (Map.Entry<String, Peer> entry : connectionPeerList.entrySet()) {
+            if (localStream == null) {
                 createLocalStream();
             }
-            entry.getValue().pc.addStream(_localStream);
+            entry.getValue().pc.addStream(localStream);
         }
 
     }
@@ -527,7 +531,7 @@ public class WebRTCHelper implements ISignalingEvents {
     private void createOffers() {
         LogUtils.d(TAG, "为所有连接创建offer");
 
-        for (Map.Entry<String, Peer> entry : _connectionPeerDic.entrySet()) {
+        for (Map.Entry<String, Peer> entry : connectionPeerList.entrySet()) {
             _role = Role.Caller;
             Peer mPeer = entry.getValue();
             mPeer.pc.createOffer(mPeer, offerOrAnswerConstraint());
@@ -541,12 +545,12 @@ public class WebRTCHelper implements ISignalingEvents {
             IHelper.removeUser(connectionId);
         }
         LogUtils.d(TAG, "关闭" + connectionId + "通道流");
-        Peer mPeer = _connectionPeerDic.get(connectionId);
+        Peer mPeer = connectionPeerList.get(connectionId);
         if (mPeer != null) {
             mPeer.pc.close();
         }
-        _connectionPeerDic.remove(connectionId);
-        _connectionIdArray.remove(connectionId);
+        connectionPeerList.remove(connectionId);
+        connectionIdList.remove(connectionId);
 
         IHelper.onCloseWithId(connectionId);
     }
@@ -691,17 +695,17 @@ public class WebRTCHelper implements ISignalingEvents {
 
         //初始化 RTCPeerConnection 连接管道
         private PeerConnection createPeerConnection() {
-            if (_factory == null) {
+            if (peerConnectionFactory == null) {
                 PeerConnectionFactory.initializeAndroidGlobals(IHelper, true, true, true);
-                _factory = new PeerConnectionFactory();
+                peerConnectionFactory = new PeerConnectionFactory();
             }
             // 管道连接抽象类实现方法
-            return _factory.createPeerConnection(ICEServers, peerConnectionConstraints(), this);
+            return peerConnectionFactory.createPeerConnection(ICEServers, peerConnectionConstraints(), this);
         }
 
     }
 
-    public void release(){
+    public void release() {
         leaveGroup();
         closeWebSocket();
         flag = false;

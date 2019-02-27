@@ -71,6 +71,7 @@ public class P2PRingingActivity extends BaseActivity {
                 | WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON);
         window.setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
         setContentView(R.layout.activity_p2p_ringing);
+        SPHelper.save("CanPlay", false);
         myUserId = GsonUtils.parseJSON(SPHelper.getString("User", GsonUtils.convertJSON(new User())), User.class).getUser_id();
         ivUserIcon = findViewById(R.id.iv_userIcon);
         tvInviter = findViewById(R.id.tv_inviter);
@@ -130,6 +131,7 @@ public class P2PRingingActivity extends BaseActivity {
             iVoiceService = null;
         }
     };
+
     private View.OnClickListener onClickListener = (v) -> {
         vibrator.vibrate(50);
         switch (v.getId()) {
@@ -291,6 +293,7 @@ public class P2PRingingActivity extends BaseActivity {
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
+            SPHelper.save("CanPlay", true);
             ActivityController.finishActivity(P2PRingingActivity.this);
         }).start();
     }
