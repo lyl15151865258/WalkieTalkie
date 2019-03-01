@@ -17,4 +17,5 @@ interface IVoiceService {
     void timeOut(String userId);
     void registerCallback(IVoiceCallback callback);
     void unRegisterCallback(IVoiceCallback callback);
+    void stopSelf();
 }

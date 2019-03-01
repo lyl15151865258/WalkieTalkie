@@ -24,7 +24,7 @@
         android:orientation="vertical"
         android:padding="@dimen/dp_3">
 
-        <jp.co.shiratsuki.walkietalkie.widget.MyTextView
+        <jp.co.shiratsuki.walkietalkie.widget.textview.MyTextView
             android:id="@+id/tvUserInfo"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -33,7 +33,7 @@
             android:textColor="@color/black"
             android:textSize="@dimen/sp_16" />
 
-        <jp.co.shiratsuki.walkietalkie.widget.MyTextView
+        <jp.co.shiratsuki.walkietalkie.widget.textview.MyTextView
             android:id="@+id/tvMessage"
             android:layout_width="match_parent"
             android:layout_height="0dp"

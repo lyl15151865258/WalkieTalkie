@@ -23,7 +23,7 @@
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
-        <jp.co.shiratsuki.walkietalkie.widget.MarqueeTextView
+        <jp.co.shiratsuki.walkietalkie.widget.textview.MarqueeTextView
             android:id="@+id/tvUserName"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -35,7 +35,7 @@
             android:textColor="@color/black"
             android:textSize="@dimen/sp_16" />
 
-        <jp.co.shiratsuki.walkietalkie.widget.MarqueeTextView
+        <jp.co.shiratsuki.walkietalkie.widget.textview.MarqueeTextView
             android:id="@+id/tvDepartment"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

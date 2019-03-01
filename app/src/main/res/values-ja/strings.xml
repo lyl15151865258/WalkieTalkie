@@ -154,5 +154,36 @@
     <string name="VoiceServiceRunning">トランシーバー音声サービスの実行&#8230;</string>
     <string name="RealTimePushService">異常情報リアルタイムプッシュサービス</string>
     <string name="RealTimePushServiceRunning">異常情報リアルタイムプッシュサービス実行中&#8230;</string>
+    <string name="HangUp">電話を切る</string>
+    <string name="Answer">答えて</string>
+    <string name="InviteYouToMakeAVoiceCall">音声電話をかけるように招待します&#8230;</string>
+    <string name="WaitingForAccept">相手が招待を受け入れるのを待っています&#8230;</string>
+    <string name="VersionCode">バージョン番号</string>
+    <string name="VersionView">バージョンを見る</string>
+    <string name="update_version">バージョンアップ（%1$s）</string>
+    <string name="QrCodeShare">私の独占共有QRコード</string>
+    <string name="ShareTo">に共有する</string>
+    <string name="ShareToOthers">他の人と共有する</string>
+    <string name="GeneratingQRCode">QRコード生成</string>
+    <string name="VersionCodeNo">バージョン番号：</string>
+    <string name="ReleaseTime">リリース時間：</string>
+    <string name="UpdateLog">更新ログ：</string>
+    <string name="Download">ダウンロード</string>
+    <string name="Searching">お問い合わせ&#8230;</string>
+    <string name="warning_redownload">直接インストールされているかどうかにかかわらず、このバージョンのファイルは既にダウンロードされています</string>
+    <string name="CurrentVersion">現在のバージョン：</string>
+    <string name="LatestVersion">最新バージョン：</string>
+    <string name="Later">後で</string>
+    <string name="UpdateNow">今すぐ更新</string>
+    <string name="DownloadAgain">再ダウンロード</string>
+    <string name="InstallDirectly">直接インストール</string>
+    <string name="Downloaded">ダウンロード済み：</string>
+    <string name="TotalSize">合計サイズ：</string>
+    <string name="YourAppIsTheLatestVersion">あなたのソフトウェアは最新バージョンです</string>
+    <string name="ChangeAccount">アカウントの切り替え</string>
+    <string name="MainServerSettings">プライマリサーバ設定</string>
+    <string name="PrimaryServerTips">入力しなかった場合は、デフォルトのサーバーアドレスでログインします。</string>
+    <string name="SaveToGallerySuccessfully">画像をアルバムに保存しました</string>
+    <string name="LongPressToSave">（画像を長押ししてアルバムに保存）</string>
 
 </resources>

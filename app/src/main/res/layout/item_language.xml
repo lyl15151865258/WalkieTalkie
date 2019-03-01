@@ -9,7 +9,7 @@
     android:paddingLeft="@dimen/dp_16"
     android:paddingRight="@dimen/dp_16">
 
-    <jp.co.shiratsuki.walkietalkie.widget.MyTextView
+    <jp.co.shiratsuki.walkietalkie.widget.textview.MyTextView
         android:id="@+id/tv_language"
         android:layout_width="0dp"
         android:layout_height="match_parent"

@@ -31,7 +31,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/dp_15"
         android:gravity="center"
-        android:text="邀请您进行语音通话..."
+        android:text="@string/InviteYouToMakeAVoiceCall"
         android:textColor="@color/white"
         android:textSize="@dimen/sp_16" />
 
@@ -81,7 +81,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:gravity="center"
-                android:text="挂断"
+                android:text="@string/HangUp"
                 android:textColor="#FFFFFF"
                 android:textSize="@dimen/sp_16" />
 
@@ -109,7 +109,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:gravity="center"
-                android:text="接听"
+                android:text="@string/Answer"
                 android:textColor="#FFFFFF"
                 android:textSize="@dimen/sp_16" />
         </LinearLayout>

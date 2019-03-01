@@ -1,11 +1,13 @@
 package jp.co.shiratsuki.walkietalkie.network;
 
 import jp.co.shiratsuki.walkietalkie.bean.DepartmentResult;
+import jp.co.shiratsuki.walkietalkie.bean.LoginResult;
 import jp.co.shiratsuki.walkietalkie.bean.UserOperateResult;
 import jp.co.shiratsuki.walkietalkie.bean.NormalResult;
 
 import java.util.Map;
 
+import jp.co.shiratsuki.walkietalkie.bean.version.VersionLog;
 import okhttp3.MultipartBody;
 import okhttp3.RequestBody;
 import okhttp3.ResponseBody;
@@ -28,6 +30,7 @@ import rx.Observable;
  */
 
 public interface NjMeterApi {
+
     /**
      * 主账号注册的请求
      *
@@ -46,7 +49,7 @@ public interface NjMeterApi {
      */
     @FormUrlEncoded
     @POST("user/login.do")
-    Observable<UserOperateResult> login(@FieldMap Map<String, String> params);
+    Observable<LoginResult> login(@FieldMap Map<String, String> params);
 
     /**
      * 更新用户信息
@@ -96,6 +99,15 @@ public interface NjMeterApi {
     @Multipart
     @POST("user/uploadHeadPortrait.do")
     Observable<NormalResult> uploadUserIcon(@Part("information") RequestBody information, @Part MultipartBody.Part file);
+
+    /**
+     * 软件历史版本更新日志信息
+     *
+     * @return 返回值
+     */
+    @FormUrlEncoded
+    @POST("VersionController/getNewVersionUpdateLog.do")
+    Observable<VersionLog> getVersionLog(@FieldMap Map<String, String> params);
 
     /**
      * 上传错误日志文件

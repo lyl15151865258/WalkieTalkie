@@ -76,7 +76,7 @@
     <string name="Version">版本查看</string>
     <string name="VersionUpdate">版本更新</string>
     <string name="Share">分享给好友</string>
-    <string name="Logout">退    出</string>
+    <string name="Logout">退出登录</string>
 
     <string name="camera_pop_camera">相机拍摄</string>
     <string name="camera_pop_album">从相册选取</string>
@@ -153,6 +153,37 @@
     <string name="UsingWalkieTalkie">正在使用对讲机</string>
     <string name="VoiceServiceRunning">对讲机语音服务运行中&#8230;</string>
     <string name="RealTimePushService">异常信息实时推送服务</string>
-    <string name="RealTimePushServiceRunning">异常信息实时推送服务运行中...</string>
+    <string name="RealTimePushServiceRunning">异常信息实时推送服务运行中&#8230;</string>
+    <string name="HangUp">挂断</string>
+    <string name="Answer">接听</string>
+    <string name="InviteYouToMakeAVoiceCall">邀请您进行语音通话&#8230;</string>
+    <string name="WaitingForAccept">正在等待对方接受邀请&#8230;</string>
+    <string name="VersionCode">版本号</string>
+    <string name="VersionView">版本查看</string>
+    <string name="update_version">版本升级（%1$s）</string>
+    <string name="QrCodeShare">我的专属分享二维码</string>
+    <string name="ShareTo">分享到</string>
+    <string name="ShareToOthers">分享给他人</string>
+    <string name="GeneratingQRCode">二维码生成中</string>
+    <string name="VersionCodeNo">版 本 号：</string>
+    <string name="ReleaseTime">发布时间：</string>
+    <string name="UpdateLog">更新日志：</string>
+    <string name="Download">下载</string>
+    <string name="Searching">查询中&#8230;</string>
+    <string name="warning_redownload">&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;您已经下载过该版本文件，是否直接安装？</string>
+    <string name="CurrentVersion">当前版本：</string>
+    <string name="LatestVersion">最新版本：</string>
+    <string name="Later">以后再说</string>
+    <string name="UpdateNow">现在更新</string>
+    <string name="DownloadAgain">重新下载</string>
+    <string name="InstallDirectly">直接安装</string>
+    <string name="Downloaded">已下载：</string>
+    <string name="TotalSize">总大小：</string>
+    <string name="YourAppIsTheLatestVersion">您的软件是最新版本</string>
+    <string name="ChangeAccount">切换账号</string>
+    <string name="MainServerSettings">主服务器设置</string>
+    <string name="PrimaryServerTips">如果您不填写，则采用默认的服务器地址进行登录</string>
+    <string name="SaveToGallerySuccessfully">图片已保存到相册</string>
+    <string name="LongPressToSave">（长按图片保存到相册）</string>
 
 </resources>

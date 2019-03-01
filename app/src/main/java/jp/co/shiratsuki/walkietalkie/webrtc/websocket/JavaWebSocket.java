@@ -124,12 +124,16 @@ public class JavaWebSocket {
         Map<String, Object> map = new HashMap<>();
         map.put("eventName", "__join");
         User user = GsonUtils.parseJSON(SPHelper.getString("User", GsonUtils.convertJSON(new User())), User.class);
-        user.setRoom_id(room);
+        user.setChatRoomId(room);
         user.setInroom(false);
         user.setSpeaking(false);
         SPHelper.save("User", GsonUtils.convertJSON(user));
         map.put("data", user);
         sendMessage(GsonUtils.convertJSON(map));
+
+        SPHelper.save("TemporaryRoom", room);
+        // 标记为用户非正常退出房间
+        SPHelper.save("NormalExit", false);
     }
 
     public void sendAnswer(String userId, String sdp) {
@@ -144,7 +148,6 @@ public class JavaWebSocket {
         map.put("data", childMap2);
         sendMessage(GsonUtils.convertJSON(map));
     }
-
 
     public void sendOffer(String userId, String sdp) {
         HashMap<String, Object> childMap1 = new HashMap<>();
@@ -356,11 +359,7 @@ public class JavaWebSocket {
     private void handleP2PVoiceAccept(String message) {
         P2PAccept p2PAccept = GsonUtils.parseJSON(message, P2PAccept.class);
         String roomId = p2PAccept.getData().getRoomId();
-        joinRoom(roomId);
-        Intent intent = new Intent();
-        intent.setAction("P2P_VOICE_REQUEST_ACCEPT");
-        intent.putExtra("roomId", roomId);
-        mContext.sendBroadcast(intent);
+        events.startP2PChat(roomId);
     }
 
     // 收到一对一通话请求结果

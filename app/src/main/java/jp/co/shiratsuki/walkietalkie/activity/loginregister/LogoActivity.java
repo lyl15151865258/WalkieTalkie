@@ -21,7 +21,7 @@ public class LogoActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_logo);
         try {
-            Thread.sleep(3000);
+            Thread.sleep(100);
         } catch (Exception e) {
             e.printStackTrace();
         } finally {

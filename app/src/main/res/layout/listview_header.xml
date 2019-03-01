@@ -19,7 +19,7 @@
             android:minWidth="100dip"
             android:orientation="vertical">
 
-            <jp.co.shiratsuki.walkietalkie.widget.MyTextView
+            <jp.co.shiratsuki.walkietalkie.widget.textview.MyTextView
                 android:id="@+id/refresh_status_textview"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -32,13 +32,13 @@
                 android:layout_marginTop="3dp"
                 android:visibility="gone">
 
-                <jp.co.shiratsuki.walkietalkie.widget.MyTextView
+                <jp.co.shiratsuki.walkietalkie.widget.textview.MyTextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/listview_header_last_time"
                     android:textSize="12sp" />
 
-                <jp.co.shiratsuki.walkietalkie.widget.MyTextView
+                <jp.co.shiratsuki.walkietalkie.widget.textview.MyTextView
                     android:id="@+id/last_refresh_time"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"

@@ -91,9 +91,7 @@ public class ChatRoomFragment extends BaseFragment {
                     showToast(R.string.EnterRoomId);
                     return;
                 }
-
-                SPHelper.save("TemporaryRoom", roomId);
-                mainActivity.clickEnterExitBtn();
+                mainActivity.clickEnterExitBtn(roomId);
                 break;
             case R.id.iv_deleteRoomId:
                 etRoomId.setText("");

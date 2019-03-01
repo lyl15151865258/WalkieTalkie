@@ -84,6 +84,7 @@ public class VoiceService extends Service implements IWebRTCHelper, VolumeChange
         filter1.addAction("KEY_DOWN");
         filter1.addAction("KEY_UP");
         filter1.addAction("MEDIA_BUTTON_LONG_PRESS");
+        filter1.setPriority(1000);
         registerReceiver(keyEventBroadcastReceiver, filter1);
 
         IntentFilter filter3 = new IntentFilter();
@@ -232,10 +233,6 @@ public class VoiceService extends Service implements IWebRTCHelper, VolumeChange
         public void startRecord() {
             try {
                 if (isInRoom) {
-                    // 打开麦克风
-                    helper.sendSpeakStatus(true);
-                    helper.toggleMute(true);
-                    broadcastCallback(TYPE.StartRecord, null);
                     // 播放提示音
                     if (ringtone != null && ringtone.isPlaying()) {
                         ringtone.stop();
@@ -244,6 +241,18 @@ public class VoiceService extends Service implements IWebRTCHelper, VolumeChange
                     ringtone = RingtoneManager.getRingtone(VoiceService.this, uri);
                     ringtone.setStreamType(AudioManager.STREAM_RING);
                     ringtone.play();
+
+                    new Thread(() -> {
+                        try {
+                            Thread.sleep(1000);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                        // 打开麦克风
+                        helper.sendSpeakStatus(true);
+                        helper.toggleMute(true);
+                        broadcastCallback(TYPE.StartRecord, null);
+                    }).start();
 
                     SPHelper.save("KEY_STATUS_UP", false);
                 } else {
@@ -359,6 +368,11 @@ public class VoiceService extends Service implements IWebRTCHelper, VolumeChange
         public void unRegisterCallback(IVoiceCallback callback) {
             mCallbackList.unregister(callback);
         }
+
+        @Override
+        public void stopSelf() {
+            VoiceService.this.stopSelf();
+        }
     };
 
     /**
@@ -415,6 +429,8 @@ public class VoiceService extends Service implements IWebRTCHelper, VolumeChange
                 }
             } else if (("MEDIA_BUTTON_LONG_PRESS").equals(intent.getAction())) {
                 LogUtils.d(TAG, "收到MEDIA_BUTTON_LONG_PRESS广播");
+                // 标记为用户正常退出房间
+                SPHelper.save("NormalExit", true);
                 try {
                     mBinder.leaveRoom();
                 } catch (RemoteException e) {

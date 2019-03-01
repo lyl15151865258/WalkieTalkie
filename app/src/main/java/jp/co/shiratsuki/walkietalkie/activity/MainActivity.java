@@ -25,6 +25,7 @@ import android.support.design.widget.NavigationView;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentStatePagerAdapter;
+import android.support.v4.content.FileProvider;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.view.ViewPager;
 import android.support.v4.widget.DrawerLayout;
@@ -44,24 +45,33 @@ import com.kevin.crop.UCrop;
 
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
+import org.jetbrains.annotations.NotNull;
 
+import java.io.BufferedInputStream;
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
+import jp.co.shiratsuki.walkietalkie.BuildConfig;
 import jp.co.shiratsuki.walkietalkie.R;
 import jp.co.shiratsuki.walkietalkie.activity.appmain.CropActivity;
 import jp.co.shiratsuki.walkietalkie.activity.base.BaseActivity;
+import jp.co.shiratsuki.walkietalkie.activity.loginregister.LoginRegisterActivity;
 import jp.co.shiratsuki.walkietalkie.activity.settings.SetLanguageActivity;
 import jp.co.shiratsuki.walkietalkie.activity.settings.SetMessageServerActivity;
 import jp.co.shiratsuki.walkietalkie.activity.settings.SetPersonalInfoActivity;
 import jp.co.shiratsuki.walkietalkie.activity.settings.SetVoiceServerActivity;
+import jp.co.shiratsuki.walkietalkie.activity.version.QrCodeShareActivity;
+import jp.co.shiratsuki.walkietalkie.activity.version.VersionsActivity;
 import jp.co.shiratsuki.walkietalkie.bean.NormalResult;
 import jp.co.shiratsuki.walkietalkie.bean.User;
 import jp.co.shiratsuki.walkietalkie.bean.WebSocketData;
+import jp.co.shiratsuki.walkietalkie.bean.version.Version;
 import jp.co.shiratsuki.walkietalkie.broadcast.BaseBroadcastReceiver;
 import jp.co.shiratsuki.walkietalkie.constant.Constants;
 import jp.co.shiratsuki.walkietalkie.constant.NetWork;
@@ -79,21 +89,32 @@ import jp.co.shiratsuki.walkietalkie.service.IVoiceService;
 import jp.co.shiratsuki.walkietalkie.service.VoiceService;
 import jp.co.shiratsuki.walkietalkie.service.WebSocketService;
 import jp.co.shiratsuki.walkietalkie.utils.ActivityController;
+import jp.co.shiratsuki.walkietalkie.utils.ApkUtils;
 import jp.co.shiratsuki.walkietalkie.utils.BitmapUtils;
+import jp.co.shiratsuki.walkietalkie.utils.FileUtil;
 import jp.co.shiratsuki.walkietalkie.utils.GsonUtils;
 import jp.co.shiratsuki.walkietalkie.utils.LogUtils;
+import jp.co.shiratsuki.walkietalkie.utils.MathUtils;
 import jp.co.shiratsuki.walkietalkie.utils.NetworkUtil;
 import jp.co.shiratsuki.walkietalkie.utils.NotificationsUtil;
 import jp.co.shiratsuki.walkietalkie.utils.StatusBarUtil;
 import jp.co.shiratsuki.walkietalkie.utils.ViewUtil;
 import jp.co.shiratsuki.walkietalkie.utils.WifiUtil;
 import jp.co.shiratsuki.walkietalkie.webrtc.WebRTCHelper;
+import jp.co.shiratsuki.walkietalkie.widget.dialog.DownLoadDialog;
+import jp.co.shiratsuki.walkietalkie.widget.MyProgressBar;
 import jp.co.shiratsuki.walkietalkie.widget.NoScrollViewPager;
 import jp.co.shiratsuki.walkietalkie.widget.SelectPicturePopupWindow;
 import jp.co.shiratsuki.walkietalkie.widget.dialog.CommonWarningDialog;
+import jp.co.shiratsuki.walkietalkie.widget.dialog.ReDownloadWarningDialog;
+import jp.co.shiratsuki.walkietalkie.widget.dialog.UpgradeVersionDialog;
 import okhttp3.MediaType;
 import okhttp3.MultipartBody;
 import okhttp3.RequestBody;
+import okhttp3.ResponseBody;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 import rx.Observable;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
@@ -115,7 +136,7 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
     private NoScrollViewPager viewPager;
     private List<FrameLayout> menus;
     private LinearLayout llMain, llNotification;
-    private ImageView ivIcon, ivUserIcon;
+    private ImageView ivIcon, ivUserIcon, ivNewVersion;
     private TextView tvNotification, tvCompanyName, tvDepartment, tvUserName;
     private MyReceiver myReceiver;
     private IVoiceService iVoiceService;
@@ -137,6 +158,13 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
     private Uri mDestinationUri;
     private SelectPicturePopupWindow mSelectPicturePopupWindow;
     private OnPictureSelectedListener mOnPictureSelectedListener;
+
+    private String versionFileName, latestVersionMD5, latestVersionLog, apkDownloadPath;
+    private MyProgressBar myProgressBar;
+    private TextView tvCompletedSize, tvTotalSize;
+    private float apkSize, completedSize;
+
+    private boolean isAutoCheck = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -167,6 +195,8 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
         mTempPhotoPath = Environment.getExternalStorageDirectory() + File.separator + "photo.jpeg";
         mSelectPicturePopupWindow = new SelectPicturePopupWindow(mContext, (findViewById(android.R.id.content)));
         mSelectPicturePopupWindow.setOnSelectedListener(this);
+
+        checkNewVersion();
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
@@ -179,7 +209,9 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
         for (Fragment fragment : fragmentList) {
             if (fragment instanceof MalfunctionFragment) {
                 malfunctionFragment = (MalfunctionFragment) fragment;
-                malfunctionFragment.refreshList();
+                if (malfunctionFragment.isAdded()) {
+                    malfunctionFragment.refreshList();
+                }
                 break;
             }
         }
@@ -262,6 +294,168 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
         RequestOptions options = new RequestOptions().error(R.drawable.photo_user).placeholder(R.drawable.photo_user).dontAnimate();
         Glide.with(this).load(photoPath).apply(options).into(ivUserIcon);
         Glide.with(this).load(photoPath).apply(options).into(ivIcon);
+
+    }
+
+    /**
+     * 检查新版本
+     */
+    private void checkNewVersion() {
+        int myVersionCode = ApkUtils.getVersionCode(mContext);
+        Version version = GsonUtils.parseJSON(SPHelper.getString("version", GsonUtils.convertJSON(new Version())), Version.class);
+        int latestVersionCode = version.getVersionCode();
+        String latestVersionName = version.getVersionName();
+        versionFileName = version.getVersionFileName();
+        latestVersionMD5 = version.getMd5Value();
+        latestVersionLog = version.getVersionLog();
+        apkDownloadPath = version.getVersionUrl().replace("\\", "/");
+        if (myVersionCode < latestVersionCode) {
+            // 当前版本小于服务器最新版本
+            ivNewVersion.setVisibility(View.VISIBLE);
+            UpgradeVersionDialog upgradeVersionDialog = new UpgradeVersionDialog(mContext);
+            upgradeVersionDialog.setCancelable(false);
+            ((TextView) upgradeVersionDialog.findViewById(R.id.tv_versionLog)).setText(latestVersionLog);
+            ((TextView) upgradeVersionDialog.findViewById(R.id.tv_currentVersion)).setText(ApkUtils.getVersionName(mContext));
+            ((TextView) upgradeVersionDialog.findViewById(R.id.tv_latestVersion)).setText(latestVersionName);
+            ((TextView) upgradeVersionDialog.findViewById(R.id.title_name)).setText(String.format(getString(R.string.update_version), latestVersionName));
+            upgradeVersionDialog.setOnDialogClickListener(new UpgradeVersionDialog.OnDialogClickListener() {
+                @Override
+                public void onOKClick() {
+                    if (isDownloaded()) {
+                        ReDownloadWarningDialog reDownloadWarningDialog = new ReDownloadWarningDialog(mContext, getString(R.string.warning_redownload));
+                        reDownloadWarningDialog.setCancelable(false);
+                        reDownloadWarningDialog.setOnDialogClickListener(new ReDownloadWarningDialog.OnDialogClickListener() {
+                            @Override
+                            public void onOKClick() {
+                                //直接安装
+                                File file = new File(mContext.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS), versionFileName);
+                                installApk(file);
+                            }
+
+                            @Override
+                            public void onCancelClick() {
+                                //下载最新的版本程序
+                                downloadApk();
+                            }
+                        });
+                        reDownloadWarningDialog.show();
+                    } else {
+                        //下载最新的版本程序
+                        downloadApk();
+                    }
+                }
+
+                @Override
+                public void onCancelClick() {
+                    upgradeVersionDialog.dismiss();
+                }
+            });
+            upgradeVersionDialog.show();
+        } else {
+            if (isAutoCheck) {
+                // 如果是刚进入APP自动检查更新的话不显示通知，并改变标记位
+                isAutoCheck = false;
+            } else {
+                showToast(R.string.YourAppIsTheLatestVersion);
+            }
+            ivNewVersion.setVisibility(View.INVISIBLE);
+        }
+    }
+
+    /**
+     * 判断是否已经下载过该文件
+     *
+     * @return boolean
+     */
+    private boolean isDownloaded() {
+        File file = new File(mContext.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS) + File.separator + versionFileName);
+        LogUtils.d("MD5", file.getPath());
+        return file.isFile() && latestVersionMD5.equals(FileUtil.getFileMD5(file));
+    }
+
+    /**
+     * 下载新版本程序
+     */
+    private void downloadApk() {
+        if (apkDownloadPath.equals(Constants.EMPTY)) {
+            showToast("下载路径有误，请联系客服");
+        } else {
+            DownLoadDialog progressDialog = new DownLoadDialog(mContext);
+            myProgressBar = progressDialog.findViewById(R.id.progressbar_download);
+            TextView tvUpdateLog = progressDialog.findViewById(R.id.tv_updateLog);
+            tvUpdateLog.setText(latestVersionLog);
+            tvCompletedSize = progressDialog.findViewById(R.id.tv_completedSize);
+            tvTotalSize = progressDialog.findViewById(R.id.tv_totalSize);
+            progressDialog.setCancelable(false);
+            progressDialog.show();
+            NetClient.downloadFileProgress(apkDownloadPath, (currentBytes, contentLength, done) -> {
+                //获取到文件的大小
+                apkSize = MathUtils.formatFloat((float) contentLength / 1024f / 1024f, 2);
+                tvTotalSize.setText(String.format(getString(R.string.file_size_m), String.valueOf(apkSize)));
+                //已完成大小
+                completedSize = MathUtils.formatFloat((float) currentBytes / 1024f / 1024f, 2);
+                tvCompletedSize.setText(String.format(getString(R.string.file_size_m), String.valueOf(completedSize)));
+                myProgressBar.setProgress(MathUtils.formatFloat(completedSize / apkSize * 100, 1));
+                if (done) {
+                    progressDialog.dismiss();
+                }
+            }, new Callback<ResponseBody>() {
+                @Override
+                public void onResponse(@NotNull Call<ResponseBody> call, @NotNull Response<ResponseBody> response) {
+                    //处理下载文件
+                    if (response.body() != null) {
+                        try {
+                            InputStream is = response.body().byteStream();
+                            //定义下载后文件的路径和名字，例如：/Download/JiangSuMetter_1.0.1.apk
+                            File file = new File(mContext.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS) + File.separator + versionFileName);
+                            FileOutputStream fos = new FileOutputStream(file);
+                            BufferedInputStream bis = new BufferedInputStream(is);
+                            byte[] buffer = new byte[1024];
+                            int len;
+                            while ((len = bis.read(buffer)) != -1) {
+                                fos.write(buffer, 0, len);
+                            }
+                            fos.close();
+                            bis.close();
+                            is.close();
+                            installApk(file);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                            showToast("下载出错，" + e.getMessage() + "，请联系管理员");
+                        }
+                    }
+                }
+
+                @Override
+                public void onFailure(@NotNull Call<ResponseBody> call, @NotNull Throwable t) {
+                    progressDialog.dismiss();
+                    showToast("下载出错，" + t.getMessage() + "，请联系管理员");
+                }
+            });
+        }
+    }
+
+    /**
+     * 安装apk
+     *
+     * @param file 需要安装的apk
+     */
+    private void installApk(File file) {
+        //先验证文件的正确性和完整性（通过MD5值）
+        if (file.isFile() && latestVersionMD5.equals(FileUtil.getFileMD5(file))) {
+            Intent intent = new Intent(Intent.ACTION_VIEW);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                Uri apkUri = FileProvider.getUriForFile(mContext, BuildConfig.APPLICATION_ID + ".fileProvider", file);//在AndroidManifest中的android:authorities值
+                intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);//添加这一句表示对目标应用临时授权该Uri所代表的文件
+                intent.setDataAndType(apkUri, "application/vnd.android.package-archive");
+            } else {
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                intent.setDataAndType(Uri.fromFile(file), "application/vnd.android.package-archive");
+            }
+            startActivity(intent);
+        } else {
+            showToast("文件异常，无法安装");
+        }
     }
 
     @Override
@@ -337,6 +531,7 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
         llMain = findViewById(R.id.ll_main);
         ivIcon = findViewById(R.id.iv_icon);
         ivUserIcon = findViewById(R.id.iv_userIcon);
+        ivNewVersion = findViewById(R.id.ivNewVersion);
         ivIcon.setOnClickListener(onClickListener);
         llNotification = findViewById(R.id.ll_notification);
         llNotification.setOnClickListener(onClickListener);
@@ -362,7 +557,8 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
         findViewById(R.id.llVersion).setOnClickListener(onClickListener);
         findViewById(R.id.llUpdate).setOnClickListener(onClickListener);
         findViewById(R.id.llShare).setOnClickListener(onClickListener);
-        findViewById(R.id.btnExit).setOnClickListener(onClickListener);
+        findViewById(R.id.ll_change_account).setOnClickListener(onClickListener);
+        findViewById(R.id.ll_sign_out).setOnClickListener(onClickListener);
     }
 
     /**
@@ -524,7 +720,9 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
                 for (Fragment fragment : fragmentList) {
                     if (fragment instanceof ChatRoomFragment) {
                         chatRoomFragment = (ChatRoomFragment) fragment;
-                        chatRoomFragment.enterRoom();
+                        if (chatRoomFragment.isAdded()) {
+                            chatRoomFragment.enterRoom();
+                        }
                         break;
                     }
                 }
@@ -545,14 +743,20 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
                 isUseSpeaker = false;
                 btnSpeaker.setBackgroundResource(R.drawable.icon_speaker_pressed);
 
+                User user = GsonUtils.parseJSON(SPHelper.getString("User", GsonUtils.convertJSON(new User())), User.class);
+                user.setInroom(false);
+                SPHelper.save("User", GsonUtils.convertJSON(user));
+
                 // 清空房间联系人列表
                 List<Fragment> fragmentList = getSupportFragmentManager().getFragments();
                 ChatRoomFragment chatRoomFragment;
                 for (Fragment fragment : fragmentList) {
                     if (fragment instanceof ChatRoomFragment) {
                         chatRoomFragment = (ChatRoomFragment) fragment;
-                        chatRoomFragment.clearUserList();
-                        chatRoomFragment.exitRoom();
+                        if (chatRoomFragment.isAdded()) {
+                            chatRoomFragment.clearUserList();
+                            chatRoomFragment.exitRoom();
+                        }
                         break;
                     }
                 }
@@ -581,8 +785,10 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
                 for (Fragment fragment : fragmentList) {
                     if (fragment instanceof ChatRoomFragment) {
                         chatRoomFragment = (ChatRoomFragment) fragment;
-                        chatRoomFragment.clearUserList();
-                        chatRoomFragment.exitRoom();
+                        if (chatRoomFragment.isAdded()) {
+                            chatRoomFragment.clearUserList();
+                            chatRoomFragment.exitRoom();
+                        }
                         break;
                     }
                 }
@@ -591,7 +797,9 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
                 for (Fragment fragment : fragmentList) {
                     if (fragment instanceof ContactsFragment) {
                         contactsFragment = (ContactsFragment) fragment;
-                        contactsFragment.clearUserList();
+                        if (contactsFragment.isAdded()) {
+                            contactsFragment.clearUserList();
+                        }
                         break;
                     }
                 }
@@ -647,7 +855,9 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
                 for (Fragment fragment : fragmentList) {
                     if (fragment instanceof ChatRoomFragment) {
                         chatRoomFragment = (ChatRoomFragment) fragment;
-                        chatRoomFragment.removeUser(ipAddress);
+                        if (chatRoomFragment.isAdded()) {
+                            chatRoomFragment.removeUser(ipAddress);
+                        }
                         break;
                     }
                 }
@@ -754,15 +964,29 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
                 break;
             case R.id.llVersion:
                 // 版本查看
+                openActivity(VersionsActivity.class);
                 break;
             case R.id.llUpdate:
                 // 版本更新
+                checkNewVersion();
                 break;
             case R.id.llShare:
                 // 版本分享
-
+                openActivity(QrCodeShareActivity.class);
                 break;
-            case R.id.btnExit:
+            case R.id.ll_change_account:
+                // 切换账号
+                // 关闭相关服务
+                stopService();
+                Intent intent1 = new Intent(MainActivity.this, LoginRegisterActivity.class);
+                intent1.putExtra("SwitchAccount", true);
+                startActivity(intent1);
+                ActivityController.finishActivity(this);
+                overridePendingTransition(R.anim.left_in, R.anim.right_out);
+                break;
+            case R.id.ll_sign_out:
+                // 标记为用户正常退出房间
+                SPHelper.save("NormalExit", true);
                 // 退出程序
                 ActivityController.exit(this);
                 break;
@@ -795,10 +1019,12 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
     /**
      * 聊天页面按钮点击事件
      */
-    public void clickEnterExitBtn() {
+    public void clickEnterExitBtn(String roomId) {
         vibrator.vibrate(50);
         // 进入/退出聊天
         if (isInRoom) {
+            // 标记为用户正常退出房间
+            SPHelper.save("NormalExit", true);
             if (iVoiceService != null) {
                 try {
                     iVoiceService.leaveRoom();
@@ -812,8 +1038,6 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
             } else {
                 if (iVoiceService != null) {
                     try {
-                        User user = GsonUtils.parseJSON(SPHelper.getString("User", GsonUtils.convertJSON(new User())), User.class);
-                        String roomId = SPHelper.getString("TemporaryRoom", user.getRoom_id());
                         if (roomId.equals("")) {
                             roomId = NetWork.WEBRTC_SERVER_ROOM;
                         }
@@ -839,7 +1063,9 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
                         for (Fragment fragment : fragmentList) {
                             if (fragment instanceof MalfunctionFragment) {
                                 malfunctionFragment = (MalfunctionFragment) fragment;
-                                malfunctionFragment.receiveMalfunction(webSocketData);
+                                if (malfunctionFragment.isAdded()) {
+                                    malfunctionFragment.receiveMalfunction(webSocketData);
+                                }
                                 break;
                             }
                         }
@@ -851,7 +1077,9 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
                         for (Fragment fragment : fragmentList) {
                             if (fragment instanceof MalfunctionFragment) {
                                 malfunctionFragment = (MalfunctionFragment) fragment;
-                                malfunctionFragment.setCurrentPlaying(listNo);
+                                if (malfunctionFragment.isAdded()) {
+                                    malfunctionFragment.setCurrentPlaying(listNo);
+                                }
                                 break;
                             }
                         }
@@ -863,9 +1091,11 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
                         for (Fragment fragment : fragmentList) {
                             if (fragment instanceof MalfunctionFragment) {
                                 malfunctionFragment = (MalfunctionFragment) fragment;
-                                if (listNo != -1) {
-                                    // 不再播放某一条异常信息
-                                    malfunctionFragment.refreshMalfunction(listNo, false, true);
+                                if (malfunctionFragment.isAdded()) {
+                                    if (listNo != -1) {
+                                        // 不再播放某一条异常信息
+                                        malfunctionFragment.refreshMalfunction(listNo, false, true);
+                                    }
                                 }
                                 break;
                             }
@@ -898,7 +1128,9 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
                         for (Fragment fragment : fragmentList) {
                             if (fragment instanceof MalfunctionFragment) {
                                 malfunctionFragment = (MalfunctionFragment) fragment;
-                                malfunctionFragment.clearMalfunctionList();
+                                if (malfunctionFragment.isAdded()) {
+                                    malfunctionFragment.clearMalfunctionList();
+                                }
                                 break;
                             }
                         }
@@ -911,11 +1143,13 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
                         for (Fragment fragment : fragmentList) {
                             if (fragment instanceof ChatRoomFragment) {
                                 chatRoomFragment = (ChatRoomFragment) fragment;
-                                ArrayList<User> users = intent.getParcelableArrayListExtra("userList");
-                                for (int i = 0; i < users.size(); i++) {
-                                    LogUtils.d(TAG, "联系人数量：" + users.size() + "," + users.get(i).getUser_id());
+                                if (chatRoomFragment.isAdded()) {
+                                    ArrayList<User> users = intent.getParcelableArrayListExtra("userList");
+                                    for (int i = 0; i < users.size(); i++) {
+                                        LogUtils.d(TAG, "联系人数量：" + users.size() + "," + users.get(i).getUser_id());
+                                    }
+                                    chatRoomFragment.refreshList(users);
                                 }
-                                chatRoomFragment.refreshList(users);
                                 break;
                             }
                         }
@@ -933,11 +1167,13 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
                             for (Fragment fragment : fragmentList) {
                                 if (fragment instanceof ChatRoomFragment) {
                                     chatRoomFragment = (ChatRoomFragment) fragment;
-                                    ArrayList<User> users = intent.getParcelableArrayListExtra("userList");
-                                    for (int i = 0; i < users.size(); i++) {
-                                        LogUtils.d(TAG, "联系人数量：" + users.size() + "," + users.get(i).getUser_id());
+                                    if (chatRoomFragment.isAdded()) {
+                                        ArrayList<User> users = intent.getParcelableArrayListExtra("userList");
+                                        for (int i = 0; i < users.size(); i++) {
+                                            LogUtils.d(TAG, "联系人数量：" + users.size() + "," + users.get(i).getUser_id());
+                                        }
+                                        chatRoomFragment.refreshList(users);
                                     }
-                                    chatRoomFragment.refreshList(users);
                                     break;
                                 }
                             }
@@ -955,11 +1191,13 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
                         for (Fragment fragment : fragmentList) {
                             if (fragment instanceof ContactsFragment) {
                                 contactsFragment = (ContactsFragment) fragment;
-                                ArrayList<User> users = intent.getParcelableArrayListExtra("userList");
-                                for (int i = 0; i < users.size(); i++) {
-                                    LogUtils.d(TAG, "联系人数量：" + users.size() + "," + users.get(i).getUser_id());
+                                if (contactsFragment.isAdded()) {
+                                    ArrayList<User> users = intent.getParcelableArrayListExtra("userList");
+                                    for (int i = 0; i < users.size(); i++) {
+                                        LogUtils.d(TAG, "联系人数量：" + users.size() + "," + users.get(i).getUser_id());
+                                    }
+                                    contactsFragment.refreshList(users);
                                 }
-                                contactsFragment.refreshList(users);
                                 break;
                             }
                         }
@@ -973,7 +1211,9 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
                         for (Fragment fragment : fragmentList) {
                             if (fragment instanceof ChatRoomFragment) {
                                 chatRoomFragment = (ChatRoomFragment) fragment;
-                                chatRoomFragment.setRoomId(intent.getStringExtra("roomId"));
+                                if (chatRoomFragment.isAdded()) {
+                                    chatRoomFragment.setRoomId(intent.getStringExtra("roomId"));
+                                }
                                 break;
                             }
                         }
@@ -1298,31 +1538,37 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
         builder.show();
     }
 
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
+    /**
+     * 关闭服务
+     */
+    private void stopService() {
         if (webSocketService != null) {
-            unbindService(serviceConnection1);
-            webSocketService.stopSelf();
+            try {
+                unbindService(serviceConnection1);
+                webSocketService.stopSelf();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            webSocketService = null;
         }
         if (iVoiceService != null) {
             try {
                 iVoiceService.stopRecord();
-            } catch (RemoteException e) {
-                e.printStackTrace();
-            }
-            try {
                 iVoiceService.leaveGroup();
-            } catch (RemoteException e) {
-                e.printStackTrace();
-            }
-            try {
                 iVoiceService.unRegisterCallback(iVoiceCallback);
+                unbindService(serviceConnection2);
+                iVoiceService.stopSelf();
             } catch (RemoteException e) {
                 e.printStackTrace();
             }
-            unbindService(serviceConnection2);
+            iVoiceService = null;
         }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        stopService();
         if (myReceiver != null) {
             mContext.unregisterReceiver(myReceiver);
         }

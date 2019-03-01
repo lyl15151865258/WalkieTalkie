@@ -27,6 +27,7 @@ public class User implements Parcelable {
     private String voice_ip = "";
     private String voice_port = "";
     private String room_id = "";
+    private String chatRoomId = "";
     private boolean inroom = false;
     private boolean speaking = false;
     private boolean busy = false;
@@ -35,7 +36,7 @@ public class User implements Parcelable {
 
     public User(String user_id, String user_pwd, String user_name, String company, int department_id, String department_name,
                 String icon_url, String message_ip, String message_port, String voice_ip, String voice_port, String room_id,
-                boolean inroom, boolean speaking, boolean busy, String register_time, String login_time) {
+                String chatRoomId, boolean inroom, boolean speaking, boolean busy, String register_time, String login_time) {
         super();
         this.user_id = user_id;
         this.user_pwd = user_pwd;
@@ -49,6 +50,7 @@ public class User implements Parcelable {
         this.voice_ip = voice_ip;
         this.voice_port = voice_port;
         this.room_id = room_id;
+        this.chatRoomId = chatRoomId;
         this.inroom = inroom;
         this.speaking = speaking;
         this.busy = busy;
@@ -156,6 +158,14 @@ public class User implements Parcelable {
         this.room_id = room_id;
     }
 
+    public String getChatRoomId() {
+        return chatRoomId;
+    }
+
+    public void setChatRoomId(String chatRoomId) {
+        this.chatRoomId = chatRoomId;
+    }
+
     public boolean isInroom() {
         return inroom;
     }
@@ -215,6 +225,7 @@ public class User implements Parcelable {
                 ", voice_ip='" + voice_ip + '\'' +
                 ", voice_port='" + voice_port + '\'' +
                 ", room_id='" + room_id + '\'' +
+                ", chatRoomId='" + chatRoomId + '\'' +
                 ", inroom=" + inroom +
                 ", speaking=" + speaking +
                 ", busy=" + busy +
@@ -242,6 +253,7 @@ public class User implements Parcelable {
         dest.writeString(voice_ip);
         dest.writeString(voice_port);
         dest.writeString(room_id);
+        dest.writeString(chatRoomId);
         dest.writeByte((byte) (inroom ? 1 : 0));
         dest.writeByte((byte) (speaking ? 1 : 0));
         dest.writeByte((byte) (busy ? 1 : 0));
@@ -254,7 +266,7 @@ public class User implements Parcelable {
         public User createFromParcel(Parcel source) {
             return new User(source.readString(), source.readString(), source.readString(), source.readString(), source.readInt(), source.readString(),
                     source.readString(), source.readString(), source.readString(), source.readString(), source.readString(), source.readString(),
-                    source.readByte() != 0, source.readByte() != 0, source.readByte() != 0, source.readString(), source.readString());
+                    source.readString(), source.readByte() != 0, source.readByte() != 0, source.readByte() != 0, source.readString(), source.readString());
         }
 
         @Override

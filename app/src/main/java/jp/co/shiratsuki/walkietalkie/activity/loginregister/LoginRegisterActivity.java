@@ -30,8 +30,11 @@ import jp.co.shiratsuki.walkietalkie.R;
 import jp.co.shiratsuki.walkietalkie.activity.MainActivity;
 import jp.co.shiratsuki.walkietalkie.activity.appmain.HtmlActivity;
 import jp.co.shiratsuki.walkietalkie.activity.base.BaseActivity;
+import jp.co.shiratsuki.walkietalkie.bean.LoginResult;
 import jp.co.shiratsuki.walkietalkie.bean.UserOperateResult;
+import jp.co.shiratsuki.walkietalkie.constant.ApkInfo;
 import jp.co.shiratsuki.walkietalkie.constant.Constants;
+import jp.co.shiratsuki.walkietalkie.constant.NetWork;
 import jp.co.shiratsuki.walkietalkie.contentprovider.SPHelper;
 import jp.co.shiratsuki.walkietalkie.network.ExceptionHandle;
 import jp.co.shiratsuki.walkietalkie.network.NetClient;
@@ -64,6 +67,9 @@ public class LoginRegisterActivity extends BaseActivity {
     private RelativeLayout rlLogin;
     private LinearLayout llRegister;
     private ImageView ivUserIcon;
+    private String baseUrl;
+
+    private boolean isAutoLogin = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -105,6 +111,7 @@ public class LoginRegisterActivity extends BaseActivity {
         setTextStyle(tvRegistrationProtocol);
         tvRegistrationProtocol.setOnClickListener(onClickListener);
         tvRegistrationProtocol.setOnClickListener(onClickListener);
+        findViewById(R.id.ivSetServer).setOnClickListener(onClickListener);
     }
 
     @Override
@@ -115,8 +122,26 @@ public class LoginRegisterActivity extends BaseActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        //展示头像
+        // 展示头像
         showUserIcon();
+        // 计算主服务器的URL路径
+        String ip = SPHelper.getString("PrimaryServerIp", "");
+        String port = SPHelper.getString("PrimaryServerPort", "");
+        if (TextUtils.isEmpty(ip)) {
+            ip = NetWork.SERVER_HOST_MAIN;
+        }
+        if (TextUtils.isEmpty(port)) {
+            port = NetWork.SERVER_PORT_MAIN;
+        }
+        baseUrl = "http://" + ip + ":" + port + "/" + NetWork.PROJECT_MAIN + "/";
+        LogUtils.d(TAG, "当前主服务器登录URL为：" + baseUrl);
+
+        // 如果是刚进入页面且不是从主页面切换账号打开的话，自动执行登录过程
+        boolean isSwitchAccount = getIntent().getBooleanExtra("SwitchAccount", false);
+        if (isAutoLogin && !isSwitchAccount) {
+            login();
+            isAutoLogin = false;
+        }
     }
 
     private TextView.OnEditorActionListener onEditorActionListener = (textView, actionId, keyEvent) -> {
@@ -188,6 +213,10 @@ public class LoginRegisterActivity extends BaseActivity {
                     showToast(R.string.InconsistentPassword);
                 }
                 break;
+            case R.id.ivSetServer:
+                // 设置登录服务器
+                openActivity(SetMainServerActivity.class);
+                break;
             default:
                 break;
         }
@@ -241,11 +270,13 @@ public class LoginRegisterActivity extends BaseActivity {
             showToast(getString(R.string.EnterPassword));
             return;
         }
-        Map<String, String> params = new HashMap<>(2);
+        Map<String, String> params = new HashMap<>(4);
         params.put("userId", userId);
         params.put("password", passWord);
-        Observable<UserOperateResult> clientUserObservable = NetClient.getInstances(NetClient.BASE_URL_PROJECT).getNjMeterApi().login(params);
-        clientUserObservable.subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread()).subscribe(new NetworkSubscriber<UserOperateResult>(mContext, getClass().getSimpleName()) {
+        params.put("apkTypeId", ApkInfo.APK_TYPE_ID_WALKIE_TALKIE);
+
+        Observable<LoginResult> clientUserObservable = NetClient.getInstances(baseUrl).getNjMeterApi().login(params);
+        clientUserObservable.subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread()).subscribe(new NetworkSubscriber<LoginResult>(mContext, getClass().getSimpleName()) {
 
             @Override
             public void onStart() {
@@ -268,11 +299,11 @@ public class LoginRegisterActivity extends BaseActivity {
             }
 
             @Override
-            public void onNext(UserOperateResult userOperateResult) {
+            public void onNext(LoginResult loginResult) {
                 cancelDialog();
                 try {
-                    String mark = userOperateResult.getResult();
-                    String message = userOperateResult.getMessage();
+                    String mark = loginResult.getResult();
+                    String message = loginResult.getMessage();
                     switch (mark) {
                         case Constants.SUCCESS:
                             //保存用户名密码
@@ -280,10 +311,12 @@ public class LoginRegisterActivity extends BaseActivity {
                             String passWord = etPassWordLogin.getText().toString();
                             SPHelper.save("userId", phoneNumber);
                             SPHelper.save("passWord", passWord);
+                            //保存最新的版本信息
+                            SPHelper.save("version", GsonUtils.convertJSON(loginResult.getVersion()));
                             //更新用户配置信息
 //                            mySharedPreferencesUtils.updateUserConfiguration(userOperateResult.getAccount().getDetails());
 
-                            SPHelper.save("User", GsonUtils.convertJSON(userOperateResult.getUser()));
+                            SPHelper.save("User", GsonUtils.convertJSON(loginResult.getUser()));
                             openActivity(MainActivity.class);
                             ActivityController.finishActivity(LoginRegisterActivity.this);
                             break;
@@ -310,7 +343,7 @@ public class LoginRegisterActivity extends BaseActivity {
         Map<String, String> params = new HashMap<>(2);
         params.put("userId", userId);
         params.put("password", passWord);
-        Observable<UserOperateResult> clientUserCall = NetClient.getInstances(NetClient.BASE_URL_PROJECT).getNjMeterApi().register(params);
+        Observable<UserOperateResult> clientUserCall = NetClient.getInstances(baseUrl).getNjMeterApi().register(params);
         clientUserCall.subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread()).subscribe(new NetworkSubscriber<UserOperateResult>(mContext, getClass().getSimpleName()) {
 
             @Override

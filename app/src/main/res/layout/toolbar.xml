@@ -14,7 +14,7 @@
         android:layout_marginStart="@dimen/dp_6"
         android:contentDescription="@null" />
 
-    <jp.co.shiratsuki.walkietalkie.widget.MarqueeTextView
+    <jp.co.shiratsuki.walkietalkie.widget.textview.MarqueeTextView
         android:id="@+id/tv_title"
         android:layout_width="0dp"
         android:layout_height="wrap_content"

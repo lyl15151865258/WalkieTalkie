@@ -5,7 +5,6 @@
     android:background="@drawable/bg_login"
     android:focusable="true"
     android:focusableInTouchMode="true"
-    android:gravity="center"
     android:orientation="vertical">
 
     <include
@@ -23,5 +22,14 @@
         android:gravity="center"
         android:orientation="vertical"
         android:visibility="visible" />
+
+    <ImageView
+        android:id="@+id/ivSetServer"
+        android:layout_width="@dimen/dp_30"
+        android:layout_height="@dimen/dp_30"
+        android:layout_gravity="bottom|center_horizontal"
+        android:layout_margin="@dimen/dp_15"
+        android:contentDescription="@null"
+        android:src="@drawable/icon_setting" />
 
 </FrameLayout>

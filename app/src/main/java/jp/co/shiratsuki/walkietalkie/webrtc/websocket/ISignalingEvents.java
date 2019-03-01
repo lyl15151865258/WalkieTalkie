@@ -37,6 +37,8 @@ public interface ISignalingEvents {
 
     void onUserInOrOut(ArrayList<User> userList);
 
+    void startP2PChat(String roomId);
+
     // WebSocket连接成功
     void onWebSocketConnected();
 

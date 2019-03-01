@@ -10,6 +10,7 @@ import android.view.View;
 import android.widget.ImageView;
 
 import jp.co.shiratsuki.walkietalkie.R;
+import jp.co.shiratsuki.walkietalkie.widget.textview.MarqueeTextView;
 
 /**
  * 自定义的Toolbar

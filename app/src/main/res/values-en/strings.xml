@@ -76,7 +76,7 @@
     <string name="Version">Version Log</string>
     <string name="VersionUpdate">Version Upgrade</string>
     <string name="Share">Share</string>
-    <string name="Logout">Exit</string>
+    <string name="Logout">Sign out</string>
 
     <string name="camera_pop_camera">Camera</string>
     <string name="camera_pop_album">Gallery</string>
@@ -154,5 +154,36 @@
     <string name="VoiceServiceRunning">Walkie-talkie voice service is running&#8230;</string>
     <string name="RealTimePushService">Abnormal information real-time push service</string>
     <string name="RealTimePushServiceRunning">Abnormal information real-time push service is running&#8230;</string>
+    <string name="HangUp">Hang up</string>
+    <string name="Answer">Answer</string>
+    <string name="InviteYouToMakeAVoiceCall">Invite you to make a voice call&#8230;</string>
+    <string name="WaitingForAccept">Waiting for the other party to accept the invitation&#8230;</string>
+    <string name="VersionCode">Version number</string>
+    <string name="VersionView">View version</string>
+    <string name="update_version">Version upgrade（%1$s）</string>
+    <string name="QrCodeShare">My exclusive share QR code</string>
+    <string name="ShareTo">Share to</string>
+    <string name="ShareToOthers">Share to others</string>
+    <string name="GeneratingQRCode">Generating QR code</string>
+    <string name="VersionCodeNo">Version code：</string>
+    <string name="ReleaseTime">Release time：</string>
+    <string name="UpdateLog">Update log：</string>
+    <string name="Download">Download</string>
+    <string name="Searching">Searching&#8230;</string>
+    <string name="warning_redownload">You have already downloaded this version of the file, whether it is installed directly？</string>
+    <string name="CurrentVersion">Current version:</string>
+    <string name="LatestVersion">The latest version:</string>
+    <string name="Later">Later</string>
+    <string name="UpdateNow">Update now</string>
+    <string name="DownloadAgain">Download again</string>
+    <string name="InstallDirectly">Install directly</string>
+    <string name="Downloaded">Downloaded:</string>
+    <string name="TotalSize">Total size:</string>
+    <string name="YourAppIsTheLatestVersion">Your software is the latest version</string>
+    <string name="ChangeAccount">Switch account</string>
+    <string name="MainServerSettings">Primary server settings</string>
+    <string name="PrimaryServerTips">If you do not fill in, you will be logged in with the default server address.</string>
+    <string name="SaveToGallerySuccessfully">Image saved to album successfully</string>
+    <string name="LongPressToSave">（Long press the image to save to album）</string>
 
 </resources>

@@ -216,6 +216,7 @@ public class P2PWaitingActivity extends BaseActivity {
         private int leftTime;
 
         private SyncTimeTask(P2PWaitingActivity p2PWaitingActivity, int leftTime) {
+            LogUtils.d(TAG, "开始倒计时");
             p2PWaitingActivityWeakReference = new WeakReference<>(p2PWaitingActivity);
             this.leftTime = leftTime;
         }
@@ -238,6 +239,7 @@ public class P2PWaitingActivity extends BaseActivity {
                     e.printStackTrace();
                 }
                 leftTime--;
+                LogUtils.d(TAG, "倒计时时间剩余：" + leftTime);
             }
             return null;
         }

@@ -39,13 +39,13 @@
                 android:gravity="center_vertical"
                 android:orientation="vertical">
 
-                <jp.co.shiratsuki.walkietalkie.widget.MyTextView
+                <jp.co.shiratsuki.walkietalkie.widget.textview.MyTextView
                     android:id="@+id/tvSSID"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textColor="@color/white" />
 
-                <jp.co.shiratsuki.walkietalkie.widget.MyTextView
+                <jp.co.shiratsuki.walkietalkie.widget.textview.MyTextView
                     android:id="@+id/tvIp"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -90,7 +90,7 @@
                 android:contentDescription="@null"
                 android:src="@drawable/icon_bell" />
 
-            <jp.co.shiratsuki.walkietalkie.widget.MyTextView
+            <jp.co.shiratsuki.walkietalkie.widget.textview.MyTextView
                 android:id="@+id/tvNotification"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
@@ -138,7 +138,7 @@
                         android:scaleType="centerCrop"
                         android:src="@drawable/contacts_selector" />
 
-                    <jp.co.shiratsuki.walkietalkie.widget.MyTextView
+                    <jp.co.shiratsuki.walkietalkie.widget.textview.MyTextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="@dimen/dp_2"
@@ -148,7 +148,7 @@
 
                 </LinearLayout>
 
-                <jp.co.shiratsuki.walkietalkie.widget.MyTextView
+                <jp.co.shiratsuki.walkietalkie.widget.textview.MyTextView
                     android:id="@+id/tvNewMessageCount"
                     android:layout_width="@dimen/dp_20"
                     android:layout_height="@dimen/dp_20"
@@ -185,7 +185,7 @@
                         android:scaleType="centerCrop"
                         android:src="@drawable/home_selector" />
 
-                    <jp.co.shiratsuki.walkietalkie.widget.MyTextView
+                    <jp.co.shiratsuki.walkietalkie.widget.textview.MyTextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="@dimen/dp_2"
@@ -220,7 +220,7 @@
                         android:scaleType="centerCrop"
                         android:src="@drawable/product_selector" />
 
-                    <jp.co.shiratsuki.walkietalkie.widget.MyTextView
+                    <jp.co.shiratsuki.walkietalkie.widget.textview.MyTextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="@dimen/dp_2"

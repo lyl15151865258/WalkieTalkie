@@ -14,7 +14,7 @@
         android:orientation="vertical"
         android:paddingTop="@dimen/dp_10">
 
-        <jp.co.shiratsuki.walkietalkie.widget.MyTextView
+        <jp.co.shiratsuki.walkietalkie.widget.textview.MyTextView
             android:id="@+id/title_name"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -25,7 +25,7 @@
             android:textStyle="bold" />
     </LinearLayout>
 
-    <jp.co.shiratsuki.walkietalkie.widget.MyTextView
+    <jp.co.shiratsuki.walkietalkie.widget.textview.MyTextView
         android:id="@+id/tv_warning"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

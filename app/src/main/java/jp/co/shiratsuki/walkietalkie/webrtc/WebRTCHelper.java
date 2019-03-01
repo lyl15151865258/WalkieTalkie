@@ -1,10 +1,12 @@
 package jp.co.shiratsuki.walkietalkie.webrtc;
 
 import android.content.Context;
+import android.content.Intent;
 import android.media.AudioManager;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Parcelable;
+import android.text.TextUtils;
 
 import com.alibaba.fastjson.JSONObject;
 
@@ -133,8 +135,29 @@ public class WebRTCHelper implements ISignalingEvents {
     }
 
     @Override
-    public void onWebSocketConnected() {
+    public void startP2PChat(String roomId) {
+        exitRoom();
+        try {
+            Thread.sleep(500);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        joinRoom(roomId);
+        Intent intent = new Intent();
+        intent.setAction("P2P_VOICE_REQUEST_ACCEPT");
+        intent.putExtra("roomId", roomId);
+        mContext.sendBroadcast(intent);
+    }
 
+    @Override
+    public void onWebSocketConnected() {
+        // 如果不是正常退出房间的话，重连上服务器后自动加入上次的房间
+        if (!SPHelper.getBoolean("NormalExit", true)) {
+            String roomId = SPHelper.getString("TemporaryRoom", "");
+            if (!TextUtils.isEmpty(roomId)) {
+                joinRoom(roomId);
+            }
+        }
     }
 
     @Override  // 我加入到房间

@@ -92,7 +92,13 @@ public class P2PRingingActivity extends BaseActivity {
 
         // 播放手机系统自带来电铃声
 //        Uri uri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE);
-        Uri uri = Uri.parse("android.resource://jp.co.shiratsuki.walkietalkie/" + R.raw.dengdaijieting);
+        User user0 = GsonUtils.parseJSON(SPHelper.getString("User", GsonUtils.convertJSON(new User())), User.class);
+        Uri uri;
+        if (user0.isInroom()) {
+            uri = Uri.parse("android.resource://jp.co.shiratsuki.walkietalkie/" + R.raw.zhanxian);
+        } else {
+            uri = Uri.parse("android.resource://jp.co.shiratsuki.walkietalkie/" + R.raw.dengdaijieting);
+        }
         ringtone = RingtoneManager.getRingtone(this, uri);
 
         vibrator = (Vibrator) getSystemService(VIBRATOR_SERVICE);
@@ -104,6 +110,8 @@ public class P2PRingingActivity extends BaseActivity {
         filter.addAction("P2P_VOICE_REQUEST_CANCEL");
         filter.addAction("P2P_VOICE_REQUEST_ACCEPT");
         filter.addAction("VOICE_WEBSOCKET_DISCONNECT");
+        filter.addAction("MEDIA_BUTTON_LONG_PRESS");
+        filter.setPriority(1000);
         registerReceiver(myReceiver, filter);
 
         syncTimeTask = new SyncTimeTask(this, NetWork.CALL_WAIT_TIME);
@@ -218,6 +226,16 @@ public class P2PRingingActivity extends BaseActivity {
                 tvMessage.setText(getString(R.string.NetworkError));
                 playMusicAndFinish();
             }
+            if ("MEDIA_BUTTON_LONG_PRESS".equals(action)) {
+                abortBroadcast();
+                // 接听
+                try {
+                    iVoiceService.acceptP2PCall(inviterId);
+                } catch (RemoteException e) {
+                    e.printStackTrace();
+                }
+                ActivityController.finishActivity(P2PRingingActivity.this);
+            }
         }
     };
 
@@ -227,6 +245,7 @@ public class P2PRingingActivity extends BaseActivity {
         private int leftTime;
 
         private SyncTimeTask(P2PRingingActivity p2PRingingActivity, int leftTime) {
+            LogUtils.d(TAG, "开始倒计时");
             p2PRingingActivityWeakReference = new WeakReference<>(p2PRingingActivity);
             this.leftTime = leftTime;
         }
@@ -249,6 +268,7 @@ public class P2PRingingActivity extends BaseActivity {
                     e.printStackTrace();
                 }
                 leftTime--;
+                LogUtils.d(TAG, "倒计时时间剩余：" + leftTime);
             }
             return null;
         }

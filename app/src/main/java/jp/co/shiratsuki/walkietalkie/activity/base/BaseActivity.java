@@ -49,6 +49,7 @@ import java.util.Locale;
 
 public abstract class BaseActivity extends AppCompatActivity {
 
+    public String TAG = getClass().getName();
     private Toast toast;
     private LoadingDialog loadingDialog;
     protected int mWidth;

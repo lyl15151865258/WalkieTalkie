@@ -7,7 +7,7 @@
     android:paddingLeft="50dp"
     android:paddingRight="50dp">
 
-    <jp.co.shiratsuki.walkietalkie.widget.MyTextView
+    <jp.co.shiratsuki.walkietalkie.widget.textview.MyTextView
         android:id="@+id/mbMessage"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
