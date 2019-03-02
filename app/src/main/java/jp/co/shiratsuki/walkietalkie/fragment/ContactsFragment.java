@@ -120,7 +120,7 @@ public class ContactsFragment extends BaseFragment {
         LogUtils.d(TAG, "刷新联系人列表");
         this.userList.clear();
         this.userList.addAll(userList);
-        generateAndRefreshList("");
+        generateAndRefreshList(etContent.getText().toString().trim());
     }
 
     /**
@@ -139,7 +139,7 @@ public class ContactsFragment extends BaseFragment {
         }
         if (position != -1) {
             userList.remove(position);
-            generateAndRefreshList("");
+            generateAndRefreshList(etContent.getText().toString().trim());
         }
     }
 
@@ -149,7 +149,7 @@ public class ContactsFragment extends BaseFragment {
     public void clearUserList() {
         LogUtils.d(TAG, "清空联系人列表");
         userList.clear();
-        generateAndRefreshList("");
+        generateAndRefreshList(etContent.getText().toString().trim());
     }
 
     /**
@@ -180,22 +180,6 @@ public class ContactsFragment extends BaseFragment {
                     map.put(departmentName, users);
                 }
             }
-//            else if (userName.contains(content)) {
-//                if (map.containsKey(departmentName)) {
-//                    List<User> users = map.get(departmentName);
-//                    if (users != null) {
-//                        users.add(userList.get(i));
-//                    } else {
-//                        users = new ArrayList<>();
-//                        users.add(userList.get(i));
-//                    }
-//                    map.put(departmentName, users);
-//                } else {
-//                    List<User> users = new ArrayList<>();
-//                    users.add(userList.get(i));
-//                    map.put(departmentName, users);
-//                }
-//            }
         }
         for (Map.Entry<String, List<User>> entry : map.entrySet()) {
             departmentList.add(departmentList.size(), entry.getKey());

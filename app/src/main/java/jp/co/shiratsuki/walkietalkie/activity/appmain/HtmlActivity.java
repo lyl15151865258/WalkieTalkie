@@ -52,6 +52,7 @@ public class HtmlActivity extends SwipeBackActivity {
     /**
      * 加载页面配置
      */
+    @SuppressLint("SetJavaScriptEnabled")
     private void initSettings() {
         WebSettings settings = webViewProtocol.getSettings();
         settings.setJavaScriptEnabled(true);

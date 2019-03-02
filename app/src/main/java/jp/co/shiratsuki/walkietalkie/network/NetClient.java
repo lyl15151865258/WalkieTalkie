@@ -223,7 +223,7 @@ public class NetClient {
                 .addConverterFactory(GsonConverterFactory.create(gson))
                 .addCallAdapterFactory(RxJavaCallAdapterFactory.create())
                 .build();
-        Map<String, String> params = new HashMap<>(2);
+        Map<String, Object> params = new HashMap<>(2);
         params.put("apkTypeId", ApkInfo.APK_TYPE_ID_WALKIE_TALKIE);
         Call<ResponseBody> downloadCall = mRetrofit.create(NjMeterApi.class).downloadFile(params);
         downloadCall.enqueue(callback);

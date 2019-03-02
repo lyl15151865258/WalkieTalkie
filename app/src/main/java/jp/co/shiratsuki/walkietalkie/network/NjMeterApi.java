@@ -39,7 +39,7 @@ public interface NjMeterApi {
      */
     @FormUrlEncoded
     @POST("user/register.do")
-    Observable<UserOperateResult> register(@FieldMap Map<String, String> params);
+    Observable<UserOperateResult> register(@FieldMap Map<String, Object> params);
 
     /**
      * 主账号登录的请求
@@ -49,7 +49,7 @@ public interface NjMeterApi {
      */
     @FormUrlEncoded
     @POST("user/login.do")
-    Observable<LoginResult> login(@FieldMap Map<String, String> params);
+    Observable<LoginResult> login(@FieldMap Map<String, Object> params);
 
     /**
      * 更新用户信息
@@ -107,7 +107,7 @@ public interface NjMeterApi {
      */
     @FormUrlEncoded
     @POST("VersionController/getNewVersionUpdateLog.do")
-    Observable<VersionLog> getVersionLog(@FieldMap Map<String, String> params);
+    Observable<VersionLog> getVersionLog(@FieldMap Map<String, Object> params);
 
     /**
      * 上传错误日志文件
@@ -127,7 +127,7 @@ public interface NjMeterApi {
      */
     @FormUrlEncoded
     @POST("VersionController/downloadNewVersion.do")
-    Call<ResponseBody> downloadFile(@FieldMap Map<String, String> params);
+    Call<ResponseBody> downloadFile(@FieldMap Map<String, Object> params);
 
     /**
      * 下载软件

@@ -257,7 +257,7 @@ public class LoginRegisterActivity extends BaseActivity {
             showToast(getString(R.string.EnterPassword));
             return;
         }
-        Map<String, String> params = new HashMap<>(4);
+        Map<String, Object> params = new HashMap<>(4);
         params.put("userId", userId);
         params.put("password", passWord);
         params.put("apkTypeId", ApkInfo.APK_TYPE_ID_WALKIE_TALKIE);
@@ -333,7 +333,7 @@ public class LoginRegisterActivity extends BaseActivity {
     private void register() {
         String userId = etPhoneNumberRegister.getText().toString().trim();
         String passWord = etPassWordRegister.getText().toString().trim();
-        Map<String, String> params = new HashMap<>(2);
+        Map<String, Object> params = new HashMap<>(2);
         params.put("userId", userId);
         params.put("password", passWord);
         Observable<UserOperateResult> clientUserCall = NetClient.getInstances(NetClient.getBaseUrlProject()).getNjMeterApi().register(params);

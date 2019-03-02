@@ -12,7 +12,7 @@ public class ApkInfo {
     /**
      * 软件类型
      */
-    public static final String APK_TYPE_ID_WALKIE_TALKIE = "1";
+    public static final int APK_TYPE_ID_WALKIE_TALKIE = 1;
 
     /**
      * 软件版本：预览版（测试版）

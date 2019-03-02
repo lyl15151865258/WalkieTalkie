@@ -63,7 +63,8 @@
             android:text="@string/Search"
             android:textAllCaps="false"
             android:textColor="@color/white"
-            android:textSize="@dimen/sp_18" />
+            android:textSize="@dimen/sp_18"
+            android:visibility="gone" />
 
     </LinearLayout>
 

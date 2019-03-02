@@ -87,7 +87,7 @@ public class VersionsActivity extends SwipeBackActivity {
         lvVersionLog.setLayoutManager(linearLayoutManager);
         lvVersionLog.addItemDecoration(new RecyclerViewDivider(this, LinearLayoutManager.HORIZONTAL, 2, ContextCompat.getColor(this, R.color.gray_slight)));
 
-        Map<String, String> params = new HashMap<>(2);
+        Map<String, Object> params = new HashMap<>(2);
         params.put("apkTypeId", ApkInfo.APK_TYPE_ID_WALKIE_TALKIE);
         Observable<VersionLog> versionLogCall = NetClient.getInstances(NetClient.getBaseUrlProject()).getNjMeterApi().getVersionLog(params);
         versionLogCall.subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread()).subscribe(new NetworkSubscriber<VersionLog>(mContext, getClass().getSimpleName()) {

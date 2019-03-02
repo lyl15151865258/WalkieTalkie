@@ -16,21 +16,21 @@ public class NetWork {
     public static final String SUCCESS = "success";
 
     //主账号IP地址
-    public static final String SERVER_HOST_MAIN = "192.168.1.137";
+    public static final String SERVER_HOST_MAIN = "192.168.137.1";
     //主账号端口号
     public static final String SERVER_PORT_MAIN = "8080";
     //主账号项目名
     public static final String PROJECT_MAIN = "WalkieTalkieServer";
 
     // 语音服务器地址
-    public static final String WEBRTC_SERVER_IP = "192.168.1.137";
+    public static final String WEBRTC_SERVER_IP = "192.168.137.1";
     // 语音服务器端口
     public static final String WEBRTC_SERVER_PORT = "8080";
     // 默认房间号
     public static final String WEBRTC_SERVER_ROOM = "JSS";
 
     //消息服务器地址
-    public static final String MESSAGE_SERVER_IP = "192.168.1.137";
+    public static final String MESSAGE_SERVER_IP = "192.168.137.1";
     //消息服务器端口号
     public static final String MESSAGE_SERVER_PORT = "50100";
     //消息服务器名称

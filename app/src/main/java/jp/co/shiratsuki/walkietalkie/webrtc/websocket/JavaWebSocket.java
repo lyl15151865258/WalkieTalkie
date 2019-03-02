@@ -188,8 +188,8 @@ public class JavaWebSocket {
         LogUtils.d(TAG, "收到信息：" + message);
         if (eventName != null) {
             switch (eventName) {
-                case "_new_user":
-                    handleNewUser(message);
+                case "_user_in_out":
+                    handleUserInOrOut(message);
                     break;
                 case "_peers":
                     handleJoinToRoom(message);
@@ -239,8 +239,8 @@ public class JavaWebSocket {
         }
     }
 
-    // 新用户连接到服务器
-    private void handleNewUser(String message) {
+    // 新用户连接或断开服务器
+    private void handleUserInOrOut(String message) {
         UserInOrOut userInOrOut = GsonUtils.parseJSON(message, UserInOrOut.class);
         ArrayList<User> userList = userInOrOut.getData().getContacts();
         events.onUserInOrOut(userList);
