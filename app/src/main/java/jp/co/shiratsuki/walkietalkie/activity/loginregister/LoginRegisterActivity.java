@@ -30,11 +30,11 @@ import jp.co.shiratsuki.walkietalkie.R;
 import jp.co.shiratsuki.walkietalkie.activity.MainActivity;
 import jp.co.shiratsuki.walkietalkie.activity.appmain.HtmlActivity;
 import jp.co.shiratsuki.walkietalkie.activity.base.BaseActivity;
+import jp.co.shiratsuki.walkietalkie.activity.settings.SetPersonalInfoActivity;
 import jp.co.shiratsuki.walkietalkie.bean.LoginResult;
 import jp.co.shiratsuki.walkietalkie.bean.UserOperateResult;
 import jp.co.shiratsuki.walkietalkie.constant.ApkInfo;
 import jp.co.shiratsuki.walkietalkie.constant.Constants;
-import jp.co.shiratsuki.walkietalkie.constant.NetWork;
 import jp.co.shiratsuki.walkietalkie.contentprovider.SPHelper;
 import jp.co.shiratsuki.walkietalkie.network.ExceptionHandle;
 import jp.co.shiratsuki.walkietalkie.network.NetClient;
@@ -166,7 +166,7 @@ public class LoginRegisterActivity extends BaseActivity {
             case R.id.tv_registration_protocol:
                 //打开用户注册协议
                 Intent intent = new Intent(LoginRegisterActivity.this, HtmlActivity.class);
-                String url = "file:////android_asset/html/RegisterProtocols/index.html";
+                String url = NetClient.getBaseUrlProject() + "html/RegisterProtocols/RegisterProtocols.html";
                 intent.putExtra("title", getString(R.string.RegistrationProtocol));
                 intent.putExtra("URL", url);
                 startActivity(intent);
@@ -304,7 +304,13 @@ public class LoginRegisterActivity extends BaseActivity {
 //                            mySharedPreferencesUtils.updateUserConfiguration(userOperateResult.getAccount().getDetails());
 
                             SPHelper.save("User", GsonUtils.convertJSON(loginResult.getUser()));
-                            openActivity(MainActivity.class);
+                            if (TextUtils.isEmpty(loginResult.getUser().getIcon_url())) {
+                                openActivity(ChooseHeadPortraitActivity.class);
+                            } else if (TextUtils.isEmpty(loginResult.getUser().getUser_name()) || TextUtils.isEmpty(loginResult.getUser().getDepartment_name())) {
+                                openActivity(SetPersonalInfoActivity.class);
+                            } else {
+                                openActivity(MainActivity.class);
+                            }
                             ActivityController.finishActivity(LoginRegisterActivity.this);
                             break;
                         case Constants.FAIL:

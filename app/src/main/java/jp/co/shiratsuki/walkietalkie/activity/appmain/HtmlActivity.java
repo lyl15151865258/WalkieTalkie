@@ -15,7 +15,7 @@ import android.webkit.WebViewClient;
 import android.widget.ProgressBar;
 
 import jp.co.shiratsuki.walkietalkie.R;
-import jp.co.shiratsuki.walkietalkie.activity.base.BaseActivity;
+import jp.co.shiratsuki.walkietalkie.activity.base.SwipeBackActivity;
 import jp.co.shiratsuki.walkietalkie.utils.ActivityController;
 import jp.co.shiratsuki.walkietalkie.utils.NetworkUtil;
 import jp.co.shiratsuki.walkietalkie.widget.MyToolbar;
@@ -28,7 +28,7 @@ import jp.co.shiratsuki.walkietalkie.widget.MyToolbar;
  * @version 1.0
  */
 
-public class HtmlActivity extends BaseActivity {
+public class HtmlActivity extends SwipeBackActivity {
 
     private Context mContext;
     private ProgressBar progressBarWebView;
