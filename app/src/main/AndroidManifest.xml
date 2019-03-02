@@ -163,7 +163,7 @@
         <!-- 消息服务器设置页面 -->
         <activity
             android:name=".activity.settings.SetMessageServerActivity"
-            android:launchMode="singleInstance"
+            android:launchMode="singleTask"
             android:screenOrientation="portrait" />
 
         <!-- 一对一通话响铃界面 -->
@@ -175,7 +175,7 @@
         <!-- 一对一通话等待界面 -->
         <activity
             android:name=".activity.appmain.P2PWaitingActivity"
-            android:launchMode="singleTask"
+            android:launchMode="singleInstance"
             android:screenOrientation="portrait" />
 
         <!-- App版本信息界面 -->

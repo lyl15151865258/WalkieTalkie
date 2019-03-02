@@ -89,7 +89,7 @@ public class VersionsActivity extends SwipeBackActivity {
 
         Map<String, String> params = new HashMap<>(2);
         params.put("apkTypeId", ApkInfo.APK_TYPE_ID_WALKIE_TALKIE);
-        Observable<VersionLog> versionLogCall = NetClient.getInstances(NetClient.BASE_URL_PROJECT).getNjMeterApi().getVersionLog(params);
+        Observable<VersionLog> versionLogCall = NetClient.getInstances(NetClient.getBaseUrlProject()).getNjMeterApi().getVersionLog(params);
         versionLogCall.subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread()).subscribe(new NetworkSubscriber<VersionLog>(mContext, getClass().getSimpleName()) {
 
             @Override

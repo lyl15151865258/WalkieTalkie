@@ -129,7 +129,7 @@ public class SetVoiceServerActivity extends SwipeBackActivity {
         params.put("serverIP", ip);
         params.put("serverPort", port);
         params.put("roomId", room);
-        Observable<UserOperateResult> clientUserObservable = NetClient.getInstances(NetClient.BASE_URL_PROJECT).getNjMeterApi().updateVoiceServer(params);
+        Observable<UserOperateResult> clientUserObservable = NetClient.getInstances(NetClient.getBaseUrlProject()).getNjMeterApi().updateVoiceServer(params);
         clientUserObservable.subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread()).subscribe(new NetworkSubscriber<UserOperateResult>(mContext, getClass().getSimpleName()) {
 
             @Override

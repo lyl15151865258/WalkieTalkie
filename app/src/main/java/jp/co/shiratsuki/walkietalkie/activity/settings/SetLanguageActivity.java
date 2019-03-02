@@ -30,7 +30,6 @@ import java.util.List;
 
 public class SetLanguageActivity extends SwipeBackActivity {
 
-    private String TAG = "SetLanguageActivity";
     private List<Language> languageList;
     private ChooseLanguageAdapter chooseLanguageAdapter;
 

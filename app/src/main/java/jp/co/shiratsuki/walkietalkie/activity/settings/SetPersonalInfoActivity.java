@@ -121,7 +121,7 @@ public class SetPersonalInfoActivity extends SwipeBackActivity {
         params.put("username", name);
         params.put("company", companyName);
         params.put("departmentId", selectedPosition);
-        Observable<UserOperateResult> clientUserObservable = NetClient.getInstances(NetClient.BASE_URL_PROJECT).getNjMeterApi().updateInfo(params);
+        Observable<UserOperateResult> clientUserObservable = NetClient.getInstances(NetClient.getBaseUrlProject()).getNjMeterApi().updateInfo(params);
         clientUserObservable.subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread()).subscribe(new NetworkSubscriber<UserOperateResult>(mContext, getClass().getSimpleName()) {
 
             @Override
@@ -175,7 +175,7 @@ public class SetPersonalInfoActivity extends SwipeBackActivity {
      * 查询部门信息
      */
     private void searchDepartment() {
-        Observable<DepartmentResult> departmentResultObservable = NetClient.getInstances(NetClient.BASE_URL_PROJECT).getNjMeterApi().searchDepartment();
+        Observable<DepartmentResult> departmentResultObservable = NetClient.getInstances(NetClient.getBaseUrlProject()).getNjMeterApi().searchDepartment();
         departmentResultObservable.subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread()).subscribe(new NetworkSubscriber<DepartmentResult>(mContext, getClass().getSimpleName()) {
 
             @Override

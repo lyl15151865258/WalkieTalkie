@@ -1,5 +1,7 @@
 package jp.co.shiratsuki.walkietalkie.network;
 
+import android.text.TextUtils;
+
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
@@ -7,6 +9,7 @@ import jp.co.shiratsuki.walkietalkie.BuildConfig;
 import jp.co.shiratsuki.walkietalkie.WalkieTalkieApplication;
 import jp.co.shiratsuki.walkietalkie.constant.ApkInfo;
 import jp.co.shiratsuki.walkietalkie.constant.NetWork;
+import jp.co.shiratsuki.walkietalkie.contentprovider.SPHelper;
 import jp.co.shiratsuki.walkietalkie.network.retrofit.ProgressListener;
 import jp.co.shiratsuki.walkietalkie.network.retrofit.ProgressResponseBody;
 import jp.co.shiratsuki.walkietalkie.utils.LogUtils;
@@ -45,7 +48,7 @@ public class NetClient {
     /**
      * 加密秘钥
      */
-    public static final String SECRET_KRY = "jsmt";
+    public static final String SECRET_KRY = "jss";
 
     private static NetClient mNetClient;
     private NjMeterApi njMeterApi;
@@ -152,15 +155,36 @@ public class NetClient {
      */
     public static final String BASE_URL = "http://" + NetWork.SERVER_HOST_MAIN + ":" + NetWork.SERVER_PORT_MAIN + "/";
 
+    public static String getBaseUrl() {
+        // 计算主服务器的URL路径
+        String ip = SPHelper.getString("PrimaryServerIp", "");
+        String port = SPHelper.getString("PrimaryServerPort", "");
+        if (TextUtils.isEmpty(ip)) {
+            ip = NetWork.SERVER_HOST_MAIN;
+        }
+        if (TextUtils.isEmpty(port)) {
+            port = NetWork.SERVER_PORT_MAIN;
+        }
+        return "http://" + ip + ":" + port + "/";
+    }
+
     /**
      * 主账号基础Url带项目名
      */
     public static final String BASE_URL_PROJECT = "http://" + NetWork.SERVER_HOST_MAIN + ":" + NetWork.SERVER_PORT_MAIN + "/" + NetWork.PROJECT_MAIN + "/";
 
-    /**
-     * 百度鹰眼终端管理基础接口
-     */
-    public static final String BASE_URL_BAIDU_TRACE = "http://yingyan.baidu.com/api/v3/";
+    public static String getBaseUrlProject() {
+        // 计算主服务器的URL路径
+        String ip = SPHelper.getString("PrimaryServerIp", "");
+        String port = SPHelper.getString("PrimaryServerPort", "");
+        if (TextUtils.isEmpty(ip)) {
+            ip = NetWork.SERVER_HOST_MAIN;
+        }
+        if (TextUtils.isEmpty(port)) {
+            port = NetWork.SERVER_PORT_MAIN;
+        }
+        return "http://" + ip + ":" + port + "/" + NetWork.PROJECT_MAIN + "/";
+    }
 
     /**
      * 拼接通用基础Url
@@ -193,7 +217,7 @@ public class NetClient {
         Gson gson = new GsonBuilder().setLenient().create();
         // 初始化Retrofit
         Retrofit mRetrofit = new Retrofit.Builder()
-                .baseUrl(BASE_URL_PROJECT)
+                .baseUrl(getBaseUrlProject())
                 .client(client)
                 .addConverterFactory(new StringConverterFactory())
                 .addConverterFactory(GsonConverterFactory.create(gson))
@@ -221,7 +245,7 @@ public class NetClient {
         Gson gson = new GsonBuilder().setLenient().create();
         // 初始化Retrofit
         Retrofit mRetrofit = new Retrofit.Builder()
-                .baseUrl(BASE_URL)
+                .baseUrl(getBaseUrl())
                 .client(client)
                 .addConverterFactory(new StringConverterFactory())
                 .addConverterFactory(GsonConverterFactory.create(gson))

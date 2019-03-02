@@ -15,27 +15,26 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:gravity="center"
-        android:orientation="vertical"
-        android:padding="@dimen/dp_40">
+        android:orientation="vertical">
 
         <jp.co.shiratsuki.walkietalkie.widget.imageview.SquareByWidthImageView
             android:id="@+id/ivQrCode"
             android:layout_width="match_parent"
-            android:layout_height="match_parent" />
+            android:layout_height="match_parent"
+            android:layout_margin="@dimen/dp_40" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/dp_30"
             android:text="@string/QrCodeShare"
-            android:textSize="@dimen/sp_18" />
+            android:textSize="@dimen/sp_16" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/dp_5"
             android:text="@string/LongPressToSave"
-            android:textSize="@dimen/sp_18" />
+            android:textSize="@dimen/sp_16" />
 
     </LinearLayout>
 

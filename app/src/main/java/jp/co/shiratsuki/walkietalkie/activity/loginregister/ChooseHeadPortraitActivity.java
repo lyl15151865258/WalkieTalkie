@@ -160,7 +160,7 @@ public class ChooseHeadPortraitActivity extends BaseActivity {
         // MultipartBody.Part  和后端约定好Key，这里的partName是用image
         MultipartBody.Part body = MultipartBody.Part.createFormData("uploadfile", file.getName(), requestFile);
         // 执行请求
-        Observable<NormalResult> normalResultObservable = NetClient.getInstances(NetClient.BASE_URL_PROJECT).getNjMeterApi().uploadUserIcon(description, body);
+        Observable<NormalResult> normalResultObservable = NetClient.getInstances(NetClient.getBaseUrlProject()).getNjMeterApi().uploadUserIcon(description, body);
         normalResultObservable.subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread()).subscribe(new NetworkSubscriber<NormalResult>(mContext, getClass().getSimpleName()) {
 
             @Override

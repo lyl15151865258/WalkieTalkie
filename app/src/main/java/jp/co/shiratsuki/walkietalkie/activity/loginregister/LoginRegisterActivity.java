@@ -67,7 +67,6 @@ public class LoginRegisterActivity extends BaseActivity {
     private RelativeLayout rlLogin;
     private LinearLayout llRegister;
     private ImageView ivUserIcon;
-    private String baseUrl;
 
     private boolean isAutoLogin = true;
 
@@ -124,18 +123,6 @@ public class LoginRegisterActivity extends BaseActivity {
         super.onResume();
         // 展示头像
         showUserIcon();
-        // 计算主服务器的URL路径
-        String ip = SPHelper.getString("PrimaryServerIp", "");
-        String port = SPHelper.getString("PrimaryServerPort", "");
-        if (TextUtils.isEmpty(ip)) {
-            ip = NetWork.SERVER_HOST_MAIN;
-        }
-        if (TextUtils.isEmpty(port)) {
-            port = NetWork.SERVER_PORT_MAIN;
-        }
-        baseUrl = "http://" + ip + ":" + port + "/" + NetWork.PROJECT_MAIN + "/";
-        LogUtils.d(TAG, "当前主服务器登录URL为：" + baseUrl);
-
         // 如果是刚进入页面且不是从主页面切换账号打开的话，自动执行登录过程
         boolean isSwitchAccount = getIntent().getBooleanExtra("SwitchAccount", false);
         if (isAutoLogin && !isSwitchAccount) {
@@ -275,7 +262,7 @@ public class LoginRegisterActivity extends BaseActivity {
         params.put("password", passWord);
         params.put("apkTypeId", ApkInfo.APK_TYPE_ID_WALKIE_TALKIE);
 
-        Observable<LoginResult> clientUserObservable = NetClient.getInstances(baseUrl).getNjMeterApi().login(params);
+        Observable<LoginResult> clientUserObservable = NetClient.getInstances(NetClient.getBaseUrlProject()).getNjMeterApi().login(params);
         clientUserObservable.subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread()).subscribe(new NetworkSubscriber<LoginResult>(mContext, getClass().getSimpleName()) {
 
             @Override
@@ -343,7 +330,7 @@ public class LoginRegisterActivity extends BaseActivity {
         Map<String, String> params = new HashMap<>(2);
         params.put("userId", userId);
         params.put("password", passWord);
-        Observable<UserOperateResult> clientUserCall = NetClient.getInstances(baseUrl).getNjMeterApi().register(params);
+        Observable<UserOperateResult> clientUserCall = NetClient.getInstances(NetClient.getBaseUrlProject()).getNjMeterApi().register(params);
         clientUserCall.subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread()).subscribe(new NetworkSubscriber<UserOperateResult>(mContext, getClass().getSimpleName()) {
 
             @Override

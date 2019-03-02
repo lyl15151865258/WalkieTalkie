@@ -263,7 +263,7 @@ public class CrashHandler implements UncaughtExceptionHandler {
         RequestBody requestFile = RequestBody.create(MediaType.parse("multipart/form-data"), file);
         // MultipartBody.Part  和后端约定好Key，这里的partName是用image
         MultipartBody.Part body = MultipartBody.Part.createFormData("uploadfile", file.getName(), requestFile);
-        Observable<NormalResult> normalResultObservable = NetClient.getInstances(NetClient.BASE_URL_PROJECT).getNjMeterApi().uploadCrashFiles(body);
+        Observable<NormalResult> normalResultObservable = NetClient.getInstances(NetClient.getBaseUrlProject()).getNjMeterApi().uploadCrashFiles(body);
         normalResultObservable.subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread()).subscribe(new NetworkSubscriber<NormalResult>(mContext, getClass().getSimpleName()) {
 
             @Override

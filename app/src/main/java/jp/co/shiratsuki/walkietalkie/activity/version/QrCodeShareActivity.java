@@ -15,7 +15,6 @@ import jp.co.shiratsuki.walkietalkie.R;
 import jp.co.shiratsuki.walkietalkie.activity.base.SwipeBackActivity;
 import jp.co.shiratsuki.walkietalkie.bean.User;
 import jp.co.shiratsuki.walkietalkie.constant.ApkInfo;
-import jp.co.shiratsuki.walkietalkie.constant.NetWork;
 import jp.co.shiratsuki.walkietalkie.contentprovider.SPHelper;
 import jp.co.shiratsuki.walkietalkie.network.NetClient;
 import jp.co.shiratsuki.walkietalkie.utils.ActivityController;
@@ -83,13 +82,12 @@ public class QrCodeShareActivity extends SwipeBackActivity {
             User user = GsonUtils.parseJSON(SPHelper.getString("User", GsonUtils.convertJSON(new User())), User.class);
 
             if (!user.getIcon_url().equals("")) {
-                String photoPath = ("http://" + NetWork.SERVER_HOST_MAIN + ":" + NetWork.SERVER_PORT_MAIN +
-                        user.getIcon_url()).replace("\\", "/");
+                String photoPath = (NetClient.getBaseUrl() + user.getIcon_url()).replace("\\", "/");
                 logo = BitmapUtils.getBitmapFromNetwork(photoPath);
             } else {
                 logo = BitmapUtils.getBitmapFromResource(mContext, R.mipmap.ic_launcher);
             }
-            String downloadUrl = NetClient.BASE_URL_PROJECT + "VersionController/downloadNewVersionByLoginId.do?apkTypeId=" + ApkInfo.APK_TYPE_ID_WALKIE_TALKIE
+            String downloadUrl = NetClient.getBaseUrlProject() + "VersionController/downloadNewVersionByLoginId.do?apkTypeId=" + ApkInfo.APK_TYPE_ID_WALKIE_TALKIE
                     + "&loginId=" + user.getUser_id();
             boolean success = ZXingUtils.createQRImage(mContext, downloadUrl, 800, 800, logo, filePath);
             if (success) {

@@ -122,7 +122,7 @@ public class SetMessageServerActivity extends SwipeBackActivity {
         params.put("userId", user.getUser_id());
         params.put("serverIP", ip);
         params.put("serverPort", port);
-        Observable<UserOperateResult> clientUserObservable = NetClient.getInstances(NetClient.BASE_URL_PROJECT).getNjMeterApi().updateMessageServer(params);
+        Observable<UserOperateResult> clientUserObservable = NetClient.getInstances(NetClient.getBaseUrlProject()).getNjMeterApi().updateMessageServer(params);
         clientUserObservable.subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread()).subscribe(new NetworkSubscriber<UserOperateResult>(mContext, getClass().getSimpleName()) {
 
             @Override
