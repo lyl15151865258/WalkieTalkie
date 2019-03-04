@@ -59,7 +59,7 @@ public class VoiceService extends Service implements IWebRTCHelper, VolumeChange
     private boolean isInRoom = false;
 
     enum TYPE {
-        EnterRoom, LeaveRoom, LeaveGroup, StartRecord, StopRecord, UseSpeaker, UseEarpiece, DeleteUser
+        EnterRoom, MaxTalker, LeaveRoom, LeaveGroup, StartRecord, StopRecord, UseSpeaker, UseEarpiece, DeleteUser
     }
 
     private final static String TAG = "VoiceService";
@@ -219,7 +219,7 @@ public class VoiceService extends Service implements IWebRTCHelper, VolumeChange
             // 与服务器断开连接
             try {
                 mBinder.stopRecord();
-                helper.leaveGroup();
+                helper.exitRoom();
                 broadcastCallback(TYPE.LeaveGroup, null);
                 SPHelper.save("KEY_STATUS_UP", true);
                 isInRoom = false;
@@ -441,6 +441,13 @@ public class VoiceService extends Service implements IWebRTCHelper, VolumeChange
     }
 
     @Override
+    public void onOverMaxTalker(String roomId) {
+        Intent intent = new Intent();
+        intent.putExtra("roomId", roomId);
+        broadcastCallback(TYPE.MaxTalker, intent);
+    }
+
+    @Override
     public void onSetLocalStream(MediaStream stream, String socketId) {
 
     }
@@ -483,43 +490,45 @@ public class VoiceService extends Service implements IWebRTCHelper, VolumeChange
     }
 
     @Override
+    public void someoneLeaveRoom(String roomId, ArrayList<User> userList) {
+        // 有人离开了房间，判断这个人是不是与自己进行一对一通话
+        if (isInRoom && SPHelper.getBoolean("P2PChat", false)) {
+            // 标记为用户正常退出房间
+            SPHelper.save("NormalExit", true);
+            Intent intent = new Intent();
+            intent.setAction("MEDIA_BUTTON_LONG_PRESS");
+            sendBroadcast(intent);
+        }
+        // 更新房间联系人
+        updateVolume(userList, "UPDATE_CONTACTS_ROOM");
+    }
+
+    @Override
     public void updateRoomContacts(ArrayList<User> userList) {
-        // 调节音量
-        int defaultVolume = SPHelper.getInt("defaultVolume", mAudioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC));
-        boolean someoneSpeaking = false;
-        for (int i = 0; i < userList.size(); i++) {
-            if (userList.get(i).isSpeaking()) {
-                someoneSpeaking = true;
-                break;
-            }
-        }
-
-        Intent intent = new Intent();
-        // 如果所有人都不讲话了
-        if (!someoneSpeaking) {
-            SPHelper.save("SomeoneSpeaking", false);
-            LogUtils.d(TAG, "所有人都不讲话了，当前音量为：" + defaultVolume);
-            mAudioManager.setStreamVolume(AudioManager.STREAM_MUSIC, defaultVolume, AudioManager.FLAG_VIBRATE);
-
-            // 通知Activity修改音量键默认调节的音量类型
-            intent.putExtra("VolumeControlStream", AudioManager.STREAM_MUSIC);
-        } else {
-            SPHelper.save("SomeoneSpeaking", true);
-            LogUtils.d(TAG, "当前有人在讲话，当前音量为：" + defaultVolume / 2);
-            mAudioManager.setStreamVolume(AudioManager.STREAM_MUSIC, defaultVolume / 2, AudioManager.FLAG_VIBRATE);
-
-            // 通知Activity修改音量键默认调节的音量类型
-            intent.putExtra("VolumeControlStream", AudioManager.STREAM_VOICE_CALL);
-        }
-        intent.putParcelableArrayListExtra("userList", userList);
-        intent.setAction("UPDATE_CONTACTS_ROOM");
-        LogUtils.d(TAG, "房间内联系人数量：" + userList.size());
-        sendBroadcast(intent);
+        updateVolume(userList, "UPDATE_CONTACTS_ROOM");
     }
 
     @Override
     public void updateRoomSpeakStatus(ArrayList<User> userList) {
+        updateVolume(userList, "UPDATE_SPEAK_STATUS");
+    }
 
+    @Override
+    public void updateContacts(ArrayList<User> userList) {
+        Intent intent = new Intent();
+        intent.putParcelableArrayListExtra("userList", userList);
+        intent.setAction("UPDATE_CONTACTS");
+        LogUtils.d(TAG, "总联系人数量：" + userList.size());
+        sendBroadcast(intent);
+    }
+
+    /**
+     * 更新音量
+     *
+     * @param userList 联系人列表
+     * @param action   发送广播的Action
+     */
+    private void updateVolume(ArrayList<User> userList, String action) {
         // 调节音量
         boolean someoneSpeaking = false;
         for (int i = 0; i < userList.size(); i++) {
@@ -549,17 +558,8 @@ public class VoiceService extends Service implements IWebRTCHelper, VolumeChange
             intent.putExtra("VolumeControlStream", AudioManager.STREAM_VOICE_CALL);
         }
         intent.putParcelableArrayListExtra("userList", userList);
-        intent.setAction("UPDATE_SPEAK_STATUS");
+        intent.setAction(action);
         LogUtils.d(TAG, "房间内联系人数量：" + userList.size());
-        sendBroadcast(intent);
-    }
-
-    @Override
-    public void updateContacts(ArrayList<User> userList) {
-        Intent intent = new Intent();
-        intent.putParcelableArrayListExtra("userList", userList);
-        intent.setAction("UPDATE_CONTACTS");
-        LogUtils.d(TAG, "总联系人数量：" + userList.size());
         sendBroadcast(intent);
     }
 
@@ -574,6 +574,10 @@ public class VoiceService extends Service implements IWebRTCHelper, VolumeChange
                     if (type == TYPE.EnterRoom) {
                         callback.enterRoomSuccess();
                         LogUtils.d(TAG, "走回调方法broadcastCallback，EnterRoom");
+                    } else if (type == TYPE.MaxTalker) {
+                        String roomId = intent.getStringExtra("roomId");
+                        callback.onOverMaxTalker(roomId);
+                        LogUtils.d(TAG, "走回调方法broadcastCallback，MaxTalker");
                     } else if (type == TYPE.LeaveRoom) {
                         callback.leaveRoomSuccess();
                         LogUtils.d(TAG, "走回调方法broadcastCallback，LeaveRoom");

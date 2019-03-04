@@ -159,6 +159,8 @@ public class P2PRingingActivity extends BaseActivity {
                 } catch (RemoteException e) {
                     e.printStackTrace();
                 }
+                // 标记这是一对一通话
+                SPHelper.save("P2PChat", true);
                 ActivityController.finishActivity(this);
                 break;
             default:

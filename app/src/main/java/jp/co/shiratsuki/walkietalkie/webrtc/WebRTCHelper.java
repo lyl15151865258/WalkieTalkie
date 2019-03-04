@@ -178,6 +178,14 @@ public class WebRTCHelper implements ISignalingEvents {
         }
     }
 
+    @Override
+    public void onOverMaxTalker(String roomId) {
+        if (IHelper != null) {
+            LogUtils.d(TAG, "房间" + roomId + "人数达到上限");
+            IHelper.onOverMaxTalker(roomId);
+        }
+    }
+
     @Override  // 其他人加入到房间
     public void onRemoteJoinToRoom(String userId, ArrayList<User> userList) {
         LogUtils.d(TAG, "有人加入到房间：" + userId);
@@ -237,8 +245,8 @@ public class WebRTCHelper implements ISignalingEvents {
     }
 
     @Override
-    public void onReceiveSomeoneLeave(String userId, ArrayList<User> userList) {
-        IHelper.updateRoomContacts(userList);
+    public void onReceiveSomeoneLeave(String roomId, String userId, ArrayList<User> userList) {
+        IHelper.someoneLeaveRoom(roomId, userList);
         closePeerConnection(userId);
     }
 
@@ -428,35 +436,6 @@ public class WebRTCHelper implements ISignalingEvents {
         }
     }
 
-    public void leaveGroup() {
-        User user = GsonUtils.parseJSON(SPHelper.getString("User", GsonUtils.convertJSON(new User())), User.class);
-        HashMap<String, Object> map = new HashMap<>();
-        map.put("eventName", "__leave_room");
-        map.put("data", user);
-        sendMessage(GsonUtils.convertJSON(map));
-
-        if (videoSource != null) {
-            videoSource.stop();
-        }
-        ArrayList myCopy = (ArrayList) connectionIdList.clone();
-        for (Object Id : myCopy) {
-            closePeerConnection((String) Id);
-        }
-
-//        if (webSocket != null) {
-//            webSocket.close();
-//        }
-        if (connectionIdList != null) {
-            connectionIdList.clear();
-        }
-        localStream = null;
-
-        if (IHelper != null) {
-            IHelper.onLeaveGroup();
-            SPHelper.save("KEY_STATUS_UP", true);
-        }
-    }
-
     private void websocketDisconnect() {
         if (videoSource != null) {
             videoSource.stop();
@@ -475,7 +454,7 @@ public class WebRTCHelper implements ISignalingEvents {
         }
     }
 
-    public void closeWebSocket() {
+    private void closeWebSocket() {
         webSocket.close();
         threadPool.shutdown();
     }
@@ -729,7 +708,7 @@ public class WebRTCHelper implements ISignalingEvents {
     }
 
     public void release() {
-        leaveGroup();
+        exitRoom();
         closeWebSocket();
         flag = false;
     }

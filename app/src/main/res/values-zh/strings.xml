@@ -185,5 +185,6 @@
     <string name="PrimaryServerTips">如果您不填写，则采用默认的服务器地址进行登录</string>
     <string name="SaveToGallerySuccessfully">图片已保存到相册</string>
     <string name="LongPressToSave">（长按图片保存到相册）</string>
+    <string name="OverMaxTalker">该聊天组的用户数量已达到上限</string>
 
 </resources>

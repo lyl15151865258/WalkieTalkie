@@ -155,7 +155,7 @@
     <string name="RealTimePushService">異常情報リアルタイムプッシュサービス</string>
     <string name="RealTimePushServiceRunning">異常情報リアルタイムプッシュサービス実行中&#8230;</string>
     <string name="HangUp">電話を切る</string>
-    <string name="Answer">答えて</string>
+    <string name="Answer">応答</string>
     <string name="InviteYouToMakeAVoiceCall">音声電話をかけるように招待します&#8230;</string>
     <string name="WaitingForAccept">相手が招待を受け入れるのを待っています&#8230;</string>
     <string name="VersionCode">バージョン番号</string>
@@ -185,5 +185,6 @@
     <string name="PrimaryServerTips">入力しなかった場合は、デフォルトのサーバーアドレスでログインします。</string>
     <string name="SaveToGallerySuccessfully">画像をアルバムに保存しました</string>
     <string name="LongPressToSave">（画像を長押ししてアルバムに保存）</string>
+    <string name="OverMaxTalker">このチャットグループのユーザー数が上限に達しました</string>
 
 </resources>

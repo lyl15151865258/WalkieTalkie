@@ -1,6 +1,7 @@
 package jp.co.shiratsuki.walkietalkie.service;
 
 interface IVoiceCallback {
+    void onOverMaxTalker(String roomId);
     void enterRoomSuccess();
     void leaveRoomSuccess();
     void leaveGroupSuccess();

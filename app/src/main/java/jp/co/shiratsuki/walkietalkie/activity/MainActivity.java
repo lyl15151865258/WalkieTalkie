@@ -709,6 +709,14 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
      * 被调用的方法运行在Binder线程池中，需要在主线程中更新UI
      */
     private IVoiceCallback iVoiceCallback = new IVoiceCallback.Stub() {
+
+        @Override
+        public void onOverMaxTalker(String roomId) {
+            runOnUiThread(new Thread(() -> {
+                showToast(R.string.OverMaxTalker);
+            }));
+        }
+
         @Override
         public void enterRoomSuccess() {
             // 加入房间成功
@@ -731,7 +739,7 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
 
         @Override
         public void leaveRoomSuccess() {
-            LogUtils.d("这里走了两遍吗");
+            LogUtils.d(TAG,"成功离开了聊天室");
             // 离开房间成功
             runOnUiThread(new Thread(() -> {
                 // 重置房间按钮
@@ -748,6 +756,7 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
                 SPHelper.save("User", GsonUtils.convertJSON(user));
 
                 // 清空房间联系人列表
+                LogUtils.d(TAG,"清空房间联系人列表");
                 List<Fragment> fragmentList = getSupportFragmentManager().getFragments();
                 ChatRoomFragment chatRoomFragment;
                 for (Fragment fragment : fragmentList) {

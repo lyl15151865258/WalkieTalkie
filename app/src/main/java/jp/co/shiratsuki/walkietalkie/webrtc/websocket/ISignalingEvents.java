@@ -20,6 +20,9 @@ public interface ISignalingEvents {
     // 进入房间
     void onJoinToRoom(List<String> connections, String myId);
 
+    // 准备加入的房间人数已经满了
+    void onOverMaxTalker(String roomId);
+
     // 有新人进入房间
     void onRemoteJoinToRoom(String userId, ArrayList<User> userList);
 
@@ -33,7 +36,7 @@ public interface ISignalingEvents {
 
     void onReceiveSpeakStatus(ArrayList<User> userList);
 
-    void onReceiveSomeoneLeave(String userId, ArrayList<User> userList);
+    void onReceiveSomeoneLeave(String roomId,String userId, ArrayList<User> userList);
 
     void onUserInOrOut(ArrayList<User> userList);
 

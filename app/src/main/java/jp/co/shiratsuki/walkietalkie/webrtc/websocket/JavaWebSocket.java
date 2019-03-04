@@ -32,6 +32,7 @@ import jp.co.shiratsuki.walkietalkie.activity.appmain.P2PRingingActivity;
 import jp.co.shiratsuki.walkietalkie.activity.appmain.P2PWaitingActivity;
 import jp.co.shiratsuki.walkietalkie.bean.User;
 import jp.co.shiratsuki.walkietalkie.bean.websocket.ContactsList;
+import jp.co.shiratsuki.walkietalkie.bean.websocket.OverMaxTalker;
 import jp.co.shiratsuki.walkietalkie.bean.websocket.P2PAccept;
 import jp.co.shiratsuki.walkietalkie.bean.websocket.P2PRequest;
 import jp.co.shiratsuki.walkietalkie.bean.websocket.P2PResult;
@@ -193,6 +194,9 @@ public class JavaWebSocket {
                 case "_user_in_out":
                     handleUserInOrOut(message);
                     break;
+                case "_over_max_talker":
+                    handleOverMaxTalker(message);
+                    break;
                 case "_peers":
                     handleJoinToRoom(message);
                     break;
@@ -246,6 +250,14 @@ public class JavaWebSocket {
         UserInOrOut userInOrOut = GsonUtils.parseJSON(message, UserInOrOut.class);
         ArrayList<User> userList = userInOrOut.getData().getContacts();
         events.onUserInOrOut(userList);
+    }
+
+    // 准备加入的房间人数已满
+    private void handleOverMaxTalker(String message) {
+        OverMaxTalker overMaxTalker = GsonUtils.parseJSON(message, OverMaxTalker.class);
+        String roomId = overMaxTalker.getData().getRoomId();
+        LogUtils.d(TAG, "房间" + roomId + "人数达到上限");
+        events.onOverMaxTalker(roomId);
     }
 
     // 自己进入房间
@@ -392,9 +404,10 @@ public class JavaWebSocket {
     // 处理有人离开房间
     private void handleLeaveRoom(String message) {
         ContactsList contactsList = GsonUtils.parseJSON(message, ContactsList.class);
-        ArrayList<User> userList = contactsList.getData().getContacts();
+        String roomId = contactsList.getData().getRoomId();
         String userId = contactsList.getData().getUserId();
-        events.onReceiveSomeoneLeave(userId, userList);
+        ArrayList<User> userList = contactsList.getData().getContacts();
+        events.onReceiveSomeoneLeave(roomId, userId, userList);
     }
 
     // 发送消息的方法

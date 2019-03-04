@@ -16,6 +16,8 @@ import jp.co.shiratsuki.walkietalkie.bean.User;
 
 public interface IWebRTCHelper {
 
+    void onOverMaxTalker(String roomId);
+
     void onSetLocalStream(MediaStream stream, String userId);
 
     void onAddRemoteStream(MediaStream stream, String userId);
@@ -28,8 +30,11 @@ public interface IWebRTCHelper {
 
     void onCloseWithId(String userId);
 
-    // 有人离开房间
-    void removeUser(String userIP);
+    // 有人与服务器断开连接
+    void removeUser(String userId);
+
+    // 有人离开了房间
+    void someoneLeaveRoom(String roomId, ArrayList<User> userList);
 
     // 更新房间内联系人列表
     void updateRoomContacts(ArrayList<User> userList);

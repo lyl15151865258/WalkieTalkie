@@ -185,5 +185,6 @@
     <string name="PrimaryServerTips">If you do not fill in, you will be logged in with the default server address.</string>
     <string name="SaveToGallerySuccessfully">Image saved to album successfully</string>
     <string name="LongPressToSave">（Long press the image to save to album）</string>
+    <string name="OverMaxTalker">The number of users in this chat group has reached the limit</string>
 
 </resources>

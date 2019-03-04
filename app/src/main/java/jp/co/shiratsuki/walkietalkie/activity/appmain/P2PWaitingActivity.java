@@ -197,6 +197,8 @@ public class P2PWaitingActivity extends BaseActivity {
                 playMusicAndFinish();
             }
             if ("P2P_VOICE_REQUEST_ACCEPT".equals(action)) {
+                // 标记这是一对一通话
+                SPHelper.save("P2PChat", true);
                 ActivityController.finishActivity(P2PWaitingActivity.this);
             }
             if ("VOICE_WEBSOCKET_DISCONNECT".equals(action)) {
