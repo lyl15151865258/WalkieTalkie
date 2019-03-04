@@ -107,7 +107,7 @@ public class ContactsFragment extends BaseFragment {
         @Override
         public void onTextChanged(CharSequence s, int start, int before, int count) {
             // 根据搜索框内容更新联系人列表
-            generateAndRefreshList(s.toString());
+            generateAndRefreshList(s.toString().trim());
         }
     };
 
@@ -164,7 +164,7 @@ public class ContactsFragment extends BaseFragment {
         for (int i = 0; i < userList.size(); i++) {
             String userName = userList.get(i).getUser_name();
             String departmentName = userList.get(i).getDepartment_name();
-            if (userName.contains(content) || departmentName.contains(content)) {
+            if (userName.trim().contains(content) || departmentName.trim().contains(content)) {
                 if (map.containsKey(departmentName)) {
                     List<User> users = map.get(departmentName);
                     if (users != null) {

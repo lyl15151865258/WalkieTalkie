@@ -42,6 +42,8 @@ import jp.co.shiratsuki.walkietalkie.contentprovider.SPHelper;
 import jp.co.shiratsuki.walkietalkie.utils.GsonUtils;
 import jp.co.shiratsuki.walkietalkie.utils.LogUtils;
 
+import static android.content.Intent.FLAG_ACTIVITY_NEW_TASK;
+
 /**
  * WebSocket类
  * Created at 2019/1/15 2:40
@@ -334,6 +336,7 @@ public class JavaWebSocket {
         User user = p2PRequest.getData().getUser();
         Intent intent = new Intent(mContext, P2PRingingActivity.class);
         intent.putExtra("user", user);
+        intent.addFlags(FLAG_ACTIVITY_NEW_TASK);
         mContext.startActivity(intent);
     }
 
@@ -372,6 +375,7 @@ public class JavaWebSocket {
             case Constants.SUCCESS:
                 Intent intent = new Intent(mContext, P2PWaitingActivity.class);
                 intent.putExtra("user", user);
+                intent.addFlags(FLAG_ACTIVITY_NEW_TASK);
                 mContext.startActivity(intent);
                 break;
             case Constants.FAIL:

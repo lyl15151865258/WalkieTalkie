@@ -29,6 +29,7 @@ import jp.co.shiratsuki.walkietalkie.contentprovider.SPHelper;
 import jp.co.shiratsuki.walkietalkie.utils.GsonUtils;
 import jp.co.shiratsuki.walkietalkie.utils.LogUtils;
 import jp.co.shiratsuki.walkietalkie.utils.TimeUtils;
+import jp.co.shiratsuki.walkietalkie.widget.MyButton;
 
 /**
  * 聊天室页面
@@ -49,7 +50,7 @@ public class ChatRoomFragment extends BaseFragment {
     private EditText etRoomId;
     private TextView tvCount, tvChatTime;
     private LinearLayout llChatInfo;
-    private Button btnEnterExitRoom;
+    private MyButton btnEnterExitRoom;
     private ImageView ivDeleteRoomId;
     private SyncTimeTask syncTimeTask;
     private long startTime = System.currentTimeMillis();
@@ -195,7 +196,7 @@ public class ChatRoomFragment extends BaseFragment {
      * 加入了房间后
      */
     public void enterRoom() {
-        btnEnterExitRoom.setText(getString(R.string.releaseToExitChat));
+        btnEnterExitRoom.setTextById(R.string.releaseToExitChat);
         etRoomId.setFocusable(false);
         etRoomId.setFocusableInTouchMode(false);
         ivDeleteRoomId.setClickable(false);
@@ -208,7 +209,7 @@ public class ChatRoomFragment extends BaseFragment {
      * 离开了房间后
      */
     public void exitRoom() {
-        btnEnterExitRoom.setText(getString(R.string.pressToJoinChat));
+        btnEnterExitRoom.setTextById(R.string.pressToJoinChat);
         //恢复显示默认房间
         User user = GsonUtils.parseJSON(SPHelper.getString("User", GsonUtils.convertJSON(new User())), User.class);
         etRoomId.setText(user.getRoom_id());

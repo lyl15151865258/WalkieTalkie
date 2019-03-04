@@ -42,18 +42,17 @@ public class WifiUtil {
         return wifiInfo.getBSSID();
     }
 
-//    public static String getSSID(Context context) {
-//        WifiManager wifiManager = (WifiManager) context.getApplicationContext().getSystemService(WIFI_SERVICE);
-//        WifiInfo wifiInfo = wifiManager.getConnectionInfo();
-//        return wifiInfo.getSSID();
-//    }
-
     public static String getSSID(Context context) {
         ConnectivityManager ctm = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo networkInfo = ctm.getActiveNetworkInfo();
         String ssid = networkInfo.getExtraInfo();
+        if (ssid == null) {
+            WifiManager wifiManager = (WifiManager) context.getApplicationContext().getSystemService(WIFI_SERVICE);
+            WifiInfo wifiInfo = wifiManager.getConnectionInfo();
+            ssid = wifiInfo.getSSID();
+        }
         if (ssid.startsWith("\"")) {
-            ssid = ssid.substring(1, ssid.length());
+            ssid = ssid.substring(1);
         }
         if (ssid.endsWith("\"")) {
             ssid = ssid.substring(0, ssid.length() - 1);

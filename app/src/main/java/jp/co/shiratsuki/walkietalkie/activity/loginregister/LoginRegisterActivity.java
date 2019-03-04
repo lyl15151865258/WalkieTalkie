@@ -76,9 +76,6 @@ public class LoginRegisterActivity extends BaseActivity {
         setContentView(R.layout.activity_login_register);
         mContext = this;
 
-        //权限检查
-        PermissionUtil.isNeedRequestPermission(this);
-
         String userId = SPHelper.getString("userId", Constants.EMPTY);
         String passWord = SPHelper.getString("passWord", Constants.EMPTY);
 
@@ -123,9 +120,14 @@ public class LoginRegisterActivity extends BaseActivity {
         super.onResume();
         // 展示头像
         showUserIcon();
-        // 如果是刚进入页面且不是从主页面切换账号打开的话，自动执行登录过程
+        // 判断是不是从主页面切换账号打开
         boolean isSwitchAccount = getIntent().getBooleanExtra("SwitchAccount", false);
-        if (isAutoLogin && !isSwitchAccount) {
+        //权限检查
+        boolean permission = PermissionUtil.isNeedRequestPermission(this);
+        // 如果是刚进入页面且不是从主页面切换账号打开的话，且账号密码不为空，权限都已经授予的话，执行自动登录
+        if (!TextUtils.isEmpty(etPhoneNumberLogin.getText().toString().trim()) &&
+                !TextUtils.isEmpty(etPassWordLogin.getText().toString().trim()) &&
+                isAutoLogin && !permission && !isSwitchAccount) {
             login();
             isAutoLogin = false;
         }
