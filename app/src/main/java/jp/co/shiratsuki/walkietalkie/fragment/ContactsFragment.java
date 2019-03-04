@@ -107,7 +107,7 @@ public class ContactsFragment extends BaseFragment {
         @Override
         public void onTextChanged(CharSequence s, int start, int before, int count) {
             // 根据搜索框内容更新联系人列表
-            generateAndRefreshList(s.toString().trim());
+            generateAndRefreshList(s.toString().replaceAll(" ", ""));
         }
     };
 
@@ -120,7 +120,7 @@ public class ContactsFragment extends BaseFragment {
         LogUtils.d(TAG, "刷新联系人列表");
         this.userList.clear();
         this.userList.addAll(userList);
-        generateAndRefreshList(etContent.getText().toString().trim());
+        generateAndRefreshList(etContent.getText().toString().replaceAll(" ", ""));
     }
 
     /**
@@ -139,7 +139,7 @@ public class ContactsFragment extends BaseFragment {
         }
         if (position != -1) {
             userList.remove(position);
-            generateAndRefreshList(etContent.getText().toString().trim());
+            generateAndRefreshList(etContent.getText().toString().replaceAll(" ", ""));
         }
     }
 
@@ -149,7 +149,7 @@ public class ContactsFragment extends BaseFragment {
     public void clearUserList() {
         LogUtils.d(TAG, "清空联系人列表");
         userList.clear();
-        generateAndRefreshList(etContent.getText().toString().trim());
+        generateAndRefreshList(etContent.getText().toString().replaceAll(" ", ""));
     }
 
     /**
@@ -164,7 +164,7 @@ public class ContactsFragment extends BaseFragment {
         for (int i = 0; i < userList.size(); i++) {
             String userName = userList.get(i).getUser_name();
             String departmentName = userList.get(i).getDepartment_name();
-            if (userName.trim().contains(content) || departmentName.trim().contains(content)) {
+            if (userName.replaceAll(" ", "").contains(content) || departmentName.replaceAll(" ", "").contains(content)) {
                 if (map.containsKey(departmentName)) {
                     List<User> users = map.get(departmentName);
                     if (users != null) {
