@@ -252,6 +252,7 @@ public class WebRTCHelper implements ISignalingEvents {
 
     @Override
     public void onWebSocketClosed() {
+        LogUtils.d(TAG,"WebRTCHelper回调，WebSocket断开了连接");
         websocketDisconnect();
         reConnect();
     }

@@ -501,8 +501,8 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
         }
 
         viewPager = findViewById(R.id.viewPager);
-        //设置页面不可以左右滑动
-        viewPager.setNoScroll(true);
+        //设置页面可以左右滑动
+        viewPager.setNoScroll(false);
         viewPager.setAdapter(viewPagerAdapter);
         //设置Fragment预加载，非常重要,可以保存每个页面fragment已有的信息,防止切换后原页面信息丢失
         viewPager.setOffscreenPageLimit(menus.size());
@@ -1067,6 +1067,8 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
                 List<Fragment> fragmentList = getSupportFragmentManager().getFragments();
                 switch (intent.getAction()) {
                     case "RECEIVE_MALFUNCTION": {
+                        // 收到异常信息
+                        viewPager.setCurrentItem(2);
                         WebSocketData webSocketData = (WebSocketData) intent.getSerializableExtra("data");
                         MalfunctionFragment malfunctionFragment;
                         for (Fragment fragment : fragmentList) {
