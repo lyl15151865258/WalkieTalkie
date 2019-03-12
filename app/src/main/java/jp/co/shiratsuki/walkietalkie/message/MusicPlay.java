@@ -22,6 +22,7 @@ import jp.co.shiratsuki.walkietalkie.utils.LanguageUtil;
 import jp.co.shiratsuki.walkietalkie.utils.LogUtils;
 import jp.co.shiratsuki.walkietalkie.utils.NetworkUtil;
 import jp.co.shiratsuki.walkietalkie.utils.UrlCheckUtil;
+import jp.co.shiratsuki.walkietalkie.utils.VoiceFileUtils;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -55,6 +56,8 @@ public class MusicPlay {
     private int interval1 = 1000, interval2 = 3000;
     private Ringtone ringtone;
     private Vibrator vibrator;
+    private VoiceFileUtils fileUtils;
+    private AudioAsyncTask mAudioAsyncTask;
 
     private MusicPlay(Context context) {
         this.mContext = context;
@@ -67,6 +70,7 @@ public class MusicPlay {
             serverHost = user.getMessage_ip();
         }
         vibrator = (Vibrator) mContext.getSystemService(VIBRATOR_SERVICE);
+        fileUtils = new VoiceFileUtils(context);
     }
 
     /**
@@ -112,10 +116,11 @@ public class MusicPlay {
             LogUtils.d(TAG, "添加音乐，编号：" + musicList.getListNo() + "，列表中包含该音乐，修改其播放次数为0");
             for (int i = 0; i < musicListList.size(); i++) {
                 if (musicListList.get(i).getListNo() == musicList.getListNo()) {
-                    musicListList.get(i).setAlreadyPlayCount(musicList.getPlayCount());
+                    musicListList.get(i).setAlreadyPlayCount(0);
                     for (int j = 0; j < musicListList.get(i).getMusicList().size(); j++) {
                         Music music = musicListList.get(i).getMusicList().get(j);
                         music.setAlreadyPlayCount(0);
+                        music.setFirstPlay(true);
                     }
                 }
             }
@@ -349,12 +354,33 @@ public class MusicPlay {
                 // 根据语言获取音乐路径
                 String filePath = getMusicPath(musicListList.get(position), musicList.get(counter[0]).getFilePath());
                 LogUtils.d(TAG, "检查文件是否存在，文件路径：" + filePath);
-                if (NetworkUtil.isNetworkAvailable(mContext) && UrlCheckUtil.checkUrlExist(filePath) && SPHelper.getBoolean("CanPlay", false)) {
+                if (SPHelper.getBoolean("CanPlay", false)) {
                     try {
                         mMediaPlayer.reset();
-                        mMediaPlayer.setDataSource(filePath);
+
+                        // 检查本地缓存
+                        String localFile = fileUtils.exists(filePath);
+                        if (localFile == null) {
+                            // 本地无缓存，则播放服务端音乐并缓存
+                            if (NetworkUtil.isNetworkAvailable(mContext) && UrlCheckUtil.checkUrlExist(filePath)) {
+                                LogUtils.d(TAG, "播放的是服务端的音乐文件：" + filePath);
+                                mMediaPlayer.setDataSource(filePath);
+                                mAudioAsyncTask = new AudioAsyncTask(fileUtils);
+                                mAudioAsyncTask.execute(filePath);
+                            } else {
+                                // 如果网络未连接或者音乐链接不存在
+                                mMediaPlayer.release();
+                                mCountDownLatch.countDown();
+                            }
+                        } else {
+                            // 本地有缓存
+                            LogUtils.d(TAG, "播放的是本地的音乐文件：" + localFile);
+                            mMediaPlayer.setDataSource(localFile);
+                        }
+
                         mMediaPlayer.prepareAsync();
                         mMediaPlayer.setScreenOnWhilePlaying(true);
+
                     } catch (IllegalArgumentException | IllegalStateException | IOException e) {
                         e.printStackTrace();
                     }
@@ -389,9 +415,29 @@ public class MusicPlay {
                         if (counter[0] < musicList1.size()) {
                             String filePath1 = getMusicPath(musicListList.get(position), musicList.get(counter[0]).getFilePath());
                             LogUtils.d(TAG, "检查文件是否存在，文件路径：" + filePath1);
-                            if (NetworkUtil.isNetworkAvailable(mContext) && UrlCheckUtil.checkUrlExist(filePath1) && SPHelper.getBoolean("CanPlay", false)) {
+                            if (SPHelper.getBoolean("CanPlay", false)) {
                                 try {
-                                    mediaPlayer.setDataSource(filePath1);
+
+                                    // 检查本地缓存
+                                    String localFile = fileUtils.exists(filePath1);
+                                    if (localFile == null) {
+                                        // 本地无缓存，则缓存音乐
+                                        if (NetworkUtil.isNetworkAvailable(mContext) && UrlCheckUtil.checkUrlExist(filePath1)) {
+                                            LogUtils.d(TAG, "播放的是服务端的音乐文件：" + filePath1);
+                                            mMediaPlayer.setDataSource(filePath1);
+                                            mAudioAsyncTask = new AudioAsyncTask(fileUtils);
+                                            mAudioAsyncTask.execute(filePath1);
+                                        } else {
+                                            // 网络异常或者音乐文件不存在
+                                            mediaPlayer.release();
+                                            mCountDownLatch.countDown();
+                                        }
+                                    } else {
+                                        // 本地有缓存
+                                        LogUtils.d(TAG, "播放的是本地的音乐文件：" + localFile);
+                                        mMediaPlayer.setDataSource(localFile);
+                                    }
+
                                     mediaPlayer.prepareAsync();
                                 } catch (IOException e) {
                                     e.printStackTrace();
@@ -407,7 +453,7 @@ public class MusicPlay {
                         }
                     });
                 } else {
-                    // 如果网络未连接或者音乐链接不存在
+                    // 不需要播放
                     mMediaPlayer.release();
                     mCountDownLatch.countDown();
                 }

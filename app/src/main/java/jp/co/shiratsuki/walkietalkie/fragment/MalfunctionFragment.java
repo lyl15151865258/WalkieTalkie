@@ -110,9 +110,11 @@ public class MalfunctionFragment extends BaseFragment {
                 break;
             }
         }
-        malfunctionList.add(malfunctionList.get(position));
-        malfunctionList.remove(position);
-        malfunctionAdapter.notifyDataSetChanged();
+        if (position != -1) {
+            malfunctionList.add(malfunctionList.get(position));
+            malfunctionList.remove(position);
+            malfunctionAdapter.notifyDataSetChanged();
+        }
     }
 
     /**
