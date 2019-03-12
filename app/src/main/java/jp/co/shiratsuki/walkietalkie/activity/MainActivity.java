@@ -503,6 +503,8 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
         viewPager = findViewById(R.id.viewPager);
         //设置页面可以左右滑动
         viewPager.setNoScroll(false);
+        //拦截左右滑动事件
+        viewPager.setIntercept(true);
         viewPager.setAdapter(viewPagerAdapter);
         //设置Fragment预加载，非常重要,可以保存每个页面fragment已有的信息,防止切换后原页面信息丢失
         viewPager.setOffscreenPageLimit(menus.size());
@@ -739,7 +741,7 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
 
         @Override
         public void leaveRoomSuccess() {
-            LogUtils.d(TAG,"成功离开了聊天室");
+            LogUtils.d(TAG, "成功离开了聊天室");
             // 离开房间成功
             runOnUiThread(new Thread(() -> {
                 // 重置房间按钮
@@ -756,7 +758,7 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
                 SPHelper.save("User", GsonUtils.convertJSON(user));
 
                 // 清空房间联系人列表
-                LogUtils.d(TAG,"清空房间联系人列表");
+                LogUtils.d(TAG, "清空房间联系人列表");
                 List<Fragment> fragmentList = getSupportFragmentManager().getFragments();
                 ChatRoomFragment chatRoomFragment;
                 for (Fragment fragment : fragmentList) {

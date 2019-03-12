@@ -32,9 +32,9 @@ import java.util.Locale;
  * @version 1.0
  */
 
-public class MalfunctionAdapter extends RecyclerView.Adapter<MalfunctionAdapter.NewsViewHolder> {
+public class MalfunctionAdapter extends RecyclerView.Adapter<MalfunctionAdapter.MalfunctionViewHolder> {
 
-    private String TAG = "MalfunctionAdapter";
+    private static final String TAG = "MalfunctionAdapter";
     private Context mContext;
     private List<WebSocketData> malfunctionList;
     private OnItemClickListener mListener;
@@ -45,13 +45,13 @@ public class MalfunctionAdapter extends RecyclerView.Adapter<MalfunctionAdapter.
     }
 
     @Override
-    public NewsViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_list_malfunction, parent, false);
-        return new NewsViewHolder(view);
+    public MalfunctionViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_list_malfunction_swipe, parent, false);
+        return new MalfunctionViewHolder(view);
     }
 
 //    @Override
-//    public void onBindViewHolder(@NonNull NewsViewHolder viewHolder, int position, @NonNull List<Object> payloads) {
+//    public void onBindViewHolder(@NonNull MalfunctionViewHolder viewHolder, int position, @NonNull List<Object> payloads) {
 //        if (payloads.isEmpty()) {
 //            onBindViewHolder(viewHolder, position);
 //        } else if (payloads.get(0) instanceof Boolean) {
@@ -67,7 +67,7 @@ public class MalfunctionAdapter extends RecyclerView.Adapter<MalfunctionAdapter.
 //    }
 
     @Override
-    public void onBindViewHolder(@NonNull NewsViewHolder viewHolder, int position) {
+    public void onBindViewHolder(@NonNull MalfunctionViewHolder viewHolder, int position) {
         WebSocketData malfunction = malfunctionList.get(position);
 
         String text = "";
@@ -180,13 +180,13 @@ public class MalfunctionAdapter extends RecyclerView.Adapter<MalfunctionAdapter.
         return malfunctionList.size();
     }
 
-    public class NewsViewHolder extends RecyclerView.ViewHolder {
+    public class MalfunctionViewHolder extends RecyclerView.ViewHolder {
         private SwipeItemLayout slRootView;
         private LinearLayout llMain;
         private TextView tvMalfunctionType, tvMalfunctionTime, tvConfirm, tvDelete;
         private ImageView ivBack, ivSpeaker;
 
-        private NewsViewHolder(View itemView) {
+        private MalfunctionViewHolder(View itemView) {
             super(itemView);
             slRootView = itemView.findViewById(R.id.slRootView);
             llMain = itemView.findViewById(R.id.llMain);

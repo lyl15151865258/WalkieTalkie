@@ -33,6 +33,7 @@ public class MalfunctionFragment extends BaseFragment {
 
     private String TAG = "MalfunctionFragment";
     private Context mContext;
+    private RecyclerView rvMalfunction;
     private List<WebSocketData> malfunctionList;
     private MalfunctionAdapter malfunctionAdapter;
     private boolean sIsScrolling = false;
@@ -42,7 +43,7 @@ public class MalfunctionFragment extends BaseFragment {
         super.onCreate(savedInstanceState);
         mContext = getContext();
         View view = inflater.inflate(R.layout.fragment_malfunction, container, false);
-        RecyclerView rvMalfunction = view.findViewById(R.id.rvMalfunction);
+        rvMalfunction = view.findViewById(R.id.rvMalfunction);
         LinearLayoutManager linearLayoutManager1 = new LinearLayoutManager(mContext);
         linearLayoutManager1.setOrientation(LinearLayoutManager.VERTICAL);
         rvMalfunction.setLayoutManager(linearLayoutManager1);
@@ -99,15 +100,19 @@ public class MalfunctionFragment extends BaseFragment {
      * @param listNo 异常信息的序号
      */
     public void refreshMalfunction(int listNo, boolean playing, boolean noLongerPlay) {
+        int position = -1;
         for (int i = 0; i < malfunctionList.size(); i++) {
             if (listNo == malfunctionList.get(i).getListNo()) {
+                position = i;
                 malfunctionList.get(i).setPlaying(playing);
                 LogUtils.d(TAG, "不再播放：" + listNo);
                 malfunctionList.get(i).setFinishPlay(noLongerPlay);
-                malfunctionAdapter.notifyItemChanged(i);
                 break;
             }
         }
+        malfunctionList.add(malfunctionList.get(position));
+        malfunctionList.remove(position);
+        malfunctionAdapter.notifyDataSetChanged();
     }
 
     /**
@@ -130,6 +135,7 @@ public class MalfunctionFragment extends BaseFragment {
                     if (!malfunctionList.get(i).isPlaying()) {
                         malfunctionList.get(i).setPlaying(true);
                         malfunctionAdapter.notifyItemChanged(i, true);
+                        rvMalfunction.smoothScrollToPosition(i);
                     }
                 } else {
                     if (malfunctionList.get(i).isPlaying()) {

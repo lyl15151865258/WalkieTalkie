@@ -52,8 +52,8 @@ public class NoScrollViewPager extends ViewPager {
         if (noScroll) {
             return false;
         } else if (mIntercept) {
-            final float x = ev.getX();
-            final float y = ev.getY();
+            final float x = ev.getRawX();
+            final float y = ev.getRawY();
             final int action = ev.getAction();
             switch (action) {
                 case MotionEvent.ACTION_DOWN:
@@ -61,10 +61,15 @@ public class NoScrollViewPager extends ViewPager {
                     mDownPosY = y;
                     break;
                 case MotionEvent.ACTION_MOVE:
-                    final float deltaX = Math.abs(x - mDownPosX);
-                    final float deltaY = Math.abs(y - mDownPosY);
-                    // 这里是够拦截的判断依据是左右滑动，读者可根据自己的逻辑进行是否拦截
-                    if (deltaX > deltaY) {
+
+                    int deltaX = (int) (x - mDownPosX);
+                    int deltaY = (int) (y - mDownPosY);
+
+                    final int xDiff = Math.abs(deltaX);
+                    final int yDiff = Math.abs(deltaY);
+
+                    // 这里是够拦截的判断依据是向右滑动
+                    if (xDiff > yDiff && deltaX > 0) {
                         return true;
                     }
                 default:

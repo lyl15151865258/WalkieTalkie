@@ -14,6 +14,8 @@ import android.view.ViewParent;
 import android.view.animation.Interpolator;
 import android.widget.Scroller;
 
+import jp.co.shiratsuki.walkietalkie.utils.LogUtils;
+
 /**
  * RecyclerView可以左滑的Item
  * Created at 2019/1/12 12:58
@@ -23,6 +25,9 @@ import android.widget.Scroller;
  */
 
 public class SwipeItemLayout extends ViewGroup {
+
+    private String TAG = "SwipeItemLayout";
+
     enum Mode {
         RESET, DRAG, FLING, TAP
     }
@@ -283,6 +288,7 @@ public class SwipeItemLayout extends ViewGroup {
         //click main view，但是它处于open状态，所以，不需要点击效果，直接拦截不调用click listener
         switch (action) {
             case MotionEvent.ACTION_DOWN: {
+                LogUtils.d(TAG, "SwipeItemLayout————onInterceptTouchEvent————MotionEvent.ACTION_DOWN");
                 final int x = (int) ev.getX();
                 final int y = (int) ev.getY();
                 View pointView = findTopChildUnder(this, x, y);
@@ -292,10 +298,14 @@ public class SwipeItemLayout extends ViewGroup {
             }
 
             case MotionEvent.ACTION_MOVE:
+                LogUtils.d(TAG, "SwipeItemLayout————onInterceptTouchEvent————MotionEvent.ACTION_MOVE");
+                break;
             case MotionEvent.ACTION_CANCEL:
+                LogUtils.d(TAG, "SwipeItemLayout————onInterceptTouchEvent————MotionEvent.ACTION_CANCEL");
                 break;
 
             case MotionEvent.ACTION_UP: {
+                LogUtils.d(TAG, "SwipeItemLayout————onInterceptTouchEvent————MotionEvent.ACTION_UP");
                 final int x = (int) ev.getX();
                 final int y = (int) ev.getY();
                 View pointView = findTopChildUnder(this, x, y);
@@ -316,13 +326,18 @@ public class SwipeItemLayout extends ViewGroup {
         //click main view，但是它处于open状态，所以，不需要点击效果，直接拦截不调用click listener
         switch (action) {
             case MotionEvent.ACTION_DOWN:
+                LogUtils.d(TAG, "SwipeItemLayout————onTouchEvent————MotionEvent.ACTION_DOWN");
                 if (pointView != null && pointView == mMainView && mScrollOffset != 0)
                     return true;
                 break;
             case MotionEvent.ACTION_MOVE:
+                LogUtils.d(TAG, "SwipeItemLayout————onTouchEvent————MotionEvent.ACTION_MOVE");
+                break;
             case MotionEvent.ACTION_CANCEL:
+                LogUtils.d(TAG, "SwipeItemLayout————onTouchEvent————MotionEvent.ACTION_CANCEL");
                 break;
             case MotionEvent.ACTION_UP:
+                LogUtils.d(TAG, "SwipeItemLayout————onTouchEvent————MotionEvent.ACTION_UP");
                 if (pointView != null && pointView == mMainView && mTouchMode == Mode.TAP && mScrollOffset != 0) {
                     close();
                     return true;
@@ -446,6 +461,7 @@ public class SwipeItemLayout extends ViewGroup {
     }
 
     public static class OnSwipeItemTouchListener implements RecyclerView.OnItemTouchListener {
+        private String TAG = "OnSwipeItemTouchListener";
         private SwipeItemLayout mCaptureItem;
         private float mLastMotionX;
         private float mLastMotionY;
@@ -483,6 +499,9 @@ public class SwipeItemLayout extends ViewGroup {
 
             switch (action) {
                 case MotionEvent.ACTION_DOWN: {
+
+                    LogUtils.d(TAG, "OnSwipeItemTouchListener————onInterceptTouchEvent————MotionEvent.ACTION_DOWN");
+
                     mActivePointerId = ev.getPointerId(0);
                     final float x = ev.getX();
                     final float y = ev.getY();
@@ -493,12 +512,12 @@ public class SwipeItemLayout extends ViewGroup {
                     SwipeItemLayout pointItem = null;
                     //首先知道ev针对的是哪个item
                     View pointView = findTopChildUnder(rv, (int) x, (int) y);
-                    if (pointView == null || !(pointView instanceof SwipeItemLayout)) {
+                    if (!(pointView instanceof SwipeItemLayout)) {
                         //可能是head view或bottom view
                         pointOther = true;
-                    } else
+                    } else {
                         pointItem = (SwipeItemLayout) pointView;
-
+                    }
                     //此时的pointOther=true，意味着点击的view为空或者点击的不是item
                     //还没有把点击的是item但是不是capture item给过滤出来
                     if (!pointOther && (mCaptureItem == null || mCaptureItem != pointItem))
@@ -551,6 +570,7 @@ public class SwipeItemLayout extends ViewGroup {
                 }
 
                 case MotionEvent.ACTION_POINTER_DOWN: {
+                    LogUtils.d(TAG, "OnSwipeItemTouchListener————onInterceptTouchEvent————MotionEvent.ACTION_POINTER_DOWN");
                     final int actionIndex = ev.getActionIndex();
                     mActivePointerId = ev.getPointerId(actionIndex);
 
@@ -560,6 +580,7 @@ public class SwipeItemLayout extends ViewGroup {
                 }
 
                 case MotionEvent.ACTION_POINTER_UP: {
+                    LogUtils.d(TAG, "OnSwipeItemTouchListener————onInterceptTouchEvent————MotionEvent.ACTION_POINTER_UP");
                     final int actionIndex = ev.getActionIndex();
                     final int pointerId = ev.getPointerId(actionIndex);
                     if (pointerId == mActivePointerId) {
@@ -574,6 +595,7 @@ public class SwipeItemLayout extends ViewGroup {
 
                 //down时，已经将capture item定下来了。所以，后面可以安心考虑event处理
                 case MotionEvent.ACTION_MOVE: {
+                    LogUtils.d(TAG, "OnSwipeItemTouchListener————onInterceptTouchEvent————MotionEvent.ACTION_MOVE");
                     final int activePointerIndex = ev.findPointerIndex(mActivePointerId);
                     if (activePointerIndex == -1)
                         break;
@@ -590,8 +612,23 @@ public class SwipeItemLayout extends ViewGroup {
 
                     int deltaX = (int) (x - mLastMotionX);
                     int deltaY = (int) (y - mLastMotionY);
+
                     final int xDiff = Math.abs(deltaX);
                     final int yDiff = Math.abs(deltaY);
+
+                    LogUtils.d(TAG, "deltaX:" + deltaX + ",deltaY:" + deltaY);
+
+                    if (xDiff > yDiff && deltaX > 0) {
+                        LogUtils.d(TAG, "这是横向向右滑动");
+                        if (mCaptureItem != null && mCaptureItem.isOpen()) {
+                            LogUtils.d(TAG, "mCaptureItem != null && mCaptureItem.isOpen()");
+                            mCaptureItem.close();
+                            return false;
+                        } else {
+                            LogUtils.d(TAG, "mCaptureItem == null || !mCaptureItem.isOpen()");
+                            return true;
+                        }
+                    }
 
                     if (mCaptureItem != null && !mDealByParent) {
                         Mode touchMode = mCaptureItem.getTouchMode();
@@ -637,6 +674,7 @@ public class SwipeItemLayout extends ViewGroup {
                 }
 
                 case MotionEvent.ACTION_UP:
+                    LogUtils.d(TAG, "OnSwipeItemTouchListener————onInterceptTouchEvent————MotionEvent.ACTION_UP");
                     if (mCaptureItem != null) {
                         Mode touchMode = mCaptureItem.getTouchMode();
                         if (touchMode == Mode.DRAG) {
@@ -652,6 +690,7 @@ public class SwipeItemLayout extends ViewGroup {
                     break;
 
                 case MotionEvent.ACTION_CANCEL:
+                    LogUtils.d(TAG, "OnSwipeItemTouchListener————onInterceptTouchEvent————MotionEvent.ACTION_CANCEL");
                     if (mCaptureItem != null)
                         mCaptureItem.revise();
                     cancel();
@@ -673,6 +712,7 @@ public class SwipeItemLayout extends ViewGroup {
 
             switch (action) {
                 case MotionEvent.ACTION_POINTER_DOWN:
+                    LogUtils.d(TAG, "OnSwipeItemTouchListener————onTouchEvent————MotionEvent.ACTION_POINTER_DOWN");
                     mActivePointerId = ev.getPointerId(actionIndex);
 
                     mLastMotionX = ev.getX(actionIndex);
@@ -680,6 +720,7 @@ public class SwipeItemLayout extends ViewGroup {
                     break;
 
                 case MotionEvent.ACTION_POINTER_UP:
+                    LogUtils.d(TAG, "OnSwipeItemTouchListener————onTouchEvent————MotionEvent.ACTION_POINTER_UP");
                     final int pointerId = ev.getPointerId(actionIndex);
                     if (pointerId == mActivePointerId) {
                         final int newIndex = actionIndex == 0 ? 1 : 0;
@@ -692,6 +733,7 @@ public class SwipeItemLayout extends ViewGroup {
 
                 //down时，已经将capture item定下来了。所以，后面可以安心考虑event处理
                 case MotionEvent.ACTION_MOVE: {
+                    LogUtils.d(TAG, "OnSwipeItemTouchListener————onTouchEvent————MotionEvent.ACTION_MOVE");
                     final int activePointerIndex = ev.findPointerIndex(mActivePointerId);
                     if (activePointerIndex == -1)
                         break;
@@ -712,6 +754,7 @@ public class SwipeItemLayout extends ViewGroup {
                 }
 
                 case MotionEvent.ACTION_UP:
+                    LogUtils.d(TAG, "OnSwipeItemTouchListener————onTouchEvent————MotionEvent.ACTION_UP");
                     if (mCaptureItem != null) {
                         Mode touchMode = mCaptureItem.getTouchMode();
                         if (touchMode == Mode.DRAG) {
@@ -725,9 +768,10 @@ public class SwipeItemLayout extends ViewGroup {
                     break;
 
                 case MotionEvent.ACTION_CANCEL:
-                    if (mCaptureItem != null)
+                    LogUtils.d(TAG, "OnSwipeItemTouchListener————onTouchEvent————MotionEvent.ACTION_CANCEL");
+                    if (mCaptureItem != null) {
                         mCaptureItem.revise();
-
+                    }
                     cancel();
                     break;
 

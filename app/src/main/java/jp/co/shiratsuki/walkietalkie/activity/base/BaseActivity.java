@@ -68,7 +68,7 @@ public abstract class BaseActivity extends AppCompatActivity {
         //不允许截屏
 //        getWindow().addFlags(WindowManager.LayoutParams.FLAG_SECURE);
         //保持屏幕常亮（禁止休眠）
-        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+//        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         DisplayMetrics dm = new DisplayMetrics();
         getWindowManager().getDefaultDisplay().getMetrics(dm);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
