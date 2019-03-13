@@ -41,6 +41,7 @@ public class ContactsFragment extends BaseFragment {
     private List<List<User>> departmentUserList;
     private ContactAdapter contactAdapter;
     private EditText etContent;
+    private String myUserId;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -60,6 +61,8 @@ public class ContactsFragment extends BaseFragment {
         etContent.addTextChangedListener(textWatcher);
         view.findViewById(R.id.iv_deleteName).setOnClickListener(onClickListener);
         view.findViewById(R.id.btn_search).setOnClickListener(onClickListener);
+        User user = GsonUtils.parseJSON(SPHelper.getString("User", GsonUtils.convertJSON(new User())), User.class);
+        myUserId = user.getUser_id();
         return view;
     }
 
@@ -85,8 +88,7 @@ public class ContactsFragment extends BaseFragment {
 
     private ExpandableListView.OnChildClickListener onChildClickListener = (parent, view, groupPosition, childPosition, id) -> {
         String userId = departmentUserList.get(groupPosition).get(childPosition).getUser_id();
-        User user = GsonUtils.parseJSON(SPHelper.getString("User", GsonUtils.convertJSON(new User())), User.class);
-        if (!user.getUser_id().equals(userId)) {
+        if (!myUserId.equals(userId)) {
             mainActivity.callOthers(userId);
         }
         return true;
@@ -119,28 +121,17 @@ public class ContactsFragment extends BaseFragment {
     public void refreshList(List<User> userList) {
         LogUtils.d(TAG, "刷新联系人列表");
         this.userList.clear();
-        this.userList.addAll(userList);
-        generateAndRefreshList(etContent.getText().toString().replaceAll(" ", ""));
-    }
-
-    /**
-     * 移除用户
-     *
-     * @param userId 用户ID
-     */
-    public void removeUser(String userId) {
-        LogUtils.d(TAG, "移除用户：" + userId);
         int position = -1;
         for (int i = 0; i < userList.size(); i++) {
-            if (userList.get(i).getUser_id().equals(userId)) {
+            if (userList.get(i).getUser_id().equals(myUserId)) {
                 position = i;
-                break;
             }
         }
         if (position != -1) {
             userList.remove(position);
-            generateAndRefreshList(etContent.getText().toString().replaceAll(" ", ""));
         }
+        this.userList.addAll(userList);
+        generateAndRefreshList(etContent.getText().toString().replaceAll(" ", ""));
     }
 
     /**

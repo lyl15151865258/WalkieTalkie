@@ -367,6 +367,7 @@ public class MusicPlay {
                                 mMediaPlayer.setDataSource(filePath);
                                 mAudioAsyncTask = new AudioAsyncTask(fileUtils);
                                 mAudioAsyncTask.execute(filePath);
+                                mMediaPlayer.prepareAsync();
                             } else {
                                 // 如果网络未连接或者音乐链接不存在
                                 mMediaPlayer.release();
@@ -376,10 +377,8 @@ public class MusicPlay {
                             // 本地有缓存
                             LogUtils.d(TAG, "播放的是本地的音乐文件：" + localFile);
                             mMediaPlayer.setDataSource(localFile);
+                            mMediaPlayer.prepareAsync();
                         }
-
-                        mMediaPlayer.prepareAsync();
-                        mMediaPlayer.setScreenOnWhilePlaying(true);
 
                     } catch (IllegalArgumentException | IllegalStateException | IOException e) {
                         e.printStackTrace();
@@ -427,6 +426,7 @@ public class MusicPlay {
                                             mMediaPlayer.setDataSource(filePath1);
                                             mAudioAsyncTask = new AudioAsyncTask(fileUtils);
                                             mAudioAsyncTask.execute(filePath1);
+                                            mediaPlayer.prepareAsync();
                                         } else {
                                             // 网络异常或者音乐文件不存在
                                             mediaPlayer.release();
@@ -436,9 +436,8 @@ public class MusicPlay {
                                         // 本地有缓存
                                         LogUtils.d(TAG, "播放的是本地的音乐文件：" + localFile);
                                         mMediaPlayer.setDataSource(localFile);
+                                        mediaPlayer.prepareAsync();
                                     }
-
-                                    mediaPlayer.prepareAsync();
                                 } catch (IOException e) {
                                     e.printStackTrace();
                                     mCountDownLatch.countDown();
@@ -478,9 +477,9 @@ public class MusicPlay {
             }
             Uri uri = Uri.parse("android.resource://jp.co.shiratsuki.walkietalkie/" + R.raw.dingdong);
             ringtone = RingtoneManager.getRingtone(mContext, uri);
-            ringtone.setStreamType(AudioManager.STREAM_RING);
+            ringtone.setStreamType(AudioManager.STREAM_MUSIC);
             ringtone.play();
-            // 震动0.3秒
+            // 震动0.5秒
             vibrator.vibrate(500);
             try {
                 Thread.sleep(1500);

@@ -64,7 +64,7 @@ public class VoiceFileUtils {
             if (tempFile.exists()) {
                 return tempFile.getAbsolutePath();
             } else {
-                tempFile.createNewFile(); // 创建音频文件
+//                tempFile.createNewFile(); // 创建音频文件
                 return null;
             }
         } else {

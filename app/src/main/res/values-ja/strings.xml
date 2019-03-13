@@ -21,12 +21,13 @@
     <string name="NoMoreData">データはこれ以上ありません</string>
     <string name="settings">設定</string>
     <string name="click_again_exit">もう一度押すとプログラムが終了します</string>
-    <string name="reminder_metter">プロンプト</string>
+    <string name="reminder_bygy">プロンプト</string>
     <string name="Cancel">キャンセル</string>
     <string name="Continue">続ける</string>
     <string name="notification_update_info">あなたの個人情報を改善してください、あなたは設定に行きますか</string>
     <string name="notification_update_head_portrait">アバターをアップロードしてください。アップロードしますか</string>
     <string name="please_connect_wifi">Wifiを接続してください</string>
+    <string name="remote_login">あなたのアカウントはすでに他の端末にログインしています</string>
     <string name="MediaTest">音声テスト</string>
     <string name="SetName">私の名前</string>
     <string name="ModifyName">名前を変更する</string>
@@ -186,5 +187,7 @@
     <string name="SaveToGallerySuccessfully">画像をアルバムに保存しました</string>
     <string name="LongPressToSave">（画像を長押ししてアルバムに保存）</string>
     <string name="OverMaxTalker">このチャットグループのユーザー数が上限に達しました</string>
+    <string name="Exit">終了</string>
+    <string name="LoginAgain">再ログイン</string>
 
 </resources>

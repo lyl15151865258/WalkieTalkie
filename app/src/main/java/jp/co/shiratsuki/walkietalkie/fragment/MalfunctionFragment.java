@@ -111,9 +111,18 @@ public class MalfunctionFragment extends BaseFragment {
             }
         }
         if (position != -1) {
+            int newPosition = malfunctionList.size() - 1;
+            // 更改这一条异常信息的背景
+            malfunctionAdapter.notifyItemChanged(position);
+            // 将这一条异常信息移动至列表末尾
+            malfunctionAdapter.notifyItemMoved(position, newPosition);
+            // 更新List数据
             malfunctionList.add(malfunctionList.get(position));
             malfunctionList.remove(position);
-            malfunctionAdapter.notifyDataSetChanged();
+            // 重新绑定部分数据
+            if (position != newPosition) {
+                malfunctionAdapter.notifyItemRangeChanged(Math.min(position, newPosition), Math.abs(position - newPosition) + 1);
+            }
         }
     }
 
@@ -178,8 +187,8 @@ public class MalfunctionFragment extends BaseFragment {
         if (webSocketData.isStatus()) {
             // 遍历对比是否包含了这个ListNo
             if (!malfunctionList.contains(webSocketData)) {
-                malfunctionList.add(malfunctionList.size(), webSocketData);
-                malfunctionAdapter.notifyItemInserted(malfunctionList.size() - 1);
+                malfunctionList.add(0, webSocketData);
+                malfunctionAdapter.notifyItemInserted(0);
             }
         } else {
             int position = -1;

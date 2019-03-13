@@ -21,12 +21,13 @@
     <string name="NoMoreData">No more data.</string>
     <string name="settings">Settings</string>
     <string name="click_again_exit">Press again to exit the program</string>
-    <string name="reminder_metter">Tip</string>
+    <string name="reminder_bygy">Tip</string>
     <string name="Cancel">Cancel</string>
     <string name="Continue">Continue</string>
     <string name="notification_update_info">Please improve your personal information, do you go to the settings?</string>
     <string name="notification_update_head_portrait">Please upload your head portrait, do you want to upload it?</string>
     <string name="please_connect_wifi">Please connect Wifi!</string>
+    <string name="remote_login">Your account is already logged in on another device</string>
     <string name="MediaTest">Media Test</string>
     <string name="SetName">My Name</string>
     <string name="ModifyName">Modify Name</string>
@@ -186,5 +187,7 @@
     <string name="SaveToGallerySuccessfully">Image saved to album successfully</string>
     <string name="LongPressToSave">（Long press the image to save to album）</string>
     <string name="OverMaxTalker">The number of users in this chat group has reached the limit</string>
+    <string name="Exit">exit</string>
+    <string name="LoginAgain">sign in again</string>
 
 </resources>

@@ -239,6 +239,12 @@ public class JavaWebSocket {
                 case "_someone_leave":
                     handleLeaveRoom(message);
                     break;
+                case "_remote_login":
+                    // 账号在其他设备登录
+                    Intent intent = new Intent();
+                    intent.setAction("REMOTE_LOGIN");
+                    mContext.sendBroadcast(intent);
+                    break;
                 default:
                     break;
             }

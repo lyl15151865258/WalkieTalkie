@@ -1,6 +1,5 @@
 package jp.co.shiratsuki.walkietalkie.activity.version;
 
-import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
@@ -41,6 +40,7 @@ import jp.co.shiratsuki.walkietalkie.utils.FileUtil;
 import jp.co.shiratsuki.walkietalkie.utils.LogUtils;
 import jp.co.shiratsuki.walkietalkie.utils.MathUtils;
 import jp.co.shiratsuki.walkietalkie.utils.NetworkUtil;
+import jp.co.shiratsuki.walkietalkie.widget.dialog.CommonWarningDialog;
 import jp.co.shiratsuki.walkietalkie.widget.dialog.DownLoadDialog;
 import jp.co.shiratsuki.walkietalkie.widget.MyProgressBar;
 import jp.co.shiratsuki.walkietalkie.widget.MyToolbar;
@@ -128,19 +128,7 @@ public class VersionsActivity extends SwipeBackActivity {
                         LogUtils.d("DownloadPath", apkDownloadPath);
                         if (isDownloaded()) {
                             //如果已经下载了，则弹出窗口询问直接安装还是重新下载
-                            AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
-                            // 设置提示框的标题
-                            builder.setTitle("友情提示").
-                                    setIcon(R.drawable.ic_launcher).
-                                    setMessage("您已经下载过该版本文件，是否直接安装").
-                                    setPositiveButton("直接安装", (dialog, which) -> {
-                                        //直接安装
-                                        File file = new File(mContext.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS), versionFileName);
-                                        installApk(file);
-                                    }).
-                                    setNegativeButton("重新下载", (dialog, which) -> downloadApk());
-                            AlertDialog alertDialog = builder.create();
-                            alertDialog.show();
+                            showRemoteLoginDialog();
                         } else {
                             downloadApk();
                         }
@@ -148,6 +136,30 @@ public class VersionsActivity extends SwipeBackActivity {
                 }
             }
         });
+    }
+
+    /**
+     * 提示用户账号在其他设备登录
+     */
+    private void showRemoteLoginDialog() {
+        CommonWarningDialog commonWarningDialog = new CommonWarningDialog(mContext, getString(R.string.warning_redownload));
+        commonWarningDialog.setButtonText(getString(R.string.DownloadAgain), getString(R.string.InstallDirectly));
+        commonWarningDialog.setCancelable(false);
+        commonWarningDialog.setOnDialogClickListener(new CommonWarningDialog.OnDialogClickListener() {
+            @Override
+            public void onOKClick() {
+                //直接安装
+                File file = new File(mContext.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS), versionFileName);
+                installApk(file);
+            }
+
+            @Override
+            public void onCancelClick() {
+                //下载最新的版本程序
+                downloadApk();
+            }
+        });
+        commonWarningDialog.show();
     }
 
     private View.OnClickListener onClickListener = (v) -> {

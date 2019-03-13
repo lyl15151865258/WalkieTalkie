@@ -5,7 +5,6 @@ import android.content.Context;
 import android.graphics.drawable.ColorDrawable;
 import android.util.DisplayMetrics;
 import android.view.Gravity;
-import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
@@ -24,6 +23,7 @@ import jp.co.shiratsuki.walkietalkie.R;
 public class CommonWarningDialog extends Dialog {
     private Context context;
     private String text;
+    private Button okBtn, cancelBtn;
     private OnDialogClickListener dialogClickListener;
 
     public CommonWarningDialog(Context context, String text) {
@@ -37,29 +37,33 @@ public class CommonWarningDialog extends Dialog {
     private void initView() {
         setContentView(R.layout.dialog_warning_common);
         initWindow();
-        Button okBtn = findViewById(R.id.btn_ok);
-        Button cancelBtn = findViewById(R.id.btn_cancel);
+        okBtn = findViewById(R.id.btn_ok);
+        cancelBtn = findViewById(R.id.btn_cancel);
         TextView tvWarning = findViewById(R.id.tv_warning);
         tvWarning.setText(text);
-        okBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                dismiss();
-                if (dialogClickListener != null) {
-                    dialogClickListener.onOKClick();
-                }
+        okBtn.setOnClickListener((v) -> {
+            dismiss();
+            if (dialogClickListener != null) {
+                dialogClickListener.onOKClick();
             }
         });
-        cancelBtn.setOnClickListener(new View.OnClickListener() {
+        cancelBtn.setOnClickListener((v) -> {
+            dismiss();
+            if (dialogClickListener != null) {
+                dialogClickListener.onCancelClick();
+            }
+        });
+    }
 
-            @Override
-            public void onClick(View v) {
-                dismiss();
-                if (dialogClickListener != null) {
-                    dialogClickListener.onCancelClick();
-                }
-            }
-        });
+    /**
+     * 设置按钮上的文字
+     *
+     * @param leftText  左边按钮文字
+     * @param rightText 右边按钮文字
+     */
+    public void setButtonText(String leftText, String rightText) {
+        cancelBtn.setText(leftText);
+        okBtn.setText(rightText);
     }
 
     /**

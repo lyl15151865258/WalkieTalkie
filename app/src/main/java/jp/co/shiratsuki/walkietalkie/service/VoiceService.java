@@ -31,6 +31,7 @@ import android.support.v4.app.NotificationCompat;
 import org.webrtc.MediaStream;
 
 import java.util.ArrayList;
+import java.util.UUID;
 
 import jp.co.shiratsuki.walkietalkie.R;
 import jp.co.shiratsuki.walkietalkie.bean.User;
@@ -110,12 +111,14 @@ public class VoiceService extends Service implements IWebRTCHelper, VolumeChange
         mVolumeChangeObserver.registerReceiver();
 
         User user = GsonUtils.parseJSON(SPHelper.getString("User", GsonUtils.convertJSON(new User())), User.class);
+
+        String uniqueCode = UUID.randomUUID().toString().substring(0, 8).toUpperCase();
         if (user.getVoice_ip().equals("") || user.getVoice_port().equals("")) {
             // 如果用户没有填写完整语音服务器信息，则采用默认值
-            String signal = DbcSbcUtils.getPatStr("ws://" + NetWork.WEBRTC_SERVER_IP + ":" + NetWork.WEBRTC_SERVER_PORT + "/WalkieTalkieServer/" + user.getUser_id());
+            String signal = DbcSbcUtils.getPatStr("ws://" + NetWork.WEBRTC_SERVER_IP + ":" + NetWork.WEBRTC_SERVER_PORT + "/WalkieTalkieServer/" + user.getUser_id() + "/" + user.getUser_id() + uniqueCode);
             helper.initSocket(signal, false);
         } else {
-            String signal = DbcSbcUtils.getPatStr("ws://" + user.getVoice_ip() + ":" + user.getVoice_port() + "/WalkieTalkieServer/" + user.getUser_id());
+            String signal = DbcSbcUtils.getPatStr("ws://" + user.getVoice_ip() + ":" + user.getVoice_port() + "/WalkieTalkieServer/" + user.getUser_id() + "/" + user.getUser_id() + uniqueCode);
             helper.initSocket(signal, false);
         }
     }

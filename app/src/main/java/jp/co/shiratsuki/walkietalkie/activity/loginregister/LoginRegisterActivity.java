@@ -47,6 +47,7 @@ import jp.co.shiratsuki.walkietalkie.utils.PermissionUtil;
 import jp.co.shiratsuki.walkietalkie.utils.StatusBarUtil;
 import jp.co.shiratsuki.walkietalkie.utils.ViewUtils;
 import jp.co.shiratsuki.walkietalkie.widget.SmoothCheckBox;
+import jp.co.shiratsuki.walkietalkie.widget.dialog.CommonWarningDialog;
 import rx.Observable;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
@@ -67,6 +68,8 @@ public class LoginRegisterActivity extends BaseActivity {
     private RelativeLayout rlLogin;
     private LinearLayout llRegister;
     private ImageView ivUserIcon;
+
+    private CommonWarningDialog commonWarningDialog;
 
     private boolean isAutoLogin = true;
 
@@ -108,6 +111,22 @@ public class LoginRegisterActivity extends BaseActivity {
         tvRegistrationProtocol.setOnClickListener(onClickListener);
         tvRegistrationProtocol.setOnClickListener(onClickListener);
         findViewById(R.id.ivSetServer).setOnClickListener(onClickListener);
+
+        String action = getIntent().getAction();
+        if (action != null) {
+            isAutoLogin = false;
+            switch (action) {
+                case "RemoteLogin":
+                    LogUtils.d(TAG, "Action：" + action + "，您的账号在其他设备登录");
+                    showRemoteLoginDialog();
+                    break;
+                case "SwitchAccount":
+                    LogUtils.d(TAG, "Action：" + action + "，这是切换账号");
+                    break;
+                default:
+                    break;
+            }
+        }
     }
 
     @Override
@@ -120,14 +139,12 @@ public class LoginRegisterActivity extends BaseActivity {
         super.onResume();
         // 展示头像
         showUserIcon();
-        // 判断是不是从主页面切换账号打开
-        boolean isSwitchAccount = getIntent().getBooleanExtra("SwitchAccount", false);
         //权限检查
         boolean permission = PermissionUtil.isNeedRequestPermission(this);
         // 如果是刚进入页面且不是从主页面切换账号打开的话，且账号密码不为空，权限都已经授予的话，执行自动登录
         if (!TextUtils.isEmpty(etPhoneNumberLogin.getText().toString().trim()) &&
                 !TextUtils.isEmpty(etPassWordLogin.getText().toString().trim()) &&
-                isAutoLogin && !permission && !isSwitchAccount) {
+                isAutoLogin && !permission) {
             login();
             isAutoLogin = false;
         }
@@ -394,6 +411,33 @@ public class LoginRegisterActivity extends BaseActivity {
                 }
             }
         });
+    }
+
+    /**
+     * 提示用户账号在其他设备登录
+     */
+    private void showRemoteLoginDialog() {
+        if (commonWarningDialog == null) {
+            commonWarningDialog = new CommonWarningDialog(mContext, getString(R.string.remote_login));
+            commonWarningDialog.setButtonText(getString(R.string.Exit), getString(R.string.LoginAgain));
+            commonWarningDialog.setCancelable(false);
+            commonWarningDialog.setOnDialogClickListener(new CommonWarningDialog.OnDialogClickListener() {
+                @Override
+                public void onOKClick() {
+                    // 重新登录
+                    findViewById(R.id.btn_Login).performClick();
+                }
+
+                @Override
+                public void onCancelClick() {
+                    // 退出
+                    ActivityController.finishActivity(LoginRegisterActivity.this);
+                }
+            });
+        }
+        if (!commonWarningDialog.isShowing()) {
+            commonWarningDialog.show();
+        }
     }
 
 }

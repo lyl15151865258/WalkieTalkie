@@ -106,7 +106,6 @@ import jp.co.shiratsuki.walkietalkie.widget.MyProgressBar;
 import jp.co.shiratsuki.walkietalkie.widget.NoScrollViewPager;
 import jp.co.shiratsuki.walkietalkie.widget.SelectPicturePopupWindow;
 import jp.co.shiratsuki.walkietalkie.widget.dialog.CommonWarningDialog;
-import jp.co.shiratsuki.walkietalkie.widget.dialog.ReDownloadWarningDialog;
 import jp.co.shiratsuki.walkietalkie.widget.dialog.UpgradeVersionDialog;
 import okhttp3.MediaType;
 import okhttp3.MultipartBody;
@@ -322,27 +321,33 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
                 @Override
                 public void onOKClick() {
                     if (isDownloaded()) {
-                        ReDownloadWarningDialog reDownloadWarningDialog = new ReDownloadWarningDialog(mContext, getString(R.string.warning_redownload));
-                        reDownloadWarningDialog.setCancelable(false);
-                        reDownloadWarningDialog.setOnDialogClickListener(new ReDownloadWarningDialog.OnDialogClickListener() {
-                            @Override
-                            public void onOKClick() {
-                                //直接安装
-                                File file = new File(mContext.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS), versionFileName);
-                                installApk(file);
-                            }
+                        if (commonWarningDialog == null) {
+                            commonWarningDialog = new CommonWarningDialog(mContext, getString(R.string.warning_redownload));
+                            commonWarningDialog.setButtonText(getString(R.string.DownloadAgain), getString(R.string.InstallDirectly));
+                            commonWarningDialog.setCancelable(false);
+                            commonWarningDialog.setOnDialogClickListener(new CommonWarningDialog.OnDialogClickListener() {
+                                @Override
+                                public void onOKClick() {
+                                    //直接安装
+                                    File file = new File(mContext.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS), versionFileName);
+                                    installApk(file);
+                                }
 
-                            @Override
-                            public void onCancelClick() {
-                                //下载最新的版本程序
-                                downloadApk();
-                            }
-                        });
-                        reDownloadWarningDialog.show();
+                                @Override
+                                public void onCancelClick() {
+                                    //下载最新的版本程序
+                                    downloadApk();
+                                }
+                            });
+                        }
+                        if (!commonWarningDialog.isShowing()) {
+                            commonWarningDialog.show();
+                        }
                     } else {
                         //下载最新的版本程序
                         downloadApk();
                     }
+
                 }
 
                 @Override
@@ -629,6 +634,7 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
         intentFilter.addAction("UPDATE_SPEAK_STATUS");
         intentFilter.addAction("P2P_VOICE_REQUEST_ACCEPT");
         intentFilter.addAction("P2P_VOICE_REQUEST_ERROR");
+        intentFilter.addAction("REMOTE_LOGIN");
         mContext.registerReceiver(myReceiver, intentFilter);
     }
 
@@ -990,7 +996,7 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
                 // 关闭相关服务
                 stopService();
                 Intent intent1 = new Intent(MainActivity.this, LoginRegisterActivity.class);
-                intent1.putExtra("SwitchAccount", true);
+                intent1.setAction("SwitchAccount");
                 startActivity(intent1);
                 ActivityController.finishActivity(this);
                 overridePendingTransition(R.anim.left_in, R.anim.right_out);
@@ -1243,6 +1249,18 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
                             default:
                                 break;
                         }
+                        break;
+                    case "REMOTE_LOGIN":
+                        // 账号在异地登录
+                        // 标记为用户正常退出房间
+                        SPHelper.save("NormalExit", true);
+                        // 关闭相关服务
+                        stopService();
+                        Intent intent1 = new Intent(MainActivity.this, LoginRegisterActivity.class);
+                        intent1.setAction("RemoteLogin");
+                        startActivity(intent1);
+                        ActivityController.finishActivity(MainActivity.this);
+                        overridePendingTransition(R.anim.left_in, R.anim.right_out);
                         break;
                     default:
                         break;
