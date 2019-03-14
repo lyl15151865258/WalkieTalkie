@@ -15,6 +15,7 @@ import jp.co.shiratsuki.walkietalkie.R;
 import jp.co.shiratsuki.walkietalkie.bean.Music;
 import jp.co.shiratsuki.walkietalkie.bean.MusicList;
 import jp.co.shiratsuki.walkietalkie.bean.User;
+import jp.co.shiratsuki.walkietalkie.constant.MusicPlay;
 import jp.co.shiratsuki.walkietalkie.constant.NetWork;
 import jp.co.shiratsuki.walkietalkie.contentprovider.SPHelper;
 import jp.co.shiratsuki.walkietalkie.utils.GsonUtils;
@@ -29,9 +30,13 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import static android.content.Context.VIBRATOR_SERVICE;
 
@@ -43,25 +48,27 @@ import static android.content.Context.VIBRATOR_SERVICE;
  * @version 1.0
  */
 
-public class MusicPlay {
+public class MusicPlayer {
 
-    private static final String TAG = "MusicPlay";
+    private static final String TAG = "MusicPlayer";
 
-    private volatile static MusicPlay mVoicePlay;
+    private volatile static MusicPlayer mVoicePlay;
     private ExecutorService mExecutorService;
     private Context mContext;
     private String serverHost;
     private volatile static List<MusicList> musicListList;
     private boolean flag = true;
-    private int interval1 = 1000, interval2 = 3000;
+    private int interval1, interval2;
     private Ringtone ringtone;
     private Vibrator vibrator;
     private VoiceFileUtils fileUtils;
     private AudioAsyncTask mAudioAsyncTask;
 
-    private MusicPlay(Context context) {
+    private MusicPlayer(Context context) {
         this.mContext = context;
         this.mExecutorService = Executors.newCachedThreadPool();
+        interval1 = MusicPlay.INTERVAL_ONE_LIST;
+        interval2 = MusicPlay.INTERVAL_TOTAL_LIST;
         musicListList = Collections.synchronizedList(new ArrayList<>());
         User user = GsonUtils.parseJSON(SPHelper.getString("User", GsonUtils.convertJSON(new User())), User.class);
         if (user.getMessage_ip().equals("") || user.getMessage_port().equals("")) {
@@ -78,9 +85,9 @@ public class MusicPlay {
      *
      * @return MusicPlay对象
      */
-    public static MusicPlay with(Context context) {
+    public static MusicPlayer with(Context context) {
         if (mVoicePlay == null) {
-            mVoicePlay = new MusicPlay(context);
+            mVoicePlay = new MusicPlayer(context);
         }
         return mVoicePlay;
     }
@@ -229,7 +236,7 @@ public class MusicPlay {
      * @param position 音乐列表
      */
     private void playOneList(int position) {
-        synchronized (MusicPlay.this) {
+        synchronized (MusicPlayer.this) {
             // CountDownLatch允许一个或多个线程等待其他线程执行完毕后再运行
             // CountDownLatch的构造函数接收int类型的参数作为计数器，若要等待N个点再执行后续逻辑，就传入N。
             // 这里的N可以是N个线程，也可以是N个执行步骤。
@@ -355,101 +362,133 @@ public class MusicPlay {
                 String filePath = getMusicPath(musicListList.get(position), musicList.get(counter[0]).getFilePath());
                 LogUtils.d(TAG, "检查文件是否存在，文件路径：" + filePath);
                 if (SPHelper.getBoolean("CanPlay", false)) {
-                    try {
-                        mMediaPlayer.reset();
-
-                        // 检查本地缓存
-                        String localFile = fileUtils.exists(filePath);
-                        if (localFile == null) {
-                            // 本地无缓存，则播放服务端音乐并缓存
-                            if (NetworkUtil.isNetworkAvailable(mContext) && UrlCheckUtil.checkUrlExist(filePath)) {
-                                LogUtils.d(TAG, "播放的是服务端的音乐文件：" + filePath);
-                                mMediaPlayer.setDataSource(filePath);
-                                mAudioAsyncTask = new AudioAsyncTask(fileUtils);
-                                mAudioAsyncTask.execute(filePath);
-                                mMediaPlayer.prepareAsync();
-                            } else {
-                                // 如果网络未连接或者音乐链接不存在
-                                mCountDownLatch.countDown();
-                            }
-                        } else {
-                            // 本地有缓存
-                            LogUtils.d(TAG, "播放的是本地的音乐文件：" + localFile);
-                            mMediaPlayer.setDataSource(localFile);
-                            mMediaPlayer.prepareAsync();
-                        }
-
-                    } catch (IllegalArgumentException | IllegalStateException | IOException e) {
-                        e.printStackTrace();
-                    }
-                    mMediaPlayer.setOnPreparedListener(mediaPlayer -> mMediaPlayer.start());
-                    mMediaPlayer.setOnErrorListener((mediaPlayer, what, extra) -> {
-                        // 遇到错误就重置MediaPlayer
-                        LogUtils.d(TAG, "媒体文件获取异常，播放失败");
-                        mediaPlayer.stop();
-                        mediaPlayer.reset();
-                        return false;
-                    });
-                    mMediaPlayer.setOnCompletionListener(mediaPlayer -> {
-                        // 如果播放次数达到上限，则通知页面布局更新
-                        if (musicList.get(counter[0]).getPlayCount() != -1 &&
-                                musicList.get(counter[0]).getAlreadyPlayCount() >= musicList.get(counter[0]).getPlayCount()) {
+                    Callable<String> call = new Callable<String>() {
+                        @Override
+                        public String call() {
+                            // 开始执行耗时操作
+                            LogUtils.d(TAG, "Future限时任务——————————————开始");
+                            // 用于阻塞Future限时任务
+                            CountDownLatch mCountDownLatch1 = new CountDownLatch(1);
                             try {
-                                Intent intent1 = new Intent();
-                                intent1.setAction("NO_LONGER_PLAYING");
-                                intent1.putExtra("number", musicListList.get(counter[0]).getListNo());
-                                mContext.sendBroadcast(intent1);
-                            } catch (Exception e) {
+                                mMediaPlayer.reset();
+
+                                // 检查本地缓存
+                                String localFile = fileUtils.exists(filePath);
+                                if (localFile == null) {
+                                    // 本地无缓存，则播放服务端音乐并缓存
+                                    if (NetworkUtil.isNetworkAvailable(mContext) && UrlCheckUtil.checkUrlExist(filePath)) {
+                                        LogUtils.d(TAG, "播放的是服务端的音乐文件：" + filePath);
+                                        mMediaPlayer.setDataSource(filePath);
+                                        mAudioAsyncTask = new AudioAsyncTask(fileUtils);
+                                        mAudioAsyncTask.execute(filePath);
+                                        mMediaPlayer.prepareAsync();
+                                    } else {
+                                        // 如果网络未连接或者音乐链接不存在
+                                        mCountDownLatch1.countDown();
+                                    }
+                                } else {
+                                    // 本地有缓存
+                                    LogUtils.d(TAG, "播放的是本地的音乐文件：" + localFile);
+                                    mMediaPlayer.setDataSource(localFile);
+                                    mMediaPlayer.prepareAsync();
+                                }
+
+                            } catch (IllegalArgumentException | IllegalStateException | IOException e) {
                                 e.printStackTrace();
                             }
-                        }
-                        mediaPlayer.reset();
-                        counter[0]++;
-                        if (musicListList.size() == 0) {
-                            return;
-                        }
-                        List<Music> musicList1 = musicListList.get(position).getMusicList();
+                            mMediaPlayer.setOnPreparedListener(mediaPlayer -> mMediaPlayer.start());
+                            mMediaPlayer.setOnErrorListener((mediaPlayer, what, extra) -> {
+                                // 遇到错误就重置MediaPlayer
+                                LogUtils.d(TAG, "媒体文件获取异常，播放失败");
+                                mediaPlayer.stop();
+                                mediaPlayer.reset();
+                                return false;
+                            });
+                            mMediaPlayer.setOnCompletionListener(mediaPlayer -> {
+                                // 如果播放次数达到上限，则通知页面布局更新
+                                if (musicList.get(counter[0]).getPlayCount() != -1 &&
+                                        musicList.get(counter[0]).getAlreadyPlayCount() >= musicList.get(counter[0]).getPlayCount()) {
+                                    try {
+                                        Intent intent1 = new Intent();
+                                        intent1.setAction("NO_LONGER_PLAYING");
+                                        intent1.putExtra("number", musicListList.get(counter[0]).getListNo());
+                                        mContext.sendBroadcast(intent1);
+                                    } catch (Exception e) {
+                                        e.printStackTrace();
+                                    }
+                                }
+                                mediaPlayer.reset();
+                                counter[0]++;
+                                if (musicListList.size() == 0) {
+                                    return;
+                                }
+                                List<Music> musicList1 = musicListList.get(position).getMusicList();
 
 //                    if (counter[0] < musicList1.size() && musicList.get(0).getPlayCount() != musicList.get(0).getAlreadyPlayCount()) {
-                        if (counter[0] < musicList1.size()) {
-                            String filePath1 = getMusicPath(musicListList.get(position), musicList.get(counter[0]).getFilePath());
-                            LogUtils.d(TAG, "检查文件是否存在，文件路径：" + filePath1);
-                            if (SPHelper.getBoolean("CanPlay", false)) {
-                                try {
+                                if (counter[0] < musicList1.size()) {
+                                    String filePath1 = getMusicPath(musicListList.get(position), musicList.get(counter[0]).getFilePath());
+                                    LogUtils.d(TAG, "检查文件是否存在，文件路径：" + filePath1);
+                                    if (SPHelper.getBoolean("CanPlay", false)) {
+                                        try {
 
-                                    // 检查本地缓存
-                                    String localFile = fileUtils.exists(filePath1);
-                                    if (localFile == null) {
-                                        // 本地无缓存，则缓存音乐
-                                        if (NetworkUtil.isNetworkAvailable(mContext) && UrlCheckUtil.checkUrlExist(filePath1)) {
-                                            LogUtils.d(TAG, "播放的是服务端的音乐文件：" + filePath1);
-                                            mMediaPlayer.setDataSource(filePath1);
-                                            mAudioAsyncTask = new AudioAsyncTask(fileUtils);
-                                            mAudioAsyncTask.execute(filePath1);
-                                            mediaPlayer.prepareAsync();
-                                        } else {
-                                            // 网络异常或者音乐文件不存在
-                                            mCountDownLatch.countDown();
+                                            // 检查本地缓存
+                                            String localFile = fileUtils.exists(filePath1);
+                                            if (localFile == null) {
+                                                // 本地无缓存，则缓存音乐
+                                                if (NetworkUtil.isNetworkAvailable(mContext) && UrlCheckUtil.checkUrlExist(filePath1)) {
+                                                    LogUtils.d(TAG, "播放的是服务端的音乐文件：" + filePath1);
+                                                    mMediaPlayer.setDataSource(filePath1);
+                                                    mAudioAsyncTask = new AudioAsyncTask(fileUtils);
+                                                    mAudioAsyncTask.execute(filePath1);
+                                                    mediaPlayer.prepareAsync();
+                                                } else {
+                                                    // 网络异常或者音乐文件不存在
+                                                    mCountDownLatch1.countDown();
+                                                }
+                                            } else {
+                                                // 本地有缓存
+                                                LogUtils.d(TAG, "播放的是本地的音乐文件：" + localFile);
+                                                mMediaPlayer.setDataSource(localFile);
+                                                mediaPlayer.prepareAsync();
+                                            }
+                                        } catch (IOException e) {
+                                            e.printStackTrace();
+                                            mCountDownLatch1.countDown();
                                         }
                                     } else {
-                                        // 本地有缓存
-                                        LogUtils.d(TAG, "播放的是本地的音乐文件：" + localFile);
-                                        mMediaPlayer.setDataSource(localFile);
-                                        mediaPlayer.prepareAsync();
+                                        mediaPlayer.release();
+                                        mCountDownLatch1.countDown();
                                     }
-                                } catch (IOException e) {
-                                    e.printStackTrace();
-                                    mCountDownLatch.countDown();
+                                } else {
+                                    mediaPlayer.release();
+                                    mCountDownLatch1.countDown();
                                 }
-                            } else {
-                                mediaPlayer.release();
-                                mCountDownLatch.countDown();
+                            });
+                            // 阻塞线程，等待中
+                            try {
+                                mCountDownLatch1.await();
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                                mCountDownLatch1.countDown();
                             }
-                        } else {
-                            mediaPlayer.release();
-                            mCountDownLatch.countDown();
+                            return "音乐文件播放成功";
                         }
-                    });
+                    };
+                    try {
+                        Future<String> future = mExecutorService.submit(call);
+                        //任务处理超时时间设为 10 秒
+                        String obj = future.get(MusicPlay.MAX_PLAY_TIME_ONE_LIST, TimeUnit.SECONDS);
+                        LogUtils.d(TAG, "Future限时任务——————————————任务成功返回：" + obj);
+                    } catch (TimeoutException ex) {
+                        LogUtils.d(TAG, "Future限时任务——————————————处理超时");
+                        ex.printStackTrace();
+                    } catch (Exception e) {
+                        LogUtils.d(TAG, "Future限时任务——————————————处理失败：" + e.getMessage());
+                        e.printStackTrace();
+                    }
+                    mMediaPlayer.release();
+                    mCountDownLatch.countDown();
+
                 } else {
                     // 不需要播放
                     mMediaPlayer.release();

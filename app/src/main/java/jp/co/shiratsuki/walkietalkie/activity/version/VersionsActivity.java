@@ -128,7 +128,7 @@ public class VersionsActivity extends SwipeBackActivity {
                         LogUtils.d("DownloadPath", apkDownloadPath);
                         if (isDownloaded()) {
                             //如果已经下载了，则弹出窗口询问直接安装还是重新下载
-                            showRemoteLoginDialog();
+                            showReDownloadWarningDialog();
                         } else {
                             downloadApk();
                         }
@@ -139,9 +139,9 @@ public class VersionsActivity extends SwipeBackActivity {
     }
 
     /**
-     * 提示用户账号在其他设备登录
+     * 提示用户重复下载的弹窗
      */
-    private void showRemoteLoginDialog() {
+    private void showReDownloadWarningDialog() {
         CommonWarningDialog commonWarningDialog = new CommonWarningDialog(mContext, getString(R.string.warning_redownload));
         commonWarningDialog.setButtonText(getString(R.string.DownloadAgain), getString(R.string.InstallDirectly));
         commonWarningDialog.setCancelable(false);

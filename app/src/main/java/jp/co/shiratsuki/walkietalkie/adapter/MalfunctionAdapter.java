@@ -16,9 +16,9 @@ import android.widget.TextView;
 import jp.co.shiratsuki.walkietalkie.R;
 import jp.co.shiratsuki.walkietalkie.bean.MusicList;
 import jp.co.shiratsuki.walkietalkie.bean.WebSocketData;
+import jp.co.shiratsuki.walkietalkie.message.MusicPlayer;
 import jp.co.shiratsuki.walkietalkie.utils.LanguageUtil;
 import jp.co.shiratsuki.walkietalkie.utils.LogUtils;
-import jp.co.shiratsuki.walkietalkie.message.MusicPlay;
 import jp.co.shiratsuki.walkietalkie.widget.SwipeItemLayout;
 
 import java.util.List;
@@ -142,7 +142,7 @@ public class MalfunctionAdapter extends RecyclerView.Adapter<MalfunctionAdapter.
 
         //标记已读，不再播放音乐
         viewHolder.tvConfirm.setOnClickListener((view) -> {
-            List<MusicList> musicLists = MusicPlay.with(mContext.getApplicationContext()).getMusicListList();
+            List<MusicList> musicLists = MusicPlayer.with(mContext.getApplicationContext()).getMusicListList();
             for (int i = 0; i < musicLists.size(); i++) {
                 if (musicLists.get(i).getListNo() == malfunctionList.get(viewHolder.getAdapterPosition()).getListNo()) {
                     musicLists.get(i).setAlreadyPlayCount(musicLists.get(i).getPlayCount());
@@ -158,7 +158,7 @@ public class MalfunctionAdapter extends RecyclerView.Adapter<MalfunctionAdapter.
 
         //删除Item
         viewHolder.tvDelete.setOnClickListener((view) -> {
-            List<MusicList> musicLists = MusicPlay.with(mContext.getApplicationContext()).getMusicListList();
+            List<MusicList> musicLists = MusicPlayer.with(mContext.getApplicationContext()).getMusicListList();
             for (int i = 0; i < musicLists.size(); i++) {
                 if (musicLists.get(i).getListNo() == malfunctionList.get(viewHolder.getAdapterPosition()).getListNo()) {
                     musicLists.get(i).setAlreadyPlayCount(musicLists.get(i).getPlayCount());

@@ -82,12 +82,12 @@ public class MsgWebSocketClient extends WebSocketClient {
                             }
                             int interval1 = webSocketData.getVoiceInterval1();
                             int interval2 = webSocketData.getVoiceInterval2();
-                            MusicPlay.with(mContext.getApplicationContext()).addMusic(new MusicList(webSocketData.getListNo(), musicList, webSocketData.getJapanese(),
+                            MusicPlayer.with(mContext.getApplicationContext()).addMusic(new MusicList(webSocketData.getListNo(), musicList, webSocketData.getJapanese(),
                                     webSocketData.getChinese(), webSocketData.getEnglish(), webSocketData.getPlayCount(), 0), interval1, interval2);
                         }
 
                     } else {
-                        MusicPlay.with(mContext.getApplicationContext()).removeMusic(webSocketData.getListNo());
+                        MusicPlayer.with(mContext.getApplicationContext()).removeMusic(webSocketData.getListNo());
                     }
                 } else {
                     LogUtils.d(TAG, "播放次数为0，不添加到音乐播放列表");
@@ -110,7 +110,7 @@ public class MsgWebSocketClient extends WebSocketClient {
         // 清空自身列表
         malfunctionList.clear();
         // 清空异常信息音乐列表
-        MusicPlay.with(mContext.getApplicationContext()).getMusicListList().clear();
+        MusicPlayer.with(mContext.getApplicationContext()).getMusicListList().clear();
     }
 
     @Override

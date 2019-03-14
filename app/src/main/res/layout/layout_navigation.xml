@@ -38,7 +38,6 @@
                 android:layout_marginTop="@dimen/dp_5"
                 android:gravity="center"
                 android:maxLines="2"
-                android:text="榎本篤謙"
                 android:textColor="@color/white"
                 android:textSize="@dimen/sp_16" />
 
@@ -59,7 +58,6 @@
                 android:gravity="center"
                 android:maxLines="3"
                 android:padding="@dimen/dp_5"
-                android:text="白月工業株式会社"
                 android:textColor="@color/white"
                 android:textSize="@dimen/sp_18" />
 
@@ -69,7 +67,6 @@
                 android:layout_height="wrap_content"
                 android:maxLines="2"
                 android:padding="@dimen/dp_5"
-                android:text="エンジニアリング部"
                 android:textColor="@color/white"
                 android:textSize="@dimen/sp_16" />
         </LinearLayout>
@@ -355,7 +352,8 @@
                     android:background="@drawable/background_item_list_selector"
                     android:gravity="center_vertical"
                     android:orientation="horizontal"
-                    android:paddingLeft="@dimen/dp_16">
+                    android:paddingStart="@dimen/dp_16"
+                    android:paddingEnd="@dimen/dp_1">
 
                     <jp.co.shiratsuki.walkietalkie.widget.textview.MyTextView
                         android:layout_width="0px"

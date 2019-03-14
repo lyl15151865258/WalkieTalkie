@@ -22,9 +22,9 @@ import jp.co.shiratsuki.walkietalkie.constant.NetWork;
 import jp.co.shiratsuki.walkietalkie.contentprovider.SPHelper;
 import jp.co.shiratsuki.walkietalkie.message.IMsgWebSocket;
 import jp.co.shiratsuki.walkietalkie.message.MsgWebSocketClient;
+import jp.co.shiratsuki.walkietalkie.message.MusicPlayer;
 import jp.co.shiratsuki.walkietalkie.utils.GsonUtils;
 import jp.co.shiratsuki.walkietalkie.utils.LogUtils;
-import jp.co.shiratsuki.walkietalkie.message.MusicPlay;
 
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -149,13 +149,13 @@ public class WebSocketService extends Service {
                 @Override
                 public void openSuccess() {
                     LogUtils.d(TAG, "Message————————————————WebSocketopenSuccess");
-                    MusicPlay.with(getApplicationContext()).play();
+                    MusicPlayer.with(getApplicationContext()).play();
                 }
 
                 @Override
                 public void closed() {
                     // 释放播放器
-                    MusicPlay.with(getApplicationContext()).release();
+                    MusicPlayer.with(getApplicationContext()).release();
                     // 执行重连
                     reConnect();
                 }
@@ -228,7 +228,7 @@ public class WebSocketService extends Service {
         super.onDestroy();
         LogUtils.d(TAG, "WebSocketService——————生命周期——————:onDestroy");
         flag = false;
-        MusicPlay.with(WebSocketService.this.getApplicationContext()).release();
+        MusicPlayer.with(WebSocketService.this.getApplicationContext()).release();
         closeWebSocket();
         if (myReceiver != null) {
             unregisterReceiver(myReceiver);
