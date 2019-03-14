@@ -370,7 +370,6 @@ public class MusicPlay {
                                 mMediaPlayer.prepareAsync();
                             } else {
                                 // 如果网络未连接或者音乐链接不存在
-                                mMediaPlayer.release();
                                 mCountDownLatch.countDown();
                             }
                         } else {
@@ -387,6 +386,7 @@ public class MusicPlay {
                     mMediaPlayer.setOnErrorListener((mediaPlayer, what, extra) -> {
                         // 遇到错误就重置MediaPlayer
                         LogUtils.d(TAG, "媒体文件获取异常，播放失败");
+                        mediaPlayer.stop();
                         mediaPlayer.reset();
                         return false;
                     });
@@ -429,7 +429,6 @@ public class MusicPlay {
                                             mediaPlayer.prepareAsync();
                                         } else {
                                             // 网络异常或者音乐文件不存在
-                                            mediaPlayer.release();
                                             mCountDownLatch.countDown();
                                         }
                                     } else {
@@ -468,6 +467,8 @@ public class MusicPlay {
 
     /**
      * 播放叮咚声音（第一次播放一条报警信息的时候）
+     *
+     * @param mCountDownLatch 计数器
      */
     private void playDingDong(CountDownLatch mCountDownLatch) {
         mExecutorService.execute(() -> {

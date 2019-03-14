@@ -1,11 +1,38 @@
 package jp.co.shiratsuki.walkietalkie.test;
 
-import jp.co.shiratsuki.walkietalkie.utils.UrlCheckUtil;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 public class Test {
 
     public static void main(String[] args) {
-        System.out.print(UrlCheckUtil.checkUrlExist("http://192.168.1.135/AndonVoiceData/01_Japanese/1%E5%B7%A5%E7%A8%8B%EF%BC%88%E9%80%9F%E3%81%84).wav"));
+        final ExecutorService exec = Executors.newFixedThreadPool(1);
+        Callable<String> call = new Callable<String>() {
+            @Override
+            public String call() throws Exception {
+                //开始执行耗时操作
+                Thread.sleep(1000 * 1);
+                return "执行完成!";
+            }
+        };
+        try {
+            Future<String> future = exec.submit(call);
+            String obj = future.get(1000 * 3, TimeUnit.MILLISECONDS); //任务处理超时时间设为 1 秒
+            System.out.println("任务成功返回:" + obj);
+            System.out.println(obj+"2342342342423");
+        } catch (TimeoutException ex) {
+            System.out.println("处理超时啦....");
+            ex.printStackTrace();
+        } catch (Exception e) {
+            System.out.println("处理失败.");
+            e.printStackTrace();
+        }
+        // 关闭线程池
+        exec.shutdown();
     }
 
 }
