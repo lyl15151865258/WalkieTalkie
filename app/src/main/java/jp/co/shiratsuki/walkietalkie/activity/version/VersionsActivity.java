@@ -1,11 +1,17 @@
 package jp.co.shiratsuki.walkietalkie.activity.version;
 
+import android.Manifest;
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.provider.Settings;
+import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.FileProvider;
 import android.support.v7.widget.LinearLayoutManager;
@@ -70,6 +76,9 @@ public class VersionsActivity extends SwipeBackActivity {
     private MyProgressBar myProgressBar;
     private TextView tvCompletedSize, tvTotalSize;
     private float apkSize, completedSize;
+
+    private static final int GET_UNKNOWN_APP_SOURCES = 1;
+    protected static final int INSTALL_PACKAGES_REQUEST_CODE = 101;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -150,7 +159,7 @@ public class VersionsActivity extends SwipeBackActivity {
             public void onOKClick() {
                 //直接安装
                 File file = new File(mContext.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS), versionFileName);
-                installApk(file);
+                checkIsAndroidO(file);
             }
 
             @Override
@@ -226,7 +235,7 @@ public class VersionsActivity extends SwipeBackActivity {
                             fos.close();
                             bis.close();
                             is.close();
-                            installApk(file);
+                            checkIsAndroidO(file);
                         } catch (Exception e) {
                             e.printStackTrace();
                             showToast("下载出错，" + e.getMessage() + "，请联系管理员");
@@ -263,6 +272,67 @@ public class VersionsActivity extends SwipeBackActivity {
             startActivity(intent);
         } else {
             showToast("文件异常，无法安装");
+        }
+    }
+
+    /**
+     * Android8.0需要处理未知应用来源权限问题,否则直接安装
+     */
+    private void checkIsAndroidO(File file) {
+        if (Build.VERSION.SDK_INT >= 26) {
+            boolean b = getPackageManager().canRequestPackageInstalls();
+            if (b) {
+                installApk(file);
+            } else {
+                //请求安装未知应用来源的权限
+                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.REQUEST_INSTALL_PACKAGES}, INSTALL_PACKAGES_REQUEST_CODE);
+            }
+        } else {
+            installApk(file);
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        for (int i = 0; i < permissions.length; i++) {
+            LogUtils.d(TAG, "[Permission] " + permissions[i] + " is " + (grantResults[i] == PackageManager.PERMISSION_GRANTED ? "granted" : "denied"));
+            if (grantResults[i] != PackageManager.PERMISSION_GRANTED) {
+                finish();
+                break;
+            }
+        }
+        switch (requestCode) {
+            case INSTALL_PACKAGES_REQUEST_CODE:
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    File file = new File(mContext.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS), versionFileName);
+                    installApk(file);
+                } else {
+                    //  Android8.0以上引导用户手动开启安装权限
+                    if (Build.VERSION.SDK_INT >= 26) {
+                        Intent intent = new Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES);
+                        startActivityForResult(intent, GET_UNKNOWN_APP_SOURCES);
+                    }
+                }
+                break;
+            default:
+                break;
+        }
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (resultCode == Activity.RESULT_OK) {
+            switch (requestCode) {
+                case GET_UNKNOWN_APP_SOURCES:
+                    // 从安装未知来源文件的设置页面返回
+                    File file = new File(mContext.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS), versionFileName);
+                    checkIsAndroidO(file);
+                    break;
+                default:
+                    break;
+            }
         }
     }
 }

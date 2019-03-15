@@ -100,7 +100,6 @@ import jp.co.shiratsuki.walkietalkie.utils.NotificationsUtil;
 import jp.co.shiratsuki.walkietalkie.utils.StatusBarUtil;
 import jp.co.shiratsuki.walkietalkie.utils.ViewUtil;
 import jp.co.shiratsuki.walkietalkie.utils.WifiUtil;
-import jp.co.shiratsuki.walkietalkie.webrtc.WebRTCHelper;
 import jp.co.shiratsuki.walkietalkie.widget.dialog.DownLoadDialog;
 import jp.co.shiratsuki.walkietalkie.widget.MyProgressBar;
 import jp.co.shiratsuki.walkietalkie.widget.NoScrollViewPager;
@@ -151,8 +150,10 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
 
     private static final int GALLERY_REQUEST_CODE = 0;
     private static final int CAMERA_REQUEST_CODE = 1;
+    private static final int GET_UNKNOWN_APP_SOURCES = 2;
     protected static final int REQUEST_STORAGE_READ_ACCESS_PERMISSION = 101;
     protected static final int REQUEST_STORAGE_WRITE_ACCESS_PERMISSION = 102;
+    protected static final int INSTALL_PACKAGES_REQUEST_CODE = 103;
     private String mTempPhotoPath;
     private Uri mDestinationUri;
     private SelectPicturePopupWindow mSelectPicturePopupWindow;
@@ -330,7 +331,7 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
                                 public void onOKClick() {
                                     //直接安装
                                     File file = new File(mContext.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS), versionFileName);
-                                    installApk(file);
+                                    checkIsAndroidO(file);
                                 }
 
                                 @Override
@@ -423,7 +424,7 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
                             fos.close();
                             bis.close();
                             is.close();
-                            installApk(file);
+                            checkIsAndroidO(file);
                         } catch (Exception e) {
                             e.printStackTrace();
                             showToast("下载出错，" + e.getMessage() + "，请联系管理员");
@@ -459,7 +460,24 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
             }
             startActivity(intent);
         } else {
-            showToast("文件异常，无法安装");
+            showToast("File error");
+        }
+    }
+
+    /**
+     * Android8.0需要处理未知应用来源权限问题,否则直接安装
+     */
+    private void checkIsAndroidO(File file) {
+        if (Build.VERSION.SDK_INT >= 26) {
+            boolean b = getPackageManager().canRequestPackageInstalls();
+            if (b) {
+                installApk(file);
+            } else {
+                //请求安装未知应用来源的权限
+                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.REQUEST_INSTALL_PACKAGES}, INSTALL_PACKAGES_REQUEST_CODE);
+            }
+        } else {
+            installApk(file);
         }
     }
 
@@ -1428,9 +1446,9 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
         });
     }
 
-
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
         if (resultCode == Activity.RESULT_OK) {
             switch (requestCode) {
                 case CAMERA_REQUEST_CODE:
@@ -1452,11 +1470,15 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
                     // 裁剪图片错误
                     handleCropError(data);
                     break;
+                case GET_UNKNOWN_APP_SOURCES:
+                    // 从安装未知来源文件的设置页面返回
+                    File file = new File(mContext.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS), versionFileName);
+                    checkIsAndroidO(file);
+                    break;
                 default:
                     break;
             }
         }
-        super.onActivityResult(requestCode, resultCode, data);
     }
 
     /**
@@ -1538,8 +1560,9 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         for (int i = 0; i < permissions.length; i++) {
-            LogUtils.d(WebRTCHelper.TAG, "[Permission] " + permissions[i] + " is " + (grantResults[i] == PackageManager.PERMISSION_GRANTED ? "granted" : "denied"));
+            LogUtils.d(TAG, "[Permission] " + permissions[i] + " is " + (grantResults[i] == PackageManager.PERMISSION_GRANTED ? "granted" : "denied"));
             if (grantResults[i] != PackageManager.PERMISSION_GRANTED) {
                 finish();
                 break;
@@ -1556,8 +1579,20 @@ public class MainActivity extends BaseActivity implements SelectPicturePopupWind
                     takePhoto();
                 }
                 break;
+            case INSTALL_PACKAGES_REQUEST_CODE:
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    File file = new File(mContext.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS), versionFileName);
+                    installApk(file);
+                } else {
+                    //  Android8.0以上引导用户手动开启安装权限
+                    if (Build.VERSION.SDK_INT >= 26) {
+                        Intent intent = new Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES);
+                        startActivityForResult(intent, GET_UNKNOWN_APP_SOURCES);
+                    }
+                }
+                break;
             default:
-                super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+                break;
         }
     }
 

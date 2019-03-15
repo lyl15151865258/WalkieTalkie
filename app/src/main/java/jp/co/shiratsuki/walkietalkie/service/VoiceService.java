@@ -42,6 +42,8 @@ import jp.co.shiratsuki.walkietalkie.contentprovider.SPHelper;
 import jp.co.shiratsuki.walkietalkie.utils.DbcSbcUtils;
 import jp.co.shiratsuki.walkietalkie.utils.GsonUtils;
 import jp.co.shiratsuki.walkietalkie.utils.LogUtils;
+import jp.co.shiratsuki.walkietalkie.utils.WakeLocKManager;
+import jp.co.shiratsuki.walkietalkie.utils.WifiLocKManager;
 import jp.co.shiratsuki.walkietalkie.webrtc.IWebRTCHelper;
 import jp.co.shiratsuki.walkietalkie.webrtc.WebRTCHelper;
 import jp.co.shiratsuki.walkietalkie.constant.NetWork;
@@ -74,6 +76,9 @@ public class VoiceService extends Service implements IWebRTCHelper, VolumeChange
     private ComponentName mComponentName;
 
     private VolumeChangeObserver mVolumeChangeObserver;
+
+    private WifiLocKManager wifiLocKManager;
+    private WakeLocKManager wakeLocKManager;
 
     @Override
     public void onCreate() {
@@ -121,6 +126,13 @@ public class VoiceService extends Service implements IWebRTCHelper, VolumeChange
             String signal = DbcSbcUtils.getPatStr("ws://" + user.getVoice_ip() + ":" + user.getVoice_port() + "/WalkieTalkieServer/" + user.getUser_id() + "/" + user.getUser_id() + uniqueCode);
             helper.initSocket(signal, false);
         }
+
+        wifiLocKManager = new WifiLocKManager(this);
+        wifiLocKManager.createWifiLock("VoiceService#WifiLock");
+        wifiLocKManager.acquireWifiLock();
+        wakeLocKManager = new WakeLocKManager(this);
+        wakeLocKManager.createWakeLock("VoiceService#WakeLock");
+        wakeLocKManager.acquireWakeLock();
     }
 
     // 注册耳机按钮事件
@@ -715,6 +727,12 @@ public class VoiceService extends Service implements IWebRTCHelper, VolumeChange
         super.onDestroy();
         LogUtils.d(TAG, "VoiceService——————生命周期——————:onDestroy");
         helper.release();
+        if (wifiLocKManager != null) {
+            wifiLocKManager.releaseWifiLock();
+        }
+        if (wakeLocKManager != null) {
+            wakeLocKManager.releaseWakeLock();
+        }
         if (keyEventBroadcastReceiver != null) {
             unregisterReceiver(keyEventBroadcastReceiver);
         }
