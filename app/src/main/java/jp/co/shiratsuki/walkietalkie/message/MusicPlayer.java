@@ -114,9 +114,17 @@ public class MusicPlayer {
     public void addMusic(MusicList musicList, int interval1, int interval2) {
         LogUtils.d(TAG, "添加音乐，编号：" + musicList.getListNo());
         if (!musicListList.contains(musicList)) {
-            // 不包含了这条异常信息
+            // 不包含这条异常信息
             LogUtils.d(TAG, "添加音乐，编号：" + musicList.getListNo() + "，列表中不包含该音乐，添加成功");
-            musicListList.add(musicList);
+            // 根据优先级插入音乐列表
+            int position = musicListList.size();
+            for (int i = 0; i < musicListList.size(); i++) {
+                if (musicList.getPriority() <= musicListList.get(i).getPriority()) {
+                    position = i;
+                    break;
+                }
+            }
+            musicListList.add(position, musicList);
             this.interval1 = interval1;
             this.interval2 = interval2;
         } else {

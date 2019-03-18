@@ -20,6 +20,7 @@ public class WebSocketData implements Serializable {
     private int ForeColor;
     private int ListNo;
     private int PlayCount;
+    private int Priority;
     private String ServerAddress;
     private boolean Status;
     private String Text_Japanese;
@@ -76,6 +77,14 @@ public class WebSocketData implements Serializable {
 
     public void setPlayCount(int playCount) {
         PlayCount = playCount;
+    }
+
+    public int getPriority() {
+        return Priority;
+    }
+
+    public void setPriority(int priority) {
+        Priority = priority;
     }
 
     public String getServerAddress() {

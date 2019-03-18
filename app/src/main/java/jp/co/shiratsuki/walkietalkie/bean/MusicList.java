@@ -6,6 +6,8 @@ public class MusicList {
 
     private int listNo;
 
+    private int Priority;
+
     private List<Music> musicList;
 
     private String JapaneseFolder;
@@ -18,9 +20,10 @@ public class MusicList {
 
     private int alreadyPlayCount;
 
-    public MusicList(int listNo, List<Music> musicList, String JapaneseFolder, String ChineseFolder, String EnglishFolder,
+    public MusicList(int listNo,int Priority, List<Music> musicList, String JapaneseFolder, String ChineseFolder, String EnglishFolder,
                      int playCount, int alreadyPlayCount) {
         this.listNo = listNo;
+        this.Priority = Priority;
         this.musicList = musicList;
         this.JapaneseFolder = JapaneseFolder;
         this.ChineseFolder = ChineseFolder;
@@ -35,6 +38,14 @@ public class MusicList {
 
     public void setListNo(int listNo) {
         this.listNo = listNo;
+    }
+
+    public int getPriority() {
+        return Priority;
+    }
+
+    public void setPriority(int priority) {
+        Priority = priority;
     }
 
     public List<Music> getMusicList() {

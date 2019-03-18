@@ -184,11 +184,36 @@ public class MalfunctionFragment extends BaseFragment {
      * @param webSocketData 异常信息实体
      */
     public void receiveMalfunction(WebSocketData webSocketData) {
+        // 判断状态，是添加新的异常还是取消已有的异常
         if (webSocketData.isStatus()) {
-            // 遍历对比是否包含了这个ListNo
+            // 检查是否包含了这个ListNo，如果不包含这条异常信息
             if (!malfunctionList.contains(webSocketData)) {
-                malfunctionList.add(0, webSocketData);
-                malfunctionAdapter.notifyItemInserted(0);
+                // 检查优先级进行插入，默认认为优先级最低（插入位置是列表第一个播放完毕的位置），然后循环比较优先级
+                int position = -1;
+                for (int i = 0; i < malfunctionList.size(); i++) {
+                    // 与未播放完毕的条目进行比较，播放完毕的就不用比较了
+                    LogUtils.d(TAG, "!malfunctionList.get(i).isFinishPlay()：" + !malfunctionList.get(i).isFinishPlay());
+                    LogUtils.d(TAG, "webSocketData.getPriority() <= malfunctionList.get(i).getPriority()：" + (webSocketData.getPriority() <= malfunctionList.get(i).getPriority()));
+                    if (!malfunctionList.get(i).isFinishPlay() && webSocketData.getPriority() <= malfunctionList.get(i).getPriority()) {
+                        position = i;
+                        break;
+                    }
+                    // 找到第一条播放完毕的位置
+                    if (malfunctionList.get(i).isFinishPlay() && position == -1) {
+                        position = i;
+                    }
+                }
+
+                if (position != -1) {
+                    // 如果优先级比某一条未播放完毕的异常高，则插入在这条未播放完毕的异常的位置
+                    malfunctionList.add(position, webSocketData);
+                    malfunctionAdapter.notifyItemInserted(position);
+                } else {
+                    // 如果当前一条异常信息都没有，则直接插入在最一条的位置
+                    position = malfunctionList.size();
+                    malfunctionList.add(position, webSocketData);
+                    malfunctionAdapter.notifyItemInserted(position);
+                }
             }
         } else {
             int position = -1;

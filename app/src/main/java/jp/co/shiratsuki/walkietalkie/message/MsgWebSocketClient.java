@@ -82,8 +82,9 @@ public class MsgWebSocketClient extends WebSocketClient {
                             }
                             int interval1 = webSocketData.getVoiceInterval1();
                             int interval2 = webSocketData.getVoiceInterval2();
-                            MusicPlayer.with(mContext.getApplicationContext()).addMusic(new MusicList(webSocketData.getListNo(), musicList, webSocketData.getJapanese(),
-                                    webSocketData.getChinese(), webSocketData.getEnglish(), webSocketData.getPlayCount(), 0), interval1, interval2);
+                            MusicPlayer.with(mContext.getApplicationContext()).addMusic(new MusicList(webSocketData.getListNo(), webSocketData.getPriority(), musicList,
+                                            webSocketData.getJapanese(), webSocketData.getChinese(), webSocketData.getEnglish(), webSocketData.getPlayCount(), 0),
+                                    interval1, interval2);
                         }
 
                     } else {
